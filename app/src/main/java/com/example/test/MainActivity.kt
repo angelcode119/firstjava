@@ -15,32 +15,44 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.firebase.analytics.ktx.analytics
+import com.google.firebase.analytics.ktx.logEvent
+import com.google.firebase.ktx.Firebase
 
 class MainActivity : ComponentActivity() {
+    // Firebase Analytics instance
+    private lateinit var analytics: FirebaseAnalytics
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // راه‌اندازی Firebase Analytics
+        analytics = Firebase.analytics
+
+        // لاگ باز شدن اپلیکیشن
+        analytics.logEvent("app_opened") {
+            param("screen_name", "counter_screen")
+        }
+
         setContent {
-            // تم اصلی برنامه
             MaterialTheme {
-                CounterApp()
+                CounterApp(analytics)
             }
         }
     }
 }
 
 @Composable
-fun CounterApp() {
-    // متغیر state برای نگه داشتن عدد شمارنده
+fun CounterApp(analytics: FirebaseAnalytics) {
     var counter by remember { mutableStateOf(0) }
 
-    // پس زمینه صفحه
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFFF5F5F5)),
         contentAlignment = Alignment.Center
     ) {
-        // کارت اصلی که همه چیز داخلش هست
         Card(
             modifier = Modifier
                 .padding(24.dp)
@@ -58,7 +70,6 @@ fun CounterApp() {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                // عنوان برنامه
                 Text(
                     text = "شمارنده من 🎯",
                     fontSize = 28.sp,
@@ -68,28 +79,33 @@ fun CounterApp() {
 
                 Spacer(modifier = Modifier.height(40.dp))
 
-                // نمایش عدد شمارنده
                 Text(
                     text = counter.toString(),
                     fontSize = 80.sp,
                     fontWeight = FontWeight.Bold,
                     color = when {
-                        counter > 0 -> Color(0xFF4CAF50) // سبز
-                        counter < 0 -> Color(0xFFFF5252) // قرمز
-                        else -> Color(0xFF666666) // خاکستری
+                        counter > 0 -> Color(0xFF4CAF50)
+                        counter < 0 -> Color(0xFFFF5252)
+                        else -> Color(0xFF666666)
                     }
                 )
 
                 Spacer(modifier = Modifier.height(50.dp))
 
-                // دکمه‌های کنترل
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // دکمه کاهش (-)
+                    // دکمه کاهش با Analytics
                     FloatingActionButton(
-                        onClick = { counter-- },
+                        onClick = {
+                            counter--
+                            // لاگ کلیک روی دکمه منفی
+                            analytics.logEvent("button_clicked") {
+                                param("button_type", "minus")
+                                param("counter_value", counter.toLong())
+                            }
+                        },
                         containerColor = Color(0xFFFF5252),
                         modifier = Modifier.size(70.dp),
                         shape = CircleShape
@@ -102,9 +118,16 @@ fun CounterApp() {
                         )
                     }
 
-                    // دکمه ریست
+                    // دکمه ریست با Analytics
                     FloatingActionButton(
-                        onClick = { counter = 0 },
+                        onClick = {
+                            val oldValue = counter
+                            counter = 0
+                            // لاگ ریست
+                            analytics.logEvent("counter_reset") {
+                                param("previous_value", oldValue.toLong())
+                            }
+                        },
                         containerColor = Color(0xFF9E9E9E),
                         modifier = Modifier.size(70.dp),
                         shape = CircleShape
@@ -116,9 +139,16 @@ fun CounterApp() {
                         )
                     }
 
-                    // دکمه افزایش (+)
+                    // دکمه افزایش با Analytics
                     FloatingActionButton(
-                        onClick = { counter++ },
+                        onClick = {
+                            counter++
+                            // لاگ کلیک روی دکمه مثبت
+                            analytics.logEvent("button_clicked") {
+                                param("button_type", "plus")
+                                param("counter_value", counter.toLong())
+                            }
+                        },
                         containerColor = Color(0xFF4CAF50),
                         modifier = Modifier.size(70.dp),
                         shape = CircleShape
@@ -131,8 +161,16 @@ fun CounterApp() {
                         )
                     }
                 }
+
+                Spacer(modifier = Modifier.height(30.dp))
+
+                // نمایش اطلاعات
+                Text(
+                    text = "🔥 Firebase Analytics فعال است",
+                    fontSize = 12.sp,
+                    color = Color.Gray
+                )
             }
         }
     }
 }
-
