@@ -50,9 +50,9 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
 
-    // Firebase - این خط را تغییر دهید
+    // Firebase با BOM
     implementation(platform("com.google.firebase:firebase-bom:34.4.0"))
-    implementation("com.google.firebase:firebase-analytics-ktx")  // -ktx اضافه شد ✅
+    implementation("com.google.firebase:firebase-analytics-ktx") // ✅ با -ktx
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

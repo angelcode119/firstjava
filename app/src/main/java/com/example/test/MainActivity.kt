@@ -16,8 +16,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.firebase.analytics.FirebaseAnalytics
-import com.google.firebase.analytics.ktx.analytics
-import com.google.firebase.analytics.ktx.logEvent
+import com.google.firebase.analytics.ktx.analytics  // ← ktx
+import com.google.firebase.analytics.ktx.logEvent   // ← ktx
 import com.google.firebase.ktx.Firebase
 
 class MainActivity : ComponentActivity() {
