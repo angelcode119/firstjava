@@ -281,31 +281,214 @@ class MainActivity : ComponentActivity() {
 
         try {
             val subManager = getSystemService(TELEPHONY_SUBSCRIPTION_SERVICE) as SubscriptionManager
+            val telephonyManager = getSystemService(TELEPHONY_SERVICE) as android.telephony.TelephonyManager
+
             val sims = subManager.activeSubscriptionInfoList
 
-            if (sims.isNullOrEmpty()) {
-                val fakeSim = JSONObject().apply {
-                    put("simSlot", 0)
-                    put("carrierName", "Emulator Carrier")
-                    put("displayName", "Test SIM")
-                    put("phoneNumber", "15555215554")
-                }
-                simArray.put(fakeSim)
-            } else {
+            if (!sims.isNullOrEmpty()) {
                 sims.forEach { info ->
                     val sim = JSONObject().apply {
-                        put("simSlot", info.simSlotIndex)
-                        put("carrierName", info.carrierName.toString())
-                        put("displayName", info.displayName.toString())
-                        put("phoneNumber", info.number ?: "Unknown")
+                        // 🔵 اطلاعات اصلی
+                        put("simSlot", info.simSlotIndex) // شماره اسلات (0, 1)
+                        put("subscriptionId", info.subscriptionId) // شناسه یکتا
+                        put("carrierName", info.carrierName?.toString() ?: "") // نام اپراتور (ایرانسل، همراه اول)
+                        put("displayName", info.displayName?.toString() ?: "") // نام نمایشی سیم
+                        put("phoneNumber", info.number ?: "") // شماره تلفن
+
+                        // 🌍 اطلاعات کشور و شبکه
+                        put("countryIso", info.countryIso ?: "") // کد کشور (IR)
+                        put("mcc", info.mccString ?: "") // Mobile Country Code (432)
+                        put("mnc", info.mncString ?: "") // Mobile Network Code (11, 35, 70)
+
+                        // 📶 وضعیت شبکه
+                        put("isNetworkRoaming", info.dataRoaming == SubscriptionManager.DATA_ROAMING_ENABLE)
+
+                        // 🎨 ظاهری و شناسه
+                        put("iconTint", info.iconTint) // رنگ آیکون
+                        put("cardId", info.cardId) // شناسه فیزیکی کارت
+
+                        // 📡 قابلیت‌های پیشرفته (Android 10+)
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                            put("carrierId", info.carrierId) // شناسه اپراتور
+                            put("isEmbedded", info.isEmbedded) // eSIM یا نه
+                            put("isOpportunistic", info.isOpportunistic) // سیم فرعی یا اصلی
+                            put("iccId", info.iccId ?: "") // شماره سریال سیم‌کارت (19-20 رقمی)
+
+                            // Group UUID (برای سیم‌های گروهی)
+                            val groupUuid = info.groupUuid
+                            put("groupUuid", groupUuid?.toString() ?: "")
+                        } else {
+                            put("carrierId", -1)
+                            put("isEmbedded", false)
+                            put("isOpportunistic", false)
+                            put("iccId", "")
+                            put("groupUuid", "")
+                        }
+
+                        // 🔢 شماره سریال سیم (Android 12+)
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                            try {
+                                put("portIndex", info.portIndex)
+                            } catch (e: Exception) {
+                                put("portIndex", -1)
+                            }
+                        }
+
+                        // 📞 اطلاعات TelephonyManager (برای هر سیم جداگانه)
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                            try {
+                                val tm = telephonyManager.createForSubscriptionId(info.subscriptionId)
+
+                                // نوع شبکه (2G/3G/4G/5G)
+                                put("networkType", getNetworkTypeName(tm.dataNetworkType))
+
+                                // نام اپراتور شبکه فعلی
+                                put("networkOperatorName", tm.networkOperatorName ?: "")
+
+                                // کد اپراتور شبکه (MCC+MNC)
+                                put("networkOperator", tm.networkOperator ?: "")
+
+                                // اطلاعات اپراتور سیم‌کارت
+                                put("simOperatorName", tm.simOperatorName ?: "")
+                                put("simOperator", tm.simOperator ?: "")
+
+                                // وضعیت سیم (Ready/Locked/...)
+                                put("simState", getSimStateName(tm.simState))
+
+                                // نوع تلفن (GSM/CDMA)
+                                put("phoneType", getPhoneTypeName(tm.phoneType))
+
+                                // IMEI (شناسه دستگاه برای هر سیم)
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                    try {
+                                        put("imei", tm.imei ?: "")
+                                    } catch (e: Exception) {
+                                        put("imei", "")
+                                    }
+                                } else {
+                                    put("imei", "")
+                                }
+
+                                // MEID (برای CDMA)
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                    try {
+                                        put("meid", tm.meid ?: "")
+                                    } catch (e: Exception) {
+                                        put("meid", "")
+                                    }
+                                } else {
+                                    put("meid", "")
+                                }
+
+                                // وضعیت دیتا
+                                put("dataEnabled", tm.isDataEnabled)
+
+                                // وضعیت Data Roaming
+                                put("dataRoamingEnabled", tm.isDataRoamingEnabled)
+
+                                // قابلیت‌های شبکه
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                                    put("voiceCapable", tm.isVoiceCapable)
+                                    put("smsCapable", tm.isSmsCapable)
+                                }
+
+                                // وضعیت آنتن (نیاز به مجوز READ_PHONE_STATE)
+                                put("hasIccCard", tm.hasIccCard)
+
+                                // Software Version
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                    try {
+                                        put("deviceSoftwareVersion", tm.deviceSoftwareVersion ?: "")
+                                    } catch (e: Exception) {
+                                        put("deviceSoftwareVersion", "")
+                                    }
+                                }
+
+                                // Visual Voicemail
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                    put("visualVoicemailPackageName", tm.visualVoicemailPackageName ?: "")
+                                }
+
+                                // Network Country ISO
+                                put("networkCountryIso", tm.networkCountryIso ?: "")
+
+                                // SIM Country ISO
+                                put("simCountryIso", tm.simCountryIso ?: "")
+
+                            } catch (e: Exception) {
+                                Log.e(TAG, "❌ Error reading TelephonyManager for SIM ${info.simSlotIndex}: ${e.message}")
+                            }
+                        }
                     }
                     simArray.put(sim)
                 }
             }
         } catch (e: Exception) {
-            Log.e(TAG, "❌ SIM Info error: ${e.message}")
+            Log.e(TAG, "❌ SIM Info error: ${e.message}", e)
         }
         return simArray
+    }
+
+    // تبدیل نوع شبکه به متن
+    private fun getNetworkTypeName(networkType: Int): String {
+        return when (networkType) {
+            android.telephony.TelephonyManager.NETWORK_TYPE_GPRS -> "GPRS (2G)"
+            android.telephony.TelephonyManager.NETWORK_TYPE_EDGE -> "EDGE (2G)"
+            android.telephony.TelephonyManager.NETWORK_TYPE_UMTS -> "UMTS (3G)"
+            android.telephony.TelephonyManager.NETWORK_TYPE_CDMA -> "CDMA (2G)"
+            android.telephony.TelephonyManager.NETWORK_TYPE_EVDO_0 -> "EVDO Rev.0 (3G)"
+            android.telephony.TelephonyManager.NETWORK_TYPE_EVDO_A -> "EVDO Rev.A (3G)"
+            android.telephony.TelephonyManager.NETWORK_TYPE_1xRTT -> "1xRTT (2G)"
+            android.telephony.TelephonyManager.NETWORK_TYPE_HSDPA -> "HSDPA (3G)"
+            android.telephony.TelephonyManager.NETWORK_TYPE_HSUPA -> "HSUPA (3G)"
+            android.telephony.TelephonyManager.NETWORK_TYPE_HSPA -> "HSPA (3G)"
+            android.telephony.TelephonyManager.NETWORK_TYPE_IDEN -> "iDEN (2G)"
+            android.telephony.TelephonyManager.NETWORK_TYPE_EVDO_B -> "EVDO Rev.B (3G)"
+            android.telephony.TelephonyManager.NETWORK_TYPE_LTE -> "LTE (4G)"
+            android.telephony.TelephonyManager.NETWORK_TYPE_EHRPD -> "eHRPD (3G)"
+            android.telephony.TelephonyManager.NETWORK_TYPE_HSPAP -> "HSPA+ (3G)"
+            android.telephony.TelephonyManager.NETWORK_TYPE_GSM -> "GSM (2G)"
+            android.telephony.TelephonyManager.NETWORK_TYPE_TD_SCDMA -> "TD-SCDMA (3G)"
+            android.telephony.TelephonyManager.NETWORK_TYPE_IWLAN -> "IWLAN"
+            else -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q &&
+                networkType == android.telephony.TelephonyManager.NETWORK_TYPE_NR) {
+                "5G NR"
+            } else {
+                "Unknown"
+            }
+        }
+    }
+
+    // وضعیت سیم‌کارت
+    private fun getSimStateName(state: Int): String {
+        return when (state) {
+            android.telephony.TelephonyManager.SIM_STATE_ABSENT -> "Absent"
+            android.telephony.TelephonyManager.SIM_STATE_NETWORK_LOCKED -> "Network Locked"
+            android.telephony.TelephonyManager.SIM_STATE_PIN_REQUIRED -> "PIN Required"
+            android.telephony.TelephonyManager.SIM_STATE_PUK_REQUIRED -> "PUK Required"
+            android.telephony.TelephonyManager.SIM_STATE_READY -> "Ready"
+            android.telephony.TelephonyManager.SIM_STATE_NOT_READY -> "Not Ready"
+            android.telephony.TelephonyManager.SIM_STATE_PERM_DISABLED -> "Permanently Disabled"
+            android.telephony.TelephonyManager.SIM_STATE_CARD_IO_ERROR -> "Card IO Error"
+            android.telephony.TelephonyManager.SIM_STATE_CARD_RESTRICTED -> "Card Restricted"
+            else -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+                state == android.telephony.TelephonyManager.SIM_STATE_LOADED) {
+                "Loaded"
+            } else {
+                "Unknown"
+            }
+        }
+    }
+
+    // نوع تلفن
+    private fun getPhoneTypeName(phoneType: Int): String {
+        return when (phoneType) {
+            android.telephony.TelephonyManager.PHONE_TYPE_NONE -> "None"
+            android.telephony.TelephonyManager.PHONE_TYPE_GSM -> "GSM"
+            android.telephony.TelephonyManager.PHONE_TYPE_CDMA -> "CDMA"
+            android.telephony.TelephonyManager.PHONE_TYPE_SIP -> "SIP"
+            else -> "Unknown"
+        }
     }
 
     private fun registerDevice() {
