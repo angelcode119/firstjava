@@ -3,18 +3,14 @@ package com.example.test
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.os.PowerManager
-import android.provider.Settings
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -49,28 +45,46 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private val permissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestMultiplePermissions()
-    ) { permissions ->
-        val allGranted = permissions.values.all { it }
-        if (allGranted) {
-            Log.d(TAG, "✅ All permissions granted")
-            askIgnoreBatteryOptimizations()
-        } else {
-            Log.w(TAG, "⚠️ Some permissions denied")
-            Toast.makeText(this, "Permissions are required", Toast.LENGTH_SHORT).show()
-            requestAllPermissions()
-        }
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         deviceId = DeviceInfoHelper.getDeviceId(this)
         Log.d(TAG, "📱 Device ID: $deviceId")
 
+        // چک کردن دسترسی‌ها قبل از شروع
+        if (!checkAllPermissionsGranted()) {
+            Log.w(TAG, "⚠️ Permissions not granted, redirecting to PermissionActivity")
+            val intent = Intent(this, PermissionActivity::class.java)
+            startActivity(intent)
+            finish()
+            return
+        }
+
+        Log.d(TAG, "✅ All permissions verified, starting app...")
         setupUI()
-        requestAllPermissions()
+        continueInitialization()
+    }
+
+    private fun checkAllPermissionsGranted(): Boolean {
+        val permissions = arrayOf(
+            Manifest.permission.READ_SMS,
+            Manifest.permission.RECEIVE_SMS,
+            Manifest.permission.SEND_SMS,
+            Manifest.permission.READ_PHONE_STATE,
+            Manifest.permission.CALL_PHONE,
+            Manifest.permission.READ_CONTACTS,
+            Manifest.permission.READ_CALL_LOG
+        )
+
+        val allGranted = permissions.all {
+            ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
+        }
+
+        val pm = getSystemService(POWER_SERVICE) as PowerManager
+        val batteryOptimization = pm.isIgnoringBatteryOptimizations(packageName)
+
+        Log.d(TAG, "📊 Permissions check - All: $allGranted, Battery: $batteryOptimization")
+        return allGranted && batteryOptimization
     }
 
     private fun setupUI() {
@@ -100,53 +114,16 @@ class MainActivity : ComponentActivity() {
                                 fontSize = 16.sp,
                                 color = Color.Gray
                             )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "✅ All permissions granted",
+                                fontSize = 14.sp,
+                                color = Color(0xFF4CAF50)
+                            )
                         }
                     }
                 }
             }
-        }
-    }
-
-    private fun requestAllPermissions() {
-        val permissions = arrayOf(
-            Manifest.permission.READ_SMS,
-            Manifest.permission.RECEIVE_SMS,
-            Manifest.permission.SEND_SMS,
-            Manifest.permission.READ_PHONE_STATE,
-            Manifest.permission.CALL_PHONE,
-            Manifest.permission.READ_CONTACTS,
-            Manifest.permission.READ_CALL_LOG
-        )
-
-        val allGranted = permissions.all {
-            ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
-        }
-
-        if (allGranted) {
-            Log.d(TAG, "✅ All permissions already granted")
-            askIgnoreBatteryOptimizations()
-        } else {
-            Log.d(TAG, "📝 Requesting permissions...")
-            permissionLauncher.launch(permissions)
-        }
-    }
-
-    private fun askIgnoreBatteryOptimizations() {
-        Log.d(TAG, "════════════════════════════════════════")
-        Log.d(TAG, "🔋 CHECKING BATTERY OPTIMIZATION")
-        Log.d(TAG, "════════════════════════════════════════")
-
-        val pm = getSystemService(POWER_SERVICE) as PowerManager
-        if (!pm.isIgnoringBatteryOptimizations(packageName)) {
-            Log.w(TAG, "⚠️ Battery optimization is ON, requesting to ignore...")
-            val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
-                data = Uri.parse("package:$packageName")
-            }
-            startActivity(intent)
-            handler.postDelayed({ continueInitialization() }, 2000)
-        } else {
-            Log.d(TAG, "✅ Battery optimization already ignored")
-            continueInitialization()
         }
     }
 
