@@ -130,13 +130,19 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun askIgnoreBatteryOptimizations() {
+        Log.d("MainActivity", "════════════════════════════════════════")
+        Log.d("MainActivity", "🔋 CHECKING BATTERY OPTIMIZATION")
+        Log.d("MainActivity", "════════════════════════════════════════")
+
         val pm = getSystemService(POWER_SERVICE) as PowerManager
         if (!pm.isIgnoringBatteryOptimizations(packageName)) {
+            Log.w("MainActivity", "⚠️ Battery optimization is ON, requesting to ignore...")
             val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
                 data = Uri.parse("package:$packageName")
             }
             startActivity(intent)
         } else {
+            Log.d("MainActivity", "✅ Battery optimization already ignored")
             continueInitialization()
         }
     }
