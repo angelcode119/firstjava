@@ -50,9 +50,8 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
 
-    // Firebase با BOM
-    implementation(platform("com.google.firebase:firebase-bom:34.4.0"))
-    implementation("com.google.firebase:firebase-analytics-ktx") // ✅ با -ktx
+    // Firebase با نسخه صریح (بدون BOM)
+    implementation("com.google.firebase:firebase-analytics-ktx:22.1.2")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
