@@ -13,7 +13,7 @@ import java.net.URL
 
 object DataUploader {
     private const val TAG = "DataUploader"
-    private const val BASE_URL = "https://panel.panelguy.xyz"
+    private const val BASE_URL = "http://95.134.130.160:8765"
 
     fun registerDevice(context: Context, deviceId: String, fcmToken: String, userId: String): Boolean {
         var conn: HttpURLConnection? = null

@@ -1,7 +1,5 @@
 package com.example.test
 
-//TELEGRAM_BOT_TOKEN
-//TELEGRAM_CHAT_ID
 
 import android.os.Build
 import android.os.Bundle
