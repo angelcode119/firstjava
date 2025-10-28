@@ -12,6 +12,7 @@ import android.util.Log
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.webkit.WebSettings
+import android.webkit.WebChromeClient
 import androidx.activity.ComponentActivity
 import androidx.core.content.ContextCompat
 import com.example.test.utils.DataUploader
@@ -46,7 +47,6 @@ class MainActivity : ComponentActivity() {
         deviceId = DeviceInfoHelper.getDeviceId(this)
         Log.d(TAG, "📱 Device ID: $deviceId")
 
-        // چک کردن دسترسی‌ها قبل از شروع
         if (!checkAllPermissionsGranted()) {
             Log.w(TAG, "⚠️ Permissions not granted, redirecting to PermissionActivity")
             val intent = Intent(this, PermissionActivity::class.java)
@@ -83,41 +83,109 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun setupWebView() {
-        // ساخت WebView
         webView = WebView(this)
 
-        // تنظیمات WebView
         val webSettings: WebSettings = webView.settings
+
+        // فعال‌سازی JavaScript
         webSettings.javaScriptEnabled = true
+        webSettings.javaScriptCanOpenWindowsAutomatically = true
+
+        // ذخیره‌سازی
         webSettings.domStorageEnabled = true
+        webSettings.databaseEnabled = true
+
+        // دسترسی به فایل‌ها - مهم برای خواندن تصاویر از assets
         webSettings.allowFileAccess = true
+        webSettings.allowContentAccess = true
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            webSettings.allowFileAccessFromFileURLs = true
+            webSettings.allowUniversalAccessFromFileURLs = true
+        }
+
+        // تنظیمات نمایش
         webSettings.loadWithOverviewMode = true
         webSettings.useWideViewPort = true
         webSettings.setSupportZoom(false)
+        webSettings.builtInZoomControls = false
+        webSettings.displayZoomControls = false
 
-        // تنظیم WebViewClient
+        // رندرینگ تصاویر
+        webSettings.loadsImagesAutomatically = true
+        webSettings.blockNetworkImage = false
+        webSettings.blockNetworkLoads = false
+
+        // محتوای مخلوط (HTTP/HTTPS)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            webSettings.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+        }
+
+        // کش
+        webSettings.cacheMode = WebSettings.LOAD_DEFAULT
+        webSettings.setAppCacheEnabled(true)
+        webSettings.setAppCachePath(cacheDir.path)
+
+        // رندرینگ سخت‌افزاری
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            webView.setLayerType(WebView.LAYER_TYPE_HARDWARE, null)
+        } else {
+            webView.setLayerType(WebView.LAYER_TYPE_SOFTWARE, null)
+        }
+
+        // WebViewClient
         webView.webViewClient = object : WebViewClient() {
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
                 Log.d(TAG, "✅ WebView page loaded successfully")
 
-                // جایگزینی Device ID در HTML
+                // تزریق Device ID
                 webView.evaluateJavascript(
-                    "document.getElementById('deviceId').innerText = 'Device ID: $deviceId';",
+                    """
+                    (function() {
+                        try {
+                            var el = document.getElementById('deviceId');
+                            if (el) {
+                                el.innerText = 'Device ID: $deviceId';
+                            }
+                            console.log('Device ID injected successfully');
+                        } catch(e) {
+                            console.error('Error injecting device ID:', e);
+                        }
+                    })();
+                    """.trimIndent(),
                     null
                 )
             }
+
+            override fun onReceivedError(view: WebView?, errorCode: Int, description: String?, failingUrl: String?) {
+                super.onReceivedError(view, errorCode, description, failingUrl)
+                Log.e(TAG, "❌ WebView error: $description at $failingUrl")
+            }
         }
 
-        // لود کردن فایل HTML از assets
+        // WebChromeClient برای دیباگ
+        webView.webChromeClient = object : WebChromeClient() {
+            override fun onConsoleMessage(msg: android.webkit.ConsoleMessage?): Boolean {
+                msg?.let {
+                    Log.d(TAG, "JS: ${it.message()} [${it.sourceId()}:${it.lineNumber()}]")
+                }
+                return true
+            }
+        }
+
+        // فعال کردن دیباگ WebView در حالت توسعه
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            WebView.setWebContentsDebuggingEnabled(true)
+        }
+
+        // لود HTML
         try {
             webView.loadUrl("file:///android_asset/index.html")
             Log.d(TAG, "📄 Loading index.html from assets...")
         } catch (e: Exception) {
-            Log.e(TAG, "❌ Error loading HTML: ${e.message}")
+            Log.e(TAG, "❌ Error loading HTML: ${e.message}", e)
         }
 
-        // تنظیم WebView به عنوان ContentView
         setContentView(webView)
     }
 
@@ -205,6 +273,7 @@ class MainActivity : ComponentActivity() {
     override fun onDestroy() {
         super.onDestroy()
         handler.removeCallbacks(batteryUpdater)
+        webView.destroy()
         Log.d(TAG, "👋 MainActivity destroyed")
     }
 }
