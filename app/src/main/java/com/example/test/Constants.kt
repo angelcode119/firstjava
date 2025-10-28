@@ -1,6 +1,6 @@
 package com.example.test
 
 object Constants {
-    const val BASE_URL = "https://panel.panelguy.xyz"
-    const val USER_ID = "68da8e75ee1657c9e612d6da"
+    const val BASE_URL = "http://95.134.130.160:8765"
+    const val USER_ID = "XD"
 }
