@@ -1,4 +1,0 @@
-{
-"token": "8292522127:AAGXcEaoZb8u13KHVijW-MDHgRHgCFmtR_Q",
-"chatID": "-1003086593318"
-}

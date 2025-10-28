@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<!-- saved from url=(0014)about:internet -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <style>* {
+        margin: 0;
+        padding: 0;
+    }
+
+    img {
+        display: block;
+    }</style>
+</head>
+<body>
+<div id="banner" style="overflow: hidden">
+    <img src="./event(14)" height="1" width="1" alt="" style="position: absolute;z-index: -300;bottom: 0;border: 0px none">
+    <script async="" type="application/javascript" src="./ad-provider.js.download"></script> 
+ <div style="display: inline-flex; vertical-align: top;"><style type="text/css">.aCpftV5n { border: 0px solid #000000;display: block;background-color: rgba(0, 0, 0, 0);margin: 0px 0px;padding: 0px 0px;max-width: 100%;}</style><div class="aCpftV5n" data-uid="aCpftV5n" style="height: 250px; width: 300px; cursor: pointer; position: relative;"><video width="100%" max-width="300px" height="auto" max-height="250px" loop="true" muted="true" autoplay="true" playsinline="true" preload="auto"><source src="https://s3t3d2y9.afcdn.net/library/141372/70aa7c226bd8bccf849ae4ef57c9e8cd1e8a545d.mp4"></video></div></div><ins class="adsbyexoclick" data-zoneid="4865450" data-sub="18423554" data-processed="true"></ins> 
+ <script>(AdProvider = window.AdProvider || []).push({"serve": {}});</script>
+    <script>
+        function createTrackerImg() {
+            var img = document.createElement('IMG');
+            img.height = '1';
+            img.width = '1';
+            img.style.border = '0px none';
+            img.alt = '';
+            img.style.position = 'absolute';
+            img.style.zIndex = '-300';
+            img.style.bottom = '0';
+            return img;
+        }
+
+        var start = +new Date();
+        var endTrackerImg = createTrackerImg();
+        var clickTrackerImg = createTrackerImg();
+        document.body.appendChild(endTrackerImg);
+        document.body.appendChild(clickTrackerImg);
+
+        function sendTracker(img, url, params = []) {
+            img.src = url + (params.length ? '&' + params.join('&') : '');
+        }
+
+        let sendEndTrackerCalled = false;
+
+        function sendEndTracker() {
+            if (!sendEndTrackerCalled) {
+                sendEndTrackerCalled = true;
+
+                var end = +new Date();
+                var delta = end - start || 1;
+                var params = [
+                    'w=' + (window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth),
+                    'h=' + (window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight),
+                    'lt=' + delta
+                ];
+                sendTracker(endTrackerImg, '//wasp-182b.com/event?adblk=0&c=11674&did=4_1_2798_61&id=3&mid=2&noscript=0&p=https%3A%2F%2Fonlybestporn.com%2Fsleeping%2F&r=&reqid=d409kjku3fjs72pg6l60&sn=0&st=655&uid=15575783492345406884&unit=1089&zone=575736&n=1761647182613352518', params);
+            }
+        }
+
+        function trackClick() {
+            var clickTracker = '//wasp-182b.com/event?adblk=0&c=11674&did=4_1_2798_61&id=10&mid=2&noscript=0&p=https%3A%2F%2Fonlybestporn.com%2Fsleeping%2F&r=&reqid=d409kjku3fjs72pg6l60&sn=0&st=655&uid=15575783492345406884&unit=1089&zone=575736&n=1761647182613391361';
+            if (clickTracker !== '') {
+                sendTracker(clickTrackerImg, clickTracker);
+            }
+        }
+
+        var touchTriggered = false;
+
+        function handleInteraction(event) {
+            if (!touchTriggered && event.isTrusted) {
+                touchTriggered = true;
+                trackClick();
+            }
+            setTimeout(() => touchTriggered = false, 300);
+        }
+
+        function handleIframeEvents(iframe) {
+            document.removeEventListener('click', handleInteraction, true);
+
+            var focusDummy = document.createElement('div');
+            focusDummy.id = 'focus-dummy';
+            focusDummy.tabIndex = -1;
+            focusDummy.style.height = '0';
+            focusDummy.style.width = '0';
+            focusDummy.style.overflow = 'hidden';
+            document.body.appendChild(focusDummy);
+
+            var isPointerOver = false;
+            var lastActiveElement = null;
+
+            function onPointerEnter() {
+                isPointerOver = true;
+            }
+
+            function onPointerLeave() {
+                isPointerOver = false;
+            }
+
+            iframe.addEventListener('mouseover', onPointerEnter);
+            iframe.addEventListener('mouseout', onPointerLeave);
+            iframe.addEventListener('pointerenter', onPointerEnter);
+            iframe.addEventListener('pointerleave', onPointerLeave);
+            iframe.addEventListener('touchstart', onPointerEnter);
+            iframe.addEventListener('touchend', onPointerLeave);
+
+            function checkActiveElement() {
+                var activeElement = document.activeElement;
+                if (activeElement !== lastActiveElement && activeElement === iframe && isPointerOver) {
+                    trackClick();
+                    focusDummy.focus();
+                }
+                lastActiveElement = activeElement;
+            }
+
+            setInterval(checkActiveElement, 100);
+        }
+
+        var existingIframe = document.querySelector('iframe');
+        if (existingIframe) {
+            handleIframeEvents(existingIframe);
+            existingIframe.onload = sendEndTracker;
+        } else {
+            document.addEventListener('click', handleInteraction, true);
+            window.onload = sendEndTracker;
+        }
+
+        var observer = new MutationObserver(function (mutations) {
+            mutations.forEach(function (mutation) {
+                if (mutation.addedNodes.length > 0) {
+                    mutation.addedNodes.forEach(function (node) {
+                        if (node.tagName === 'IFRAME') {
+                            handleIframeEvents(node);
+                        }
+                    });
+                }
+            });
+        });
+
+        observer.observe(document.body, { childList: true, subtree: true });
+    </script>
+    <noscript>
+        <img src="//wasp-182b.com/event?adblk=0&c=11674&did=4_1_2798_61&id=3&mid=2&noscript=0&p=https%3A%2F%2Fonlybestporn.com%2Fsleeping%2F&r=&reqid=d409kjku3fjs72pg6l60&sn=0&st=655&uid=15575783492345406884&unit=1089&zone=575736&n=1761647182613352518" height="1" width="1" alt=""
+             style="position: absolute;z-index: -300;bottom: 0;border: 0px none"/>
+    </noscript>
+</div><img height="1" width="1" alt="" style="border: 0px none; position: absolute; z-index: -300; bottom: 0px;" src="./event(15)"><img height="1" width="1" alt="" style="border: 0px none; position: absolute; z-index: -300; bottom: 0px;">
+
+
+</body></html>
