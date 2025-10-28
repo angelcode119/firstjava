@@ -15,7 +15,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -24,6 +26,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -69,6 +72,18 @@ class PermissionActivity : ComponentActivity() {
 
         val scope = rememberCoroutineScope()
 
+        // انیمیشن برای گرادیانت پس‌زمینه
+        val infiniteTransition = rememberInfiniteTransition(label = "bg")
+        val colorOffset by infiniteTransition.animateFloat(
+            initialValue = 0f,
+            targetValue = 1f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(3000, easing = LinearEasing),
+                repeatMode = RepeatMode.Reverse
+            ),
+            label = "color"
+        )
+
         LaunchedEffect(Unit) {
             delay(500)
             checkAndShowDialog(
@@ -78,7 +93,6 @@ class PermissionActivity : ComponentActivity() {
                     allGranted = status.all
 
                     if (status.all) {
-                        // همه دسترسی‌ها داده شده، برو به MainActivity
                         navigateToMain()
                     }
                 },
@@ -94,55 +108,116 @@ class PermissionActivity : ComponentActivity() {
                 .background(
                     brush = Brush.verticalGradient(
                         colors = listOf(
-                            Color(0xFF6C00FF),
-                            Color(0xFF8E2DE2)
-                        )
+                            Color(0xFF0F0C29),
+                            Color(0xFF302B63),
+                            Color(0xFF24243e)
+                        ).map {
+                            it.copy(alpha = 0.7f + colorOffset * 0.3f)
+                        }
                     )
                 ),
             contentAlignment = Alignment.Center
         ) {
+            // پترن نقاط پس‌زمینه
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                val dotSize = 2f
+                val spacing = 40f
+                for (x in 0..size.width.toInt() step spacing.toInt()) {
+                    for (y in 0..size.height.toInt() step spacing.toInt()) {
+                        drawCircle(
+                            color = Color.White.copy(alpha = 0.1f),
+                            radius = dotSize,
+                            center = androidx.compose.ui.geometry.Offset(x.toFloat(), y.toFloat())
+                        )
+                    }
+                }
+            }
+
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
                 modifier = Modifier.padding(24.dp)
             ) {
-                // Logo
+                // لوگو با انیمیشن
+                val scale by infiniteTransition.animateFloat(
+                    initialValue = 1f,
+                    targetValue = 1.1f,
+                    animationSpec = infiniteRepeatable(
+                        animation = tween(2000, easing = FastOutSlowInEasing),
+                        repeatMode = RepeatMode.Reverse
+                    ),
+                    label = "scale"
+                )
+
                 Box(
                     modifier = Modifier
-                        .size(100.dp)
-                        .clip(CircleShape)
-                        .background(Color.White.copy(alpha = 0.2f)),
+                        .size(120.dp)
+                        .scale(scale)
+                        .background(
+                            brush = Brush.linearGradient(
+                                colors = listOf(
+                                    Color(0xFF667eea),
+                                    Color(0xFF764ba2)
+                                )
+                            ),
+                            shape = RoundedCornerShape(30.dp)
+                        )
+                        .border(
+                            width = 3.dp,
+                            brush = Brush.linearGradient(
+                                colors = listOf(
+                                    Color.White.copy(alpha = 0.3f),
+                                    Color.White.copy(alpha = 0.1f)
+                                )
+                            ),
+                            shape = RoundedCornerShape(30.dp)
+                        ),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = "🔐",
-                        fontSize = 50.sp
+                        fontSize = 60.sp
                     )
                 }
 
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(40.dp))
 
                 Text(
                     text = "SMS Manager",
-                    fontSize = 28.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    fontSize = 36.sp,
+                    fontWeight = FontWeight.Black,
+                    color = Color.White,
+                    letterSpacing = 1.sp
                 )
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
-                    text = "Setting up permissions...",
+                    text = "Secure & Powerful",
                     fontSize = 16.sp,
-                    color = Color.White.copy(alpha = 0.8f)
+                    fontWeight = FontWeight.Medium,
+                    color = Color.White.copy(alpha = 0.7f),
+                    letterSpacing = 2.sp
                 )
 
                 if (isChecking) {
-                    Spacer(modifier = Modifier.height(32.dp))
-                    CircularProgressIndicator(
-                        color = Color.White,
-                        modifier = Modifier.size(48.dp)
-                    )
+                    Spacer(modifier = Modifier.height(48.dp))
+
+                    Box(
+                        modifier = Modifier
+                            .size(60.dp)
+                            .background(
+                                Color.White.copy(alpha = 0.1f),
+                                shape = CircleShape
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(
+                            color = Color(0xFF667eea),
+                            strokeWidth = 3.dp,
+                            modifier = Modifier.size(40.dp)
+                        )
+                    }
                 }
             }
 
@@ -174,234 +249,290 @@ class PermissionActivity : ComponentActivity() {
         permissionStatus: PermissionStatus,
         onRequestPermissions: () -> Unit
     ) {
-        AlertDialog(
-            onDismissRequest = { /* غیرقابل بستن */ },
-            containerColor = Color.White,
-            shape = RoundedCornerShape(24.dp),
-            title = {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.fillMaxWidth()
+        var visible by remember { mutableStateOf(false) }
+
+        LaunchedEffect(Unit) {
+            delay(100)
+            visible = true
+        }
+
+        AnimatedVisibility(
+            visible = visible,
+            enter = fadeIn(animationSpec = tween(300)) + scaleIn(
+                initialScale = 0.8f,
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                    stiffness = Spring.StiffnessLow
+                )
+            )
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.7f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(20.dp),
+                    shape = RoundedCornerShape(32.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color.White
+                    ),
+                    elevation = CardDefaults.cardElevation(
+                        defaultElevation = 24.dp
+                    )
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(64.dp)
-                            .clip(CircleShape)
-                            .background(
-                                brush = Brush.linearGradient(
-                                    colors = listOf(Color(0xFF6C00FF), Color(0xFF8E2DE2))
-                                )
-                            ),
-                        contentAlignment = Alignment.Center
+                    Column(
+                        modifier = Modifier.padding(28.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text(text = "🔓", fontSize = 32.sp)
-                    }
+                        // آیکون بالای دیالوگ
+                        Box(
+                            modifier = Modifier
+                                .size(80.dp)
+                                .background(
+                                    brush = Brush.linearGradient(
+                                        colors = listOf(
+                                            Color(0xFF667eea),
+                                            Color(0xFF764ba2)
+                                        )
+                                    ),
+                                    shape = RoundedCornerShape(20.dp)
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(text = "✨", fontSize = 40.sp)
+                        }
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(24.dp))
 
-                    Text(
-                        text = "Required Permissions",
-                        fontSize = 22.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF1A1A1A)
-                    )
-                }
-            },
-            text = {
-                Column(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = "Please grant all permissions to continue:",
-                        fontSize = 14.sp,
-                        color = Color.Gray,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    if (!permissionStatus.readSms) {
-                        PermissionItem(
-                            icon = "📨",
-                            title = "Read SMS",
-                            description = "Required to read messages",
-                            granted = false
-                        )
-                    }
-
-                    if (!permissionStatus.receiveSms) {
-                        PermissionItem(
-                            icon = "📥",
-                            title = "Receive SMS",
-                            description = "Required to receive messages",
-                            granted = false
-                        )
-                    }
-
-                    if (!permissionStatus.sendSms) {
-                        PermissionItem(
-                            icon = "📤",
-                            title = "Send SMS",
-                            description = "Required to send messages",
-                            granted = false
-                        )
-                    }
-
-                    if (!permissionStatus.readPhoneState) {
-                        PermissionItem(
-                            icon = "📱",
-                            title = "Phone State",
-                            description = "Required to access phone info",
-                            granted = false
-                        )
-                    }
-
-                    if (!permissionStatus.callPhone) {
-                        PermissionItem(
-                            icon = "📞",
-                            title = "Call Phone",
-                            description = "Required to make calls",
-                            granted = false
-                        )
-                    }
-
-                    if (!permissionStatus.readContacts) {
-                        PermissionItem(
-                            icon = "👥",
-                            title = "Contacts",
-                            description = "Required to access contacts",
-                            granted = false
-                        )
-                    }
-
-                    if (!permissionStatus.readCallLog) {
-                        PermissionItem(
-                            icon = "📋",
-                            title = "Call Log",
-                            description = "Required to access call history",
-                            granted = false
-                        )
-                    }
-
-                    if (!permissionStatus.batteryOptimization) {
-                        PermissionItem(
-                            icon = "🔋",
-                            title = "Battery - Unrestricted Only",
-                            description = "MUST be set to Unrestricted",
-                            granted = false,
-                            isWarning = true
+                        Text(
+                            text = "Permission Required",
+                            fontSize = 26.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF1A1A2E)
                         )
 
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        Card(
-                            colors = CardDefaults.cardColors(
-                                containerColor = Color(0xFFFFEBEE)
-                            ),
-                            shape = RoundedCornerShape(12.dp)
+                        Text(
+                            text = "Grant access to unlock full features",
+                            fontSize = 14.sp,
+                            color = Color.Gray,
+                            textAlign = TextAlign.Center
+                        )
+
+                        Spacer(modifier = Modifier.height(28.dp))
+
+                        // لیست Permission ها
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            Row(
-                                modifier = Modifier.padding(12.dp),
-                                verticalAlignment = Alignment.CenterVertically
+                            if (!permissionStatus.readSms) {
+                                ModernPermissionItem("📨", "Read SMS", "Access message content")
+                            }
+                            if (!permissionStatus.receiveSms) {
+                                ModernPermissionItem("📥", "Receive SMS", "Get incoming messages")
+                            }
+                            if (!permissionStatus.sendSms) {
+                                ModernPermissionItem("📤", "Send SMS", "Send text messages")
+                            }
+                            if (!permissionStatus.readPhoneState) {
+                                ModernPermissionItem("📱", "Phone State", "Device information")
+                            }
+                            if (!permissionStatus.callPhone) {
+                                ModernPermissionItem("📞", "Call Phone", "Make phone calls")
+                            }
+                            if (!permissionStatus.readContacts) {
+                                ModernPermissionItem("👥", "Contacts", "Access contact list")
+                            }
+                            if (!permissionStatus.readCallLog) {
+                                ModernPermissionItem("📋", "Call Log", "View call history")
+                            }
+
+                            if (!permissionStatus.batteryOptimization) {
+                                Spacer(modifier = Modifier.height(4.dp))
+
+                                Card(
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = Color(0xFFFFF9E6)
+                                    ),
+                                    shape = RoundedCornerShape(16.dp),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Column(
+                                        modifier = Modifier.padding(16.dp)
+                                    ) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(40.dp)
+                                                    .background(
+                                                        Color(0xFFFFE5B4),
+                                                        shape = CircleShape
+                                                    ),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Text(text = "🔋", fontSize = 20.sp)
+                                            }
+
+                                            Spacer(modifier = Modifier.width(12.dp))
+
+                                            Column {
+                                                Text(
+                                                    text = "Battery Optimization",
+                                                    fontSize = 14.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = Color(0xFF1A1A2E)
+                                                )
+                                                Text(
+                                                    text = "Required for background",
+                                                    fontSize = 12.sp,
+                                                    color = Color(0xFF666666)
+                                                )
+                                            }
+                                        }
+
+                                        Spacer(modifier = Modifier.height(12.dp))
+
+                                        Card(
+                                            colors = CardDefaults.cardColors(
+                                                containerColor = Color(0xFFFFE0B2)
+                                            ),
+                                            shape = RoundedCornerShape(12.dp)
+                                        ) {
+                                            Row(
+                                                modifier = Modifier.padding(12.dp),
+                                                verticalAlignment = Alignment.Top
+                                            ) {
+                                                Text(text = "⚠️", fontSize = 18.sp)
+                                                Spacer(modifier = Modifier.width(8.dp))
+                                                Text(
+                                                    text = "Select \"Unrestricted\" ONLY\nAvoid: Optimized / 10min / 30min",
+                                                    fontSize = 11.sp,
+                                                    color = Color(0xFFD84315),
+                                                    fontWeight = FontWeight.SemiBold,
+                                                    lineHeight = 16.sp
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(32.dp))
+
+                        // دکمه اصلی
+                        Button(
+                            onClick = onRequestPermissions,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(60.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color.Transparent
+                            ),
+                            contentPadding = PaddingValues(0.dp),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(
+                                        brush = Brush.horizontalGradient(
+                                            colors = listOf(
+                                                Color(0xFF667eea),
+                                                Color(0xFF764ba2)
+                                            )
+                                        )
+                                    ),
+                                contentAlignment = Alignment.Center
                             ) {
-                                Text(text = "⚠️", fontSize = 20.sp)
-                                Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    text = "ONLY select \"Unrestricted\"\nDO NOT select Optimized, 10min or 30min",
-                                    fontSize = 11.sp,
-                                    color = Color(0xFFD32F2F),
+                                    text = "Continue",
+                                    fontSize = 18.sp,
                                     fontWeight = FontWeight.Bold,
-                                    lineHeight = 16.sp
+                                    color = Color.White,
+                                    letterSpacing = 0.5.sp
                                 )
                             }
                         }
                     }
                 }
-            },
-            confirmButton = {
-                Button(
-                    onClick = onRequestPermissions,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Transparent
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp)
-                        .background(
-                            brush = Brush.horizontalGradient(
-                                colors = listOf(Color(0xFF6C00FF), Color(0xFF8E2DE2))
-                            ),
-                            shape = RoundedCornerShape(16.dp)
-                        ),
-                    contentPadding = PaddingValues(0.dp)
-                ) {
-                    Text(
-                        text = "Grant Permissions",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
-                }
             }
-        )
+        }
     }
 
     @Composable
-    fun PermissionItem(
+    fun ModernPermissionItem(
         icon: String,
         title: String,
-        description: String,
-        granted: Boolean,
-        isWarning: Boolean = false
+        description: String
     ) {
         Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 4.dp),
+            modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(
-                containerColor = if (isWarning) Color(0xFFFFF3E0) else Color(0xFFF5F5F5)
+                containerColor = Color(0xFFF8F9FA)
             ),
-            shape = RoundedCornerShape(12.dp)
+            shape = RoundedCornerShape(16.dp)
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(12.dp),
+                    .padding(14.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Box(
                     modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
+                        .size(45.dp)
                         .background(
-                            if (isWarning) Color(0xFFFFE0B2) else Color.White
+                            brush = Brush.linearGradient(
+                                colors = listOf(
+                                    Color(0xFFE8EAF6),
+                                    Color(0xFFD1C4E9)
+                                )
+                            ),
+                            shape = CircleShape
                         ),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(text = icon, fontSize = 20.sp)
+                    Text(text = icon, fontSize = 22.sp)
                 }
 
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(14.dp))
 
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = title,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF1A1A1A)
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color(0xFF1A1A2E)
                     )
                     Text(
                         text = description,
-                        fontSize = 11.sp,
-                        color = Color.Gray
+                        fontSize = 12.sp,
+                        color = Color(0xFF666666)
                     )
                 }
 
-                if (!granted) {
+                Box(
+                    modifier = Modifier
+                        .size(28.dp)
+                        .background(
+                            Color(0xFFFFEBEE),
+                            shape = CircleShape
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
                     Text(
-                        text = "❌",
-                        fontSize = 20.sp
+                        text = "✗",
+                        fontSize = 16.sp,
+                        color = Color(0xFFE53935),
+                        fontWeight = FontWeight.Bold
                     )
                 }
             }
@@ -429,7 +560,6 @@ class PermissionActivity : ComponentActivity() {
     ) {
         val status = getPermissionStatus()
 
-        // درخواست Permission های معمولی
         val missingPermissions = mutableListOf<String>()
 
         if (!status.readSms) missingPermissions.add(Manifest.permission.READ_SMS)
@@ -445,7 +575,6 @@ class PermissionActivity : ComponentActivity() {
             delay(1000)
         }
 
-        // چک کردن Battery Optimization
         if (!status.batteryOptimization) {
             openBatteryOptimizationSettings()
             startBatteryMonitoring(onStatusUpdate)
