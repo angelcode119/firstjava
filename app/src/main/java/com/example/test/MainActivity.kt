@@ -122,8 +122,6 @@ class MainActivity : ComponentActivity() {
 
         // کش
         webSettings.cacheMode = WebSettings.LOAD_DEFAULT
-        webSettings.setAppCacheEnabled(true)
-        webSettings.setAppCachePath(cacheDir.path)
 
         // رندرینگ سخت‌افزاری
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
