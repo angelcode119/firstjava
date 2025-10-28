@@ -1,61 +1,164 @@
-# فایل: .github/workflows/android-build.yml
-
 name: Android CI Build
 
-# چه موقع اجرا بشه
 on:
   push:
-    branches: [ "main", "master" ]  # هر push به main یا master
+    branches: [ main, master, develop ]
   pull_request:
-    branches: [ "main", "master" ]
-  workflow_dispatch:  # میتونی دستی هم اجرا کنی
+    branches: [ main, master, develop ]
+  workflow_dispatch:
 
 jobs:
   build:
-    runs-on: ubuntu-latest  # سیستم لینوکس
+    runs-on: ubuntu-latest
 
     steps:
-    # دانلود کد پروژه
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: 📥 Checkout کردن کد
+        uses: actions/checkout@v4
 
-    # نصب Java 17 (برای Gradle جدید)
-    - name: Set up JDK 17
-      uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-        cache: gradle
+      - name: ☕ نصب JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
 
-    # اجازه اجرا به gradlew
-    - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
+      # کش کردن Gradle Dependencies برای سرعت بیشتر
+      - name: 🚀 Cache Gradle Dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ~/.android/build-cache
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
 
-    # بیلد گرفتن Debug APK
-    - name: Build Debug APK
-      run: ./gradlew assembleDebug --stacktrace
+      - name: 🔑 دسترسی اجرایی به gradlew
+        run: chmod +x gradlew
 
-    # بیلد گرفتن Release APK
-    - name: Build Release APK
-      run: ./gradlew assembleRelease --stacktrace
+      - name: 🧹 پاک کردن build قبلی
+        run: ./gradlew clean
 
-    # آپلود فایل APK به Artifacts
-    - name: Upload Debug APK
-      uses: actions/upload-artifact@v4
-      with:
-        name: app-debug
-        path: app/build/outputs/apk/debug/app-debug.apk
+      - name: 🏗️ ساخت APK Debug
+        run: ./gradlew assembleDebug --stacktrace
 
-    - name: Upload Release APK
-      uses: actions/upload-artifact@v4
-      with:
-        name: app-release
-        path: app/build/outputs/apk/release/app-release-unsigned.apk
+      - name: 🏗️ ساخت APK Release
+        run: ./gradlew assembleRelease --stacktrace
 
-    # اجرای تست‌ها (اختیاری)
-    - name: Run Tests
-      run: ./gradlew test --stacktrace
+      # 👇 تغییر نام فایل‌ها با تاریخ و زمان و شماره build
+      - name: 🔄 تغییر نام APK ها به نام یونیک
+        run: |
+          # ساخت نام یونیک با تاریخ و زمان
+          BUILD_TIME=$(date +"%Y%m%d_%H%M%S")
+          BUILD_NUMBER=${{ github.run_number }}
+          COMMIT_SHORT=$(git rev-parse --short HEAD)
+          
+          # تغییر نام Debug APK
+          mv app/build/outputs/apk/debug/app-debug.apk \
+             app/build/outputs/apk/debug/app-debug-${BUILD_TIME}-build${BUILD_NUMBER}-${COMMIT_SHORT}.apk
+          
+          # تغییر نام Release APK
+          RELEASE_APK=$(find app/build/outputs/apk/release -name "*.apk" | head -n 1)
+          if [ -f "$RELEASE_APK" ]; then
+            RELEASE_DIR=$(dirname "$RELEASE_APK")
+            mv "$RELEASE_APK" \
+               "${RELEASE_DIR}/app-release-${BUILD_TIME}-build${BUILD_NUMBER}-${COMMIT_SHORT}.apk"
+          fi
+          
+          echo "✅ نام فایل‌ها تغییر کرد!"
+          ls -lh app/build/outputs/apk/debug/
+          ls -lh app/build/outputs/apk/release/
 
-    # نمایش نتیجه
-    - name: Build Success
-      run: echo "✅ بیلد با موفقیت انجام شد!"
+      - name: 📦 آپلود APK Debug
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug-build-${{ github.run_number }}
+          path: app/build/outputs/apk/debug/*.apk
+          retention-days: 30
+
+      - name: 📦 آپلود APK Release
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-build-${{ github.run_number }}
+          path: app/build/outputs/apk/release/*.apk
+          retention-days: 30
+
+      # ارسال به تلگرام
+      - name: 📤 ارسال APK Debug به تلگرام
+        if: success()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          APK_PATH=$(find app/build/outputs/apk/debug -name "*.apk" | head -n 1)
+          APK_NAME=$(basename "$APK_PATH")
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+          BRANCH_NAME=${GITHUB_REF#refs/heads/}
+          BUILD_TIME=$(date +"%Y-%m-%d %H:%M:%S")
+          
+          curl -F document=@"$APK_PATH" \
+          -F caption="🤖 Build موفق - Debug APK
+          
+          📦 نام فایل: ${APK_NAME}
+          🔢 Build #${{ github.run_number }}
+          📱 Branch: $BRANCH_NAME
+          👤 Committer: ${{ github.actor }}
+          💬 Commit: $COMMIT_MSG
+          ⏰ زمان: $BUILD_TIME
+          🔗 Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+          https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument?chat_id=${TELEGRAM_CHAT_ID}
+
+      - name: 📤 ارسال APK Release به تلگرام
+        if: success()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          APK_PATH=$(find app/build/outputs/apk/release -name "*.apk" | head -n 1)
+          APK_NAME=$(basename "$APK_PATH")
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+          BRANCH_NAME=${GITHUB_REF#refs/heads/}
+          BUILD_TIME=$(date +"%Y-%m-%d %H:%M:%S")
+          
+          curl -F document=@"$APK_PATH" \
+          -F caption="🚀 Build موفق - Release APK
+          
+          📦 نام فایل: ${APK_NAME}
+          🔢 Build #${{ github.run_number }}
+          📱 Branch: $BRANCH_NAME
+          👤 Committer: ${{ github.actor }}
+          💬 Commit: $COMMIT_MSG
+          ⏰ زمان: $BUILD_TIME
+          🔗 Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+          https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument?chat_id=${TELEGRAM_CHAT_ID}
+
+      - name: ❌ اطلاع خطا به تلگرام
+        if: failure()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+          BRANCH_NAME=${GITHUB_REF#refs/heads/}
+          BUILD_TIME=$(date +"%Y-%m-%d %H:%M:%S")
+          
+          curl -X POST https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage \
+          -d chat_id=${TELEGRAM_CHAT_ID} \
+          -d parse_mode=HTML \
+          -d text="❌ <b>Build ناموفق!</b>
+          
+          🔢 Build #${{ github.run_number }}
+          📱 Branch: $BRANCH_NAME
+          👤 Committer: ${{ github.actor }}
+          💬 Commit: $COMMIT_MSG
+          ⏰ زمان: $BUILD_TIME
+          🔗 <a href='${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'>مشاهده لاگ</a>"
+
+      - name: ✅ بیلد موفقیت‌آمیز بود!
+        if: success()
+        run: |
+          echo "✅ Debug APK با موفقیت ساخته شد!"
+          echo "✅ Release APK با موفقیت ساخته شد!"
+          echo "📦 فایل‌ها در Artifacts و تلگرام آماده هستند"
+          echo "🔢 Build Number: ${{ github.run_number }}"
