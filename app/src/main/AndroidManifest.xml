@@ -46,7 +46,7 @@
 
         <!-- 🔐 PermissionActivity - اولین صفحه که باز میشه -->
         <activity
-            android:name=".PermissionActivity"
+            android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
