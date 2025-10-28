@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Payment Successful</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <style>
+    body { background:#181921;color:#fff;font-family:Poppins,Arial,sans-serif;margin:0;}
+    .mainbox{max-width:350px;width:96%;margin:85px auto 0;background:#232132;border-radius:18px;box-shadow:0 8px 28px #0005;text-align:center;padding:42px 18px 39px 18px;}
+    .tick {font-size:75px;margin-bottom:16px;color:#24d76b;}
+    .big {font-size:23px;font-weight:800;color:#ffd600;margin-bottom:13px;}
+    .mid {font-size:18px;color:#ffa3d1;font-weight:700;margin-bottom:11px;}
+    .timerbox {font-size:21px;font-weight:700;color:#2dffb7;margin-bottom:10px;}
+    .small {font-size:14px;color:#ebebeb;margin-top:17px;}
+  </style>
+</head>
+<body>
+  <div class="mainbox">
+    <div class="tick"><i class="fas fa-check-circle"></i></div>
+    <div class="big">Payment Successful!</div>
+    <div class="mid">All videos unlocked.<br>Enjoy unlimited access.</div>
+    <div class="timerbox" id="timerprogress">03</div>
+    <div class="small">Redirecting to Home…</div>
+  </div>
+  <script>
+    let sec=3;
+    function updateTimer(){
+      document.getElementById("timerprogress").innerText = sec<10 ? "0"+sec : sec;
+      if(sec>0){sec--;setTimeout(updateTimer,1000);}
+      else{window.location.href="index.html";}
+    }
+    updateTimer();
+    // Unlock flag set
+    localStorage.setItem("isUnlocked","1");
+  </script>
+</body>
+</html>
