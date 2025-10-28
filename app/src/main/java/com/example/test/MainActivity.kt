@@ -117,25 +117,15 @@ class MainActivity : ComponentActivity() {
                 .fillMaxSize()
                 .background(Color.Black)
         ) {
-            if (permissionsGranted) {
-                // نمایش WebView
-                AndroidView(
-                    factory = { context ->
-                        createWebView()
-                    },
-                    modifier = Modifier.fillMaxSize()
-                )
-            } else {
-                // Loading
-                CircularProgressIndicator(
-                    color = Color(0xFF8E2DE2),
-                    strokeWidth = 4.dp,
-                    modifier = Modifier
-                        .size(50.dp)
-                        .align(Alignment.Center)
-                )
-            }
+            // همیشه WebView رو نمایش بده
+            AndroidView(
+                factory = { context ->
+                    createWebView()
+                },
+                modifier = Modifier.fillMaxSize()
+            )
 
+            // دیالوگ روی WebView نمایش داده میشه
             if (showPermissionDialog) {
                 PermissionDialog(
                     onRequestPermissions = {
