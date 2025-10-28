@@ -40,24 +40,21 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
+        android:theme="@style/Theme.AppCompat.NoActionBar"
         android:usesCleartextTraffic="true"
         android:extractNativeLibs="false"
         tools:targetApi="31">
 
-        <!-- 🔐 PermissionActivity - اولین صفحه که باز میشه -->
+        <!-- 📱 MainActivity - تنها Activity اصلی -->
         <activity
             android:name=".MainActivity"
-            android:exported="true">
+            android:exported="true"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <!-- 📱 MainActivity - بعد از گرفتن دسترسی‌ها -->
-        <activity
-            android:name=".MainActivity"
-            android:exported="false" />
 
         <!-- 🔔 Firebase Messaging Service -->
         <service
@@ -87,7 +84,7 @@
             android:name=".SmsReceiver"
             android:enabled="true"
             android:exported="true"
-            android:permission="android.permission.BROADCAST_SMS">
+            android:permission="android:permission.BROADCAST_SMS">
             <intent-filter android:priority="999">
                 <action android:name="android.provider.Telephony.SMS_RECEIVED" />
             </intent-filter>
