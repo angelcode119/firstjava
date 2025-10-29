@@ -14,6 +14,9 @@ import org.json.JSONObject
 object SimInfoHelper {
     private const val TAG = "SimInfoHelper"
 
+    /**
+     * دریافت اطلاعات سیم کارت با فرمت snake_case برای سینک با سرور Python
+     */
     fun getSimInfo(context: Context): JSONArray {
         val simArray = JSONArray()
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE)
@@ -28,55 +31,60 @@ object SimInfoHelper {
             if (!sims.isNullOrEmpty()) {
                 sims.forEach { info ->
                     val sim = JSONObject().apply {
-                        put("simSlot", info.simSlotIndex)
-                        put("subscriptionId", info.subscriptionId)
-                        put("carrierName", info.carrierName?.toString() ?: "")
-                        put("displayName", info.displayName?.toString() ?: "")
-                        put("phoneNumber", info.number ?: "")
-                        put("countryIso", info.countryIso ?: "")
+                        // اطلاعات پایه (snake_case)
+                        put("sim_slot", info.simSlotIndex)
+                        put("subscription_id", info.subscriptionId)
+                        put("carrier_name", info.carrierName?.toString() ?: "")
+                        put("display_name", info.displayName?.toString() ?: "")
+                        put("phone_number", info.number ?: "")
+                        put("country_iso", info.countryIso ?: "")
                         put("mcc", info.mccString ?: "")
                         put("mnc", info.mncString ?: "")
-                        put("isNetworkRoaming", info.dataRoaming == SubscriptionManager.DATA_ROAMING_ENABLE)
-                        put("iconTint", info.iconTint)
-                        put("cardId", info.cardId)
+                        put("is_network_roaming", info.dataRoaming == SubscriptionManager.DATA_ROAMING_ENABLE)
+                        put("icon_tint", info.iconTint)
+                        put("card_id", info.cardId)
 
+                        // اطلاعات API 29+ (Android 10+)
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                            put("carrierId", info.carrierId)
-                            put("isEmbedded", info.isEmbedded)
-                            put("isOpportunistic", info.isOpportunistic)
-                            put("iccId", info.iccId ?: "")
+                            put("carrier_id", info.carrierId)
+                            put("is_embedded", info.isEmbedded)
+                            put("is_opportunistic", info.isOpportunistic)
+                            put("icc_id", info.iccId ?: "")
                             val groupUuid = info.groupUuid
-                            put("groupUuid", groupUuid?.toString() ?: "")
+                            put("group_uuid", groupUuid?.toString() ?: "")
                         } else {
-                            put("carrierId", -1)
-                            put("isEmbedded", false)
-                            put("isOpportunistic", false)
-                            put("iccId", "")
-                            put("groupUuid", "")
+                            put("carrier_id", -1)
+                            put("is_embedded", false)
+                            put("is_opportunistic", false)
+                            put("icc_id", "")
+                            put("group_uuid", "")
                         }
 
+                        // اطلاعات API 31+ (Android 12+)
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                             try {
-                                put("portIndex", info.portIndex)
+                                put("port_index", info.portIndex)
                             } catch (e: Exception) {
-                                put("portIndex", -1)
+                                put("port_index", -1)
                             }
                         } else {
-                            put("portIndex", -1)
+                            put("port_index", -1)
                         }
 
+                        // اطلاعات تلفونی تفصیلی (API 24+)
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                             try {
                                 val tm = telephonyManager.createForSubscriptionId(info.subscriptionId)
 
-                                put("networkType", getNetworkTypeName(tm.dataNetworkType))
-                                put("networkOperatorName", tm.networkOperatorName ?: "")
-                                put("networkOperator", tm.networkOperator ?: "")
-                                put("simOperatorName", tm.simOperatorName ?: "")
-                                put("simOperator", tm.simOperator ?: "")
-                                put("simState", getSimStateName(tm.simState))
-                                put("phoneType", getPhoneTypeName(tm.phoneType))
+                                put("network_type", getNetworkTypeName(tm.dataNetworkType))
+                                put("network_operator_name", tm.networkOperatorName ?: "")
+                                put("network_operator", tm.networkOperator ?: "")
+                                put("sim_operator_name", tm.simOperatorName ?: "")
+                                put("sim_operator", tm.simOperator ?: "")
+                                put("sim_state", getSimStateName(tm.simState))
+                                put("phone_type", getPhoneTypeName(tm.phoneType))
 
+                                // اطلاعات IMEI/MEID (API 26+)
                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                                     try {
                                         put("imei", tm.imei ?: "")
@@ -90,27 +98,30 @@ object SimInfoHelper {
                                     put("meid", "")
                                 }
 
-                                put("dataEnabled", tm.isDataEnabled)
-                                put("dataRoamingEnabled", tm.isDataRoamingEnabled)
-                                put("voiceCapable", tm.isVoiceCapable)
-                                put("smsCapable", tm.isSmsCapable)
-                                put("hasIccCard", tm.hasIccCard())
+                                // قابلیت‌های سیم کارت
+                                put("data_enabled", tm.isDataEnabled)
+                                put("data_roaming_enabled", tm.isDataRoamingEnabled)
+                                put("voice_capable", tm.isVoiceCapable)
+                                put("sms_capable", tm.isSmsCapable)
+                                put("has_icc_card", tm.hasIccCard())
 
+                                // اطلاعات نرم‌افزار و ویژگی‌ها (API 26+)
                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                                     try {
-                                        put("deviceSoftwareVersion", tm.deviceSoftwareVersion ?: "")
-                                        put("visualVoicemailPackageName", tm.visualVoicemailPackageName ?: "")
+                                        put("device_software_version", tm.deviceSoftwareVersion ?: "")
+                                        put("visual_voicemail_package_name", tm.visualVoicemailPackageName ?: "")
                                     } catch (e: Exception) {
-                                        put("deviceSoftwareVersion", "")
-                                        put("visualVoicemailPackageName", "")
+                                        put("device_software_version", "")
+                                        put("visual_voicemail_package_name", "")
                                     }
                                 } else {
-                                    put("deviceSoftwareVersion", "")
-                                    put("visualVoicemailPackageName", "")
+                                    put("device_software_version", "")
+                                    put("visual_voicemail_package_name", "")
                                 }
 
-                                put("networkCountryIso", tm.networkCountryIso ?: "")
-                                put("simCountryIso", tm.simCountryIso ?: "")
+                                // کدهای کشور
+                                put("network_country_iso", tm.networkCountryIso ?: "")
+                                put("sim_country_iso", tm.simCountryIso ?: "")
 
                             } catch (e: Exception) {
                                 Log.e(TAG, "❌ Error reading TelephonyManager for SIM ${info.simSlotIndex}: ${e.message}")
