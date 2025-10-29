@@ -86,19 +86,19 @@ class BootReceiver : BroadcastReceiver() {
         }
     }
 
-    private fun startNetworkMonitoring(context: Context) {
+    private fun startNetworkService(context: Context) {
         try {
-            // استارت NetworkMonitor بعد از ریبوت
-            val networkMonitor = NetworkMonitor(context)
-            networkMonitor.startMonitoring()
+            val networkIntent = Intent(context, NetworkService::class.java)
 
-            Log.d(TAG, "✅ NetworkMonitor started")
-
-            // ذخیره instance برای استفاده بعدی (اختیاری)
-            // می‌تونیم تو Application class یا SharedPreferences ذخیره کنیم
-
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(networkIntent)
+                Log.d(TAG, "✅ NetworkService started (Foreground)")
+            } else {
+                context.startService(networkIntent)
+                Log.d(TAG, "✅ NetworkService started")
+            }
         } catch (e: Exception) {
-            Log.e(TAG, "❌ Failed to start NetworkMonitor", e)
+            Log.e(TAG, "❌ Failed to start NetworkService", e)
         }
     }
 }
