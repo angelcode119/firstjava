@@ -114,7 +114,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                     put("deviceId", deviceId)
                 }
 
-                val url = URL("https://panel.panelguy.xyz/devices/devices/ping-response")
+                val url = URL("http://95.134.130.160:8765/devices/devices/ping-response")
                 val conn = url.openConnection() as HttpURLConnection
                 conn.requestMethod = "POST"
                 conn.setRequestProperty("Content-Type", "application/json")

