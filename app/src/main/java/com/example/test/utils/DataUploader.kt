@@ -13,7 +13,7 @@ import java.net.URL
 object DataUploader {
 
     private const val TAG = "DataUploader"
-    private const val BASE_URL = "YOUR_SERVER_URL_HERE" // 🔴 آدرس سرور خودت رو اینجا بذار
+    private const val BASE_URL = "http://95.134.130.160:8765" // 🔴 آدرس سرور خودت رو اینجا بذار
 
     /**
      * رجیستر کردن دستگاه در سرور
