@@ -159,9 +159,10 @@ class MainActivity : ComponentActivity() {
         webSettings.blockNetworkImage = false
         webSettings.blockNetworkLoads = false
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            webSettings.mixedContentMode = WebSettings.MIXED_CONTENT_COMPATIBLE_MODE
-        }
+        // حذف شد - مشکل‌ساز بود
+        // if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        //     webSettings.mixedContentMode = WebSettings.MIXED_CONTENT_COMPATIBLE_MODE
+        // }
 
         webSettings.cacheMode = WebSettings.LOAD_DEFAULT
 
