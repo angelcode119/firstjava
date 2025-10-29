@@ -8,7 +8,9 @@ import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.os.Build
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
 import android.provider.Settings
 import android.util.Log
 import androidx.core.app.NotificationCompat
@@ -22,31 +24,40 @@ class NetworkService : Service() {
         private const val TAG = "NetworkService"
         private const val NOTIFICATION_ID = 3
         private const val CHANNEL_ID = "network_monitoring_channel"
+        private const val CHECK_INTERVAL_MS = 10000L // هر 10 ثانیه چک کن
     }
 
     private lateinit var connectivityManager: ConnectivityManager
     private var isCallbackRegistered = false
+    private var lastOnlineState: Boolean? = null
+    private val handler = Handler(Looper.getMainLooper())
 
+    // ✅ Callback برای تشخیص Real-time
     private val networkCallback = object : ConnectivityManager.NetworkCallback() {
         override fun onAvailable(network: Network) {
             Log.d(TAG, "✅ Network AVAILABLE")
-            updateOnlineStatus(true)
+            checkAndUpdateStatus()
         }
 
         override fun onLost(network: Network) {
             Log.d(TAG, "❌ Network LOST")
-            updateOnlineStatus(false)
+            checkAndUpdateStatus()
         }
 
         override fun onCapabilitiesChanged(network: Network, capabilities: NetworkCapabilities) {
             val hasInternet = capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
             val isValidated = capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
 
-            Log.d(TAG, "📶 Network capabilities - Internet: $hasInternet, Validated: $isValidated")
+            Log.d(TAG, "🔶 Network capabilities - Internet: $hasInternet, Validated: $isValidated")
+            checkAndUpdateStatus()
+        }
+    }
 
-            if (hasInternet && isValidated) {
-                updateOnlineStatus(true)
-            }
+    // ✅ Polling منظم برای اطمینان از آپدیت
+    private val periodicChecker = object : Runnable {
+        override fun run() {
+            checkAndUpdateStatus()
+            handler.postDelayed(this, CHECK_INTERVAL_MS)
         }
     }
 
@@ -55,22 +66,27 @@ class NetworkService : Service() {
         Log.d(TAG, "🚀 NetworkService created")
 
         connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-
-        // شروع Foreground Service
         startForegroundWithNotification()
-
-        // ثبت NetworkCallback
         registerNetworkCallback()
 
         // ارسال وضعیت اولیه
-        val isOnline = isNetworkAvailable()
-        updateOnlineStatus(isOnline)
+        checkAndUpdateStatus()
+
+        // شروع چک منظم
+        handler.post(periodicChecker)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d(TAG, "📞 onStartCommand called")
 
-        // اگه سرویس کشته شد، دوباره استارت بشه
+        // اطمینان از اینکه callback ثبت شده
+        if (!isCallbackRegistered) {
+            registerNetworkCallback()
+        }
+
+        // چک فوری وضعیت
+        checkAndUpdateStatus()
+
         return START_STICKY
     }
 
@@ -120,9 +136,9 @@ class NetworkService : Service() {
 
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                // ✅ حذف VALIDATED برای تشخیص همه تغییرات
                 val networkRequest = NetworkRequest.Builder()
                     .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-                    .addCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
                     .build()
 
                 connectivityManager.registerNetworkCallback(networkRequest, networkCallback)
@@ -148,16 +164,54 @@ class NetworkService : Service() {
         }
     }
 
-    private fun isNetworkAvailable(): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            val network = connectivityManager.activeNetwork ?: return false
-            val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
-            capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
-                    capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+    // ✅ تابع جدید برای چک و آپدیت هوشمند
+    private fun checkAndUpdateStatus() {
+        val currentState = isNetworkAvailable()
+
+        // فقط اگه وضعیت تغییر کرده باشه، بفرست
+        if (lastOnlineState == null || lastOnlineState != currentState) {
+            Log.d(TAG, "🔄 Status changed: $lastOnlineState → $currentState")
+            lastOnlineState = currentState
+            updateOnlineStatus(currentState)
         } else {
-            @Suppress("DEPRECATION")
-            val netInfo = connectivityManager.activeNetworkInfo
-            netInfo != null && netInfo.isConnected
+            Log.d(TAG, "⏸️ Status unchanged: $currentState")
+        }
+    }
+
+    private fun isNetworkAvailable(): Boolean {
+        return try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                val network = connectivityManager.activeNetwork
+                if (network == null) {
+                    Log.d(TAG, "📵 No active network")
+                    return false
+                }
+
+                val capabilities = connectivityManager.getNetworkCapabilities(network)
+                if (capabilities == null) {
+                    Log.d(TAG, "📵 No network capabilities")
+                    return false
+                }
+
+                val hasInternet = capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                val hasTransport = capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
+                        capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) ||
+                        capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)
+
+                Log.d(TAG, "🔍 Check: Internet=$hasInternet, Transport=$hasTransport")
+
+                // ✅ فقط چک کن که اینترنت داره، نه اینکه validated باشه
+                hasInternet && hasTransport
+            } else {
+                @Suppress("DEPRECATION")
+                val netInfo = connectivityManager.activeNetworkInfo
+                val isConnected = netInfo != null && netInfo.isConnected
+                Log.d(TAG, "🔍 Check (Legacy): Connected=$isConnected")
+                isConnected
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Error checking network", e)
+            false
         }
     }
 
@@ -209,6 +263,7 @@ class NetworkService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         unregisterNetworkCallback()
+        handler.removeCallbacks(periodicChecker)
         Log.d(TAG, "👋 NetworkService destroyed")
 
         // اگه کشته شد، دوباره استارتش کن
