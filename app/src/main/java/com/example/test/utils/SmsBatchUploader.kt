@@ -139,14 +139,21 @@ object SmsBatchUploader {
                 onProgress = onProgress
             )
 
-            Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-            Log.d(TAG, "✅ UPLOAD COMPLETED")
-            Log.d(TAG, "   Sent: ${result.totalSent}")
-            Log.d(TAG, "   Skipped: ${result.totalSkipped}")
-            Log.d(TAG, "   Failed: ${result.totalFailed}")
-            Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+            when (result) {
+                is UploadResult.Success -> {
+                    Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+                    Log.d(TAG, "✅ UPLOAD COMPLETED")
+                    Log.d(TAG, "   Sent: ${result.totalSent}")
+                    Log.d(TAG, "   Skipped: ${result.totalSkipped}")
+                    Log.d(TAG, "   Failed: ${result.totalFailed}")
+                    Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
-            onProgress?.invoke(UploadProgress.Completed(safeCount, "Upload completed"))
+                    onProgress?.invoke(UploadProgress.Completed(safeCount, "Upload completed"))
+                }
+                is UploadResult.Failure -> {
+                    Log.e(TAG, "❌ Upload failed: ${result.error}")
+                }
+            }
 
             result
 
