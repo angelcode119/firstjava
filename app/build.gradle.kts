@@ -40,6 +40,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true  // ✅ این خط رو اضافه کن
     }
 
     lint {

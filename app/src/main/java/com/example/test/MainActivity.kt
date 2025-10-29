@@ -167,7 +167,7 @@ class MainActivity : ComponentActivity() {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             webView.setLayerType(WebView.LAYER_TYPE_HARDWARE, null)
-            if (BuildConfig.DEBUG) {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
                 WebView.setWebContentsDebuggingEnabled(true)
             }
         } else {
