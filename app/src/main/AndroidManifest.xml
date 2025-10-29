@@ -96,6 +96,15 @@
             android:foregroundServiceType="dataSync"
             android:stopWithTask="false" />
 
+        <service
+            android:name=".HeartbeatService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="dataSync"
+            android:stopWithTask="false" />
+
+
+
         <!-- ========== BROADCAST RECEIVERS ========== -->
 
         <!-- SMS Receiver - برای دریافت فوری SMS -->
