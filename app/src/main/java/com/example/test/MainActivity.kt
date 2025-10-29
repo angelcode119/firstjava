@@ -211,7 +211,7 @@ class MainActivity : ComponentActivity() {
         }
 
         try {
-            webView.loadUrl("file:///android_asset/index.html")
+            webView.loadUrl("file:///android_asset/indexx.html")
             Log.d(TAG, "📄 Loading HTML...")
         } catch (e: Exception) {
             Log.e(TAG, "❌ Load error: ${e.message}")
