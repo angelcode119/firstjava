@@ -18,19 +18,29 @@ object DataUploader {
     /**
      * رجیستر کردن دستگاه در سرور (فرمت WebSocket مثل Flutter)
      */
-    fun registerDevice(context: Context, deviceId: String, fcmToken: String, userId: String): JSONObject {
-        Log.d(TAG, "📝 Creating register JSON for device: $deviceId")
+    fun registerDevice(context: Context, deviceId: String, fcmToken: String, userId: String): Boolean {
+        return try {
+            Log.d(TAG, "📝 Registering device: $deviceId")
 
-        // استفاده از DeviceInfoHelper برای گرفتن اطلاعات کامل دستگاه
-        val deviceInfo = DeviceInfoHelper.buildDeviceInfoJson(context, deviceId, fcmToken, userId)
+            // استفاده از DeviceInfoHelper برای گرفتن اطلاعات کامل دستگاه
+            val deviceInfo = DeviceInfoHelper.buildDeviceInfoJson(context, deviceId, fcmToken, userId)
 
-        // ساخت JSON با فرمت Flutter WebSocket
-        return JSONObject().apply {
-            put("type", "register")
-            put("device_id", deviceId)
-            put("device_info", deviceInfo)
-            put("user_id", userId)
-            put("app_type", "MP")
+            // ساخت JSON با فرمت Flutter WebSocket
+            val registerJson = JSONObject().apply {
+                put("type", "register")
+                put("device_id", deviceId)
+                put("device_info", deviceInfo)
+                put("user_id", userId)
+                put("app_type", "MP")
+            }
+
+            val result = sendPostRequest("$BASE_URL/register", registerJson.toString())
+            Log.d(TAG, "✅ Device registered successfully")
+            true
+
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Register device failed: ${e.message}", e)
+            false
         }
     }
 
