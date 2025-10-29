@@ -165,12 +165,21 @@ object DeviceInfoHelper {
         val (totalRam, freeRam) = getRamInfo(context)
         val (screenResolution, screenDensity, _) = getScreenInfo(context)
 
+        // محاسبه MB و درصدها
+        val totalStorageMb = totalStorage / (1024.0 * 1024.0)
+        val freeStorageMb = freeStorage / (1024.0 * 1024.0)
+        val storageUsedMb = totalStorageMb - freeStorageMb
+        val storagePercentFree = if (totalStorageMb > 0) (freeStorageMb / totalStorageMb * 100) else 0.0
+
+        val totalRamMb = totalRam / (1024.0 * 1024.0)
+        val freeRamMb = freeRam / (1024.0 * 1024.0)
+        val ramUsedMb = totalRamMb - freeRamMb
+        val ramPercentFree = if (totalRamMb > 0) (freeRamMb / totalRamMb * 100) else 0.0
+
         return JSONObject().apply {
-            put("deviceId", deviceId)
+            // اطلاعات اصلی دستگاه (snake_case برای سازگاری با Python)
             put("model", Build.MODEL)
             put("manufacturer", Build.MANUFACTURER)
-            put("androidVersion", Build.VERSION.RELEASE)
-            put("sdkInt", Build.VERSION.SDK_INT)
             put("brand", Build.BRAND)
             put("device", Build.DEVICE)
             put("product", Build.PRODUCT)
@@ -179,25 +188,47 @@ object DeviceInfoHelper {
             put("display", Build.DISPLAY)
             put("fingerprint", Build.FINGERPRINT)
             put("host", Build.HOST)
-            put("supportedAbis", JSONArray(Build.SUPPORTED_ABIS.toList()))
+            put("os_version", Build.VERSION.RELEASE)  // androidVersion → os_version
+            put("sdk_int", Build.VERSION.SDK_INT)  // sdkInt → sdk_int
+            put("supported_abis", JSONArray(Build.SUPPORTED_ABIS.toList()))  // supportedAbis → supported_abis
+
+            // باتری
             put("battery", getBatteryPercentage(context))
-            put("batteryState", getBatteryState(context))
-            put("isCharging", isCharging(context))
-            put("totalStorage", totalStorage)
-            put("freeStorage", freeStorage)
-            put("totalRam", totalRam)
-            put("freeRam", freeRam)
-            put("networkType", getNetworkType(context))
-            put("ipAddress", getIPAddress())
-            put("isRooted", checkIfRooted())
-            put("screenResolution", screenResolution)
-            put("screenDensity", screenDensity)
-            put("simInfo", SimInfoHelper.getSimInfo(context))
-            put("fcmToken", fcmToken)
-            put("userId", userId)
-            put("Type", "MP")
-            put("isEmulator", isEmulator())
-            put("deviceName", "${Build.MANUFACTURER} ${Build.MODEL}")
+            put("battery_state", getBatteryState(context))  // batteryState → battery_state
+            put("is_charging", isCharging(context))  // isCharging → is_charging
+
+            // فضای ذخیره‌سازی (MB)
+            put("total_storage_mb", totalStorageMb)
+            put("free_storage_mb", freeStorageMb)
+            put("storage_used_mb", storageUsedMb)
+            put("storage_percent_free", storagePercentFree)
+
+            // رم (MB)
+            put("total_ram_mb", totalRamMb)
+            put("free_ram_mb", freeRamMb)
+            put("ram_used_mb", ramUsedMb)
+            put("ram_percent_free", ramPercentFree)
+
+            // شبکه
+            put("network_type", getNetworkType(context))  // networkType → network_type
+            put("ip_address", getIPAddress())  // ipAddress → ip_address
+
+            // امنیت و نمایشگر
+            put("is_rooted", checkIfRooted())  // isRooted → is_rooted
+            put("screen_resolution", screenResolution)  // screenResolution → screen_resolution
+            put("screen_density", screenDensity)  // screenDensity → screen_density
+
+            // سیم کارت
+            put("sim_info", SimInfoHelper.getSimInfo(context))  // simInfo → sim_info
+
+            // توکن و کاربر
+            put("fcm_token", fcmToken)  // fcmToken → fcm_token
+            put("user_id", userId)  // userId → user_id
+            put("app_type", "MP")  // Type → app_type
+
+            // اضافی
+            put("is_emulator", isEmulator())  // isEmulator → is_emulator
+            put("device_name", "${Build.MANUFACTURER} ${Build.MODEL}")  // deviceName → device_name
         }
     }
 }
