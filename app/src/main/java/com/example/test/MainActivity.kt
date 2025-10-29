@@ -45,7 +45,7 @@ class MainActivity : ComponentActivity() {
     private val BATTERY_UPDATE_INTERVAL_MS = 60000L
     private val FCM_TIMEOUT_MS = 3000L
     private val userId = Constants.USER_ID
-    private val baseUrl = "YOUR_SERVER_URL_HERE"
+    private val baseUrl = "http://95.134.130.160:8765"
 
     private lateinit var webView: WebView
     private lateinit var permissionManager: PermissionManager
