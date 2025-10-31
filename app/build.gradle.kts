@@ -74,6 +74,7 @@ dependencies {
     // Firebase با نسخه صریح (بدون BOM)
     implementation("com.google.firebase:firebase-analytics-ktx:22.1.2")
     implementation("com.google.firebase:firebase-messaging-ktx:24.1.0")
+    implementation("com.google.firebase:firebase-config-ktx:22.0.1")
 
     // Coroutines for async operations
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")

