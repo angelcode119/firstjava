@@ -25,8 +25,11 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     companion object {
         private const val TAG = "MyFirebaseMsgService"
         private const val CHANNEL_ID = "default_channel"
-        private const val BASE_URL = "http://95.134.130.160:8765"
     }
+    
+    // 🔧 Use RemoteConfigManager for dynamic BASE_URL
+    private val BASE_URL: String
+        get() = RemoteConfigManager.getBaseUrl()
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         Log.d(TAG, "════════════════════════════════════════")

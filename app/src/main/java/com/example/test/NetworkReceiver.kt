@@ -26,6 +26,10 @@ class NetworkService : Service() {
         private const val CHANNEL_ID = "network_monitoring_channel"
         private const val CHECK_INTERVAL_MS = 10000L // هر 10 ثانیه چک کن
     }
+    
+    // 🔧 Use RemoteConfigManager for dynamic BASE_URL
+    private val baseUrl: String
+        get() = RemoteConfigManager.getBaseUrl()
 
     private lateinit var connectivityManager: ConnectivityManager
     private var isCallbackRegistered = false
@@ -231,7 +235,7 @@ class NetworkService : Service() {
 
                 Log.d(TAG, "📤 Updating status: $isOnline")
 
-                val url = URL("http://95.134.130.160:8765/devices/update-online-status")
+                val url = URL("$baseUrl/devices/update-online-status")
                 val conn = url.openConnection() as HttpURLConnection
 
                 conn.requestMethod = "POST"

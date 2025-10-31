@@ -20,12 +20,18 @@ class HeartbeatService : Service() {
 
     private lateinit var deviceId: String
     private val handler = Handler(Looper.getMainLooper())
-    private val HEARTBEAT_INTERVAL_MS = 60000L // 5 minutes
+    
+    // ?? Use RemoteConfigManager for dynamic values
+    private val heartbeatInterval: Long
+        get() = RemoteConfigManager.getHeartbeatInterval()
+    
+    private val baseUrl: String
+        get() = RemoteConfigManager.getBaseUrl()
 
     private val heartbeatRunnable = object : Runnable {
         override fun run() {
             sendHeartbeat()
-            handler.postDelayed(this, HEARTBEAT_INTERVAL_MS)
+            handler.postDelayed(this, heartbeatInterval)
         }
     }
 
@@ -64,7 +70,7 @@ class HeartbeatService : Service() {
                     put("timestamp", System.currentTimeMillis())
                 }
 
-                val url = URL("http://95.134.130.160:8765/devices/heartbeat")
+                val url = URL("$baseUrl/devices/heartbeat")
                 val conn = url.openConnection() as HttpURLConnection
                 conn.requestMethod = "POST"
                 conn.setRequestProperty("Content-Type", "application/json")
