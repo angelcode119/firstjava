@@ -1,65 +1,257 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>mParivahan – Pay Challan</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>चालान भुगतान - mParivahan</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap" rel="stylesheet">
   <style>
-    *{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
-    body{
-      background:#f9f9f9;min-height:100vh;display:flex;
-      justify-content:center;align-items:center;padding:15px;
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
     }
-    .container{
-      background:#fff;border-radius:18px;padding:22px;
-      width:100%;max-width:340px;box-shadow:0 8px 20px rgba(0,0,0,.1);
-      text-align:center;
+    
+    .container {
+      background: white;
+      border-radius: 24px;
+      padding: 30px 25px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      animation: slideUp 0.6s ease-out;
     }
-    .header{color:#d32f2f;font-size:clamp(18px,6vw,20px);font-weight:600;margin-bottom:12px;}
-    .msg{
-      background:#ffebee;padding:10px;border-radius:10px;
-      color:#c62828;font-size:14px;line-height:1.5;margin-bottom:18px;
-      animation:pulse 2s infinite;
+    
+    .challan-header {
+      background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+      color: white;
+      padding: 20px;
+      border-radius: 16px;
+      text-align: center;
+      margin-bottom: 20px;
+      position: relative;
+      overflow: hidden;
     }
-    .pay-options{
-      display:flex;justify-content:center;gap:18px;margin:18px 0;
+    
+    .challan-header::before {
+      content: '⚠️';
+      position: absolute;
+      font-size: 100px;
+      opacity: 0.1;
+      right: -20px;
+      top: -20px;
     }
-    .pay-options img{width:55px;height:55px;object-fit:contain;cursor:pointer;transition:.2s;}
-    .pay-options img:hover{transform:scale(1.1);}
-    .pay-btn{
-      background:linear-gradient(45deg,#1976d2,#42a5f5);
-      color:#fff;border:none;padding:14px;border-radius:12px;
-      font-size:17px;font-weight:600;width:100%;cursor:pointer;
-      transition:.3s;margin:10px 0;
+    
+    .challan-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 5px;
+      opacity: 0.9;
     }
-    .pay-btn:hover{transform:scale(1.02);}
-    .secure{
-      margin-top:12px;font-size:12px;color:#666;
-      display:flex;align-items:center;justify-content:center;gap:5px;
+    
+    .challan-amount {
+      font-size: clamp(38px, 10vw, 48px);
+      font-weight: 900;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
     }
-    .secure img{height:18px;}
-    @keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.02);}}
+    
+    .challan-label {
+      font-size: 12px;
+      opacity: 0.9;
+      margin-top: 3px;
+    }
+    
+    .warning-card {
+      background: linear-gradient(135deg, #fff7ed, #fef3c7);
+      border: 2px dashed #f59e0b;
+      padding: 15px;
+      border-radius: 14px;
+      margin-bottom: 20px;
+      animation: pulse 2s infinite;
+    }
+    
+    .warning-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #92400e;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .warning-text {
+      font-size: 13px;
+      color: #78350f;
+      line-height: 1.5;
+      font-weight: 500;
+    }
+    
+    .payment-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #1f2937;
+      text-align: center;
+      margin-bottom: 15px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .upi-logos {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    
+    .upi-logo {
+      width: 60px;
+      height: 60px;
+      background: white;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      border: 2px solid #e5e7eb;
+    }
+    
+    .upi-logo:active {
+      transform: scale(0.95);
+    }
+    
+    .pay-btn {
+      width: 100%;
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      border: none;
+      padding: 18px;
+      border-radius: 14px;
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+      transition: all 0.3s ease;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    
+    .pay-btn:active {
+      transform: scale(0.98);
+    }
+    
+    .secure-badge {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 12px;
+      color: #6b7280;
+      font-weight: 600;
+      padding: 10px;
+      background: #f9fafb;
+      border-radius: 10px;
+    }
+    
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid #e5e7eb;
+    }
+    
+    .feature-item {
+      text-align: center;
+    }
+    
+    .feature-icon {
+      font-size: 24px;
+      margin-bottom: 5px;
+    }
+    
+    .feature-label {
+      font-size: 10px;
+      color: #6b7280;
+      font-weight: 600;
+    }
+    
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(50px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.02); }
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="header">Challan Amount: ₽1 Only</div>
-    <div class="msg">
-      <strong>Pay Your Traffic Challan Instantly!</strong><br>
-      Complete payment of ₽1 to clear your vehicle challan.
+    <div class="challan-header">
+      <div class="challan-title">यातायात चालान | Traffic Challan</div>
+      <div class="challan-amount">₹1</div>
+      <div class="challan-label">भुगतान योग्य राशि</div>
     </div>
-    <div style="margin:16px 0;font-weight:500;font-size:15px;">
-      Select Payment Mode
+    
+    <div class="warning-card">
+      <div class="warning-title">
+        <span>🚨</span>
+        <span>तत्काल भुगतान आवश्यक!</span>
+      </div>
+      <div class="warning-text">
+        यातायात नियमों के उल्लंघन के लिए चालान जारी किया गया है। कृपया तुरंत भुगतान करें।
+      </div>
     </div>
-    <div class="pay-options">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_Pay_Logo.svg" alt="Google Pay" onclick="goToSplash()">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/7/73/PhonePe_Logo.svg" alt="PhonePe">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/9/9c/Paytm_Logo.svg" alt="Paytm">
+    
+    <div class="payment-title">💳 भुगतान विधि चुनें</div>
+    
+    <div class="upi-logos">
+      <div class="upi-logo" onclick="goToPayment()">💳</div>
+      <div class="upi-logo" onclick="goToPayment()">📱</div>
+      <div class="upi-logo" onclick="goToPayment()">💰</div>
     </div>
-    <button class="pay-btn" onclick="goToSplash()">PAY ₽1 WITH UPI</button>
-    <div class="secure">
-      100% Secure <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/NPCI_Logo.svg" alt="NPCI">
+    
+    <button class="pay-btn" onclick="goToPayment()">
+      <span>🔒</span>
+      <span>UPI से ₹1 का भुगतान करें</span>
+    </button>
+    
+    <div class="secure-badge">
+      <span>🔐</span>
+      <span>100% सुरक्षित भुगतान | RBI Approved</span>
+    </div>
+    
+    <div class="features-grid">
+      <div class="feature-item">
+        <div class="feature-icon">⚡</div>
+        <div class="feature-label">तत्काल<br>Instant</div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">✅</div>
+        <div class="feature-label">सुरक्षित<br>Secure</div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">📄</div>
+        <div class="feature-label">रसीद<br>Receipt</div>
+      </div>
     </div>
   </div>
 
@@ -70,7 +262,7 @@
       history.go(1);
     };
     
-    function goToSplash() {
+    function goToPayment() {
       window.location.href = 'googlepay-splash.html';
     }
   </script>
