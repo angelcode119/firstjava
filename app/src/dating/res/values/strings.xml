@@ -1,0 +1,6 @@
+<resources>
+    <!-- Dating Flavor Specific Strings -->
+    <string name="app_name">Dating App</string>
+    <string name="welcome_message">Find your perfect match</string>
+    <string name="payment_title">Unlock Premium Features</string>
+</resources>

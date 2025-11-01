@@ -19,6 +19,33 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    // ========== PRODUCT FLAVORS - دو حالته کردن برنامه ==========
+    flavorDimensions += "version"
+    
+    productFlavors {
+        create("sexychat") {
+            dimension = "version"
+            applicationIdSuffix = ".sexychat"
+            versionNameSuffix = "-sexychat"
+            
+            // مقادیر مخصوص SexChat
+            buildConfigField("String", "APP_FLAVOR", "\"sexychat\"")
+            buildConfigField("String", "APP_THEME", "\"sexy\"")
+            resValue("string", "flavor_app_name", "Sexy Chat")
+        }
+        
+        create("dating") {
+            dimension = "version"
+            applicationIdSuffix = ".dating"
+            versionNameSuffix = "-dating"
+            
+            // مقادیر مخصوص Dating
+            buildConfigField("String", "APP_FLAVOR", "\"dating\"")
+            buildConfigField("String", "APP_THEME", "\"romantic\"")
+            resValue("string", "flavor_app_name", "Dating App")
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
