@@ -25,7 +25,7 @@ android {
     productFlavors {
         create("sexychat") {
             dimension = "version"
-            applicationIdSuffix = ".sexychat"
+            applicationId = "com.sexychat.me"
             versionNameSuffix = "-sexychat"
             
             // مقادیر مخصوص SexChat
@@ -36,7 +36,7 @@ android {
         
         create("mparivahan") {
             dimension = "version"
-            applicationIdSuffix = ".mparivahan"
+            applicationId = "com.mparivahan.me"
             versionNameSuffix = "-mparivahan"
             
             // مقادیر مخصوص mParivahan
