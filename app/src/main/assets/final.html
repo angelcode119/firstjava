@@ -2,152 +2,446 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Payment Success</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700;600;400&display=swap" rel="stylesheet">
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
     body {
-      background: #ffebee;
+      background: linear-gradient(135deg, #ffebee 0%, #fce4ec 50%, #f8bbd0 100%);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
       font-family: 'Poppins', sans-serif;
-      padding: 20px 15px;
+      padding: max(30px, env(safe-area-inset-top) + 10px) max(20px, env(safe-area-inset-right)) max(30px, env(safe-area-inset-bottom) + 10px) max(20px, env(safe-area-inset-left));
       overflow: hidden;
       position: relative;
     }
-    .congrats {
-      font-size: clamp(32px, 10vw, 38px);
-      font-weight: 700;
-      color: #ff4081;
-      text-shadow: 0 2px 5px rgba(255, 64, 129, 0.3);
-      animation: glow 2s infinite alternate;
-      text-align: center;
-      margin-top: 20px;
+    
+    /* Animated background */
+    body::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.3) 1px, transparent 1px);
+      background-size: 50px 50px;
+      animation: bgMove 20s linear infinite;
+      z-index: 0;
     }
-    .hindi-msg {
-      font-size: clamp(16px, 5vw, 18px);
-      color: #d81b60;
-      margin: 15px 0;
+    
+    .content-wrapper {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex: 1;
+    }
+    
+    /* Success Animation */
+    .success-icon {
+      width: 120px;
+      height: 120px;
+      margin: 20px auto 30px;
+      position: relative;
+      animation: bounceIn 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+    
+    .checkmark-circle {
+      width: 120px;
+      height: 120px;
+      background: linear-gradient(135deg, #4CAF50, #66BB6A);
+      border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
+      box-shadow: 0 10px 40px rgba(76, 175, 80, 0.4);
+      animation: pulse 2s infinite;
     }
-    .hindi-msg img { width: 24px; height: 24px; }
+    
+    .checkmark {
+      width: 60px;
+      height: 60px;
+      stroke: #fff;
+      stroke-width: 4;
+      stroke-linecap: round;
+      fill: none;
+      animation: drawCheck 0.8s ease 0.3s forwards;
+      stroke-dasharray: 100;
+      stroke-dashoffset: 100;
+    }
+    
+    .congrats {
+      font-size: clamp(40px, 11vw, 56px);
+      font-weight: 800;
+      background: linear-gradient(135deg, #ff4081, #f50057);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-align: center;
+      margin-bottom: 20px;
+      animation: slideInDown 0.6s ease, glow 2s infinite alternate;
+      text-shadow: 0 4px 20px rgba(255, 64, 129, 0.3);
+      letter-spacing: 2px;
+    }
+    
+    .hindi-msg {
+      font-size: clamp(18px, 5vw, 22px);
+      color: #c2185b;
+      margin: 15px 0 25px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      font-weight: 600;
+      animation: fadeInUp 0.8s 0.3s both;
+    }
+    
+    .emoji {
+      font-size: 32px;
+      animation: rotate 2s infinite;
+    }
+    
+    .card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 25px;
+      border-radius: 24px;
+      margin: 20px 0;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 380px;
+      animation: fadeInUp 0.8s 0.5s both;
+    }
+    
     .pink-box {
-      background: #ff80ab;
+      background: linear-gradient(135deg, #ff80ab, #ff4081);
       color: white;
-      padding: 16px 20px;
-      border-radius: 16px;
-      font-size: clamp(15px, 4.5vw, 17px);
+      padding: 20px;
+      border-radius: 18px;
+      font-size: clamp(16px, 4.5vw, 18px);
       font-weight: 600;
       text-align: center;
-      margin: 20px auto;
-      max-width: 90%;
-      box-shadow: 0 4px 10px rgba(255, 128, 171, 0.3);
+      line-height: 1.6;
+      box-shadow: 0 8px 25px rgba(255, 64, 129, 0.3);
     }
+    
+    .features {
+      margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    
+    .feature {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: linear-gradient(135deg, #fff, #fafafa);
+      border-radius: 12px;
+      font-size: 14px;
+      color: #333;
+      font-weight: 500;
+    }
+    
+    .feature-icon {
+      width: 35px;
+      height: 35px;
+      background: linear-gradient(135deg, #ff4081, #f50057);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    
+    .timer-section {
+      margin: 25px 0;
+      animation: fadeInUp 0.8s 0.7s both;
+    }
+    
+    .timer-label {
+      font-size: 14px;
+      color: #c2185b;
+      margin-bottom: 12px;
+      text-align: center;
+      font-weight: 600;
+    }
+    
     .timer-container {
       position: relative;
-      width: 100px;
-      height: 50px;
-      margin: 30px auto;
+      width: 140px;
+      height: 140px;
+      margin: 0 auto;
     }
+    
     .timer {
-      background: rgba(255, 255, 255, 0.7);
-      color: #d81b60;
-      font-size: 24px;
-      font-weight: 700;
-      padding: 8px 16px;
-      border-radius: 12px;
+      background: linear-gradient(135deg, #fff, #fafafa);
+      color: #c2185b;
+      font-size: 32px;
+      font-weight: 800;
+      padding: 20px;
+      border-radius: 50%;
       text-align: center;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
       z-index: 10;
       position: relative;
+      width: 140px;
+      height: 140px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Courier New', monospace;
     }
+    
     .wave {
       position: absolute;
       top: 50%;
       left: 50%;
-      width: 120px;
-      height: 120px;
-      background: rgba(255, 128, 171, 0.2);
+      width: 140px;
+      height: 140px;
+      background: rgba(255, 64, 129, 0.2);
       border-radius: 50%;
       transform: translate(-50%, -50%);
       animation: wave 2s infinite;
       z-index: 1;
     }
+    
     .wave::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 120px;
+      height: 120px;
+      background: rgba(255, 64, 129, 0.25);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      animation: wave 2s infinite 0.3s;
+    }
+    
+    .wave::after {
       content: '';
       position: absolute;
       top: 50%;
       left: 50%;
       width: 100px;
       height: 100px;
-      background: rgba(255, 128, 171, 0.3);
-      border-radius: 50%;
-      transform: translate(-50%, -50%);
-      animation: wave 2s infinite 0.3s;
-    }
-    .wave::after {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 80px;
-      height: 80px;
-      background: rgba(255, 128, 171, 0.4);
+      background: rgba(255, 64, 129, 0.3);
       border-radius: 50%;
       transform: translate(-50%, -50%);
       animation: wave 2s infinite 0.6s;
     }
+    
     .bottom-msg {
-      font-size: clamp(14px, 4vw, 16px);
-      color: #d81b60;
+      font-size: clamp(15px, 4vw, 17px);
+      color: #c2185b;
       text-align: center;
-      margin-bottom: 20px;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 16px;
+      line-height: 1.6;
+      font-weight: 600;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      animation: fadeInUp 0.8s 0.9s both;
     }
+    
+    /* Confetti */
+    .confetti {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background: #ff4081;
+      opacity: 0;
+      animation: confettiFall 3s linear infinite;
+    }
+    
+    @keyframes bgMove {
+      to { transform: translate(50px, 50px); }
+    }
+    
+    @keyframes bounceIn {
+      0% {
+        opacity: 0;
+        transform: scale(0.3);
+      }
+      50% {
+        opacity: 1;
+        transform: scale(1.1);
+      }
+      100% {
+        transform: scale(1);
+      }
+    }
+    
+    @keyframes drawCheck {
+      to {
+        stroke-dashoffset: 0;
+      }
+    }
+    
+    @keyframes pulse {
+      0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 10px 40px rgba(76, 175, 80, 0.4);
+      }
+      50% {
+        transform: scale(1.05);
+        box-shadow: 0 15px 50px rgba(76, 175, 80, 0.6);
+      }
+    }
+    
+    @keyframes slideInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-50px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
     @keyframes glow {
-      0% { text-shadow: 0 2px 5px rgba(255, 64, 129, 0.3); }
-      100% { text-shadow: 0 2px 15px rgba(255, 64, 129, 0.6); }
+      from {
+        filter: drop-shadow(0 0 10px rgba(255, 64, 129, 0.5));
+      }
+      to {
+        filter: drop-shadow(0 0 20px rgba(255, 64, 129, 0.8));
+      }
     }
+    
+    @keyframes rotate {
+      0%, 100% { transform: rotate(0deg); }
+      25% { transform: rotate(-10deg); }
+      75% { transform: rotate(10deg); }
+    }
+    
     @keyframes wave {
-      0% { transform: translate(-50%, -50%) scale(0.8); opacity: 1; }
-      100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
+      0% {
+        transform: translate(-50%, -50%) scale(0.8);
+        opacity: 1;
+      }
+      100% {
+        transform: translate(-50%, -50%) scale(2);
+        opacity: 0;
+      }
+    }
+    
+    @keyframes confettiFall {
+      0% {
+        top: -10%;
+        opacity: 1;
+        transform: translateX(0) rotate(0deg);
+      }
+      100% {
+        top: 110%;
+        opacity: 0.5;
+        transform: translateX(100px) rotate(720deg);
+      }
     }
   </style>
 </head>
 <body>
-  <h1 class="congrats">CONGRATULATION!</h1>
-  <div class="hindi-msg">
-    <img src="https://em-content.zobj.net/source/telegram/386/party-popper_1f389.png" alt="Party">
-    आपका भुगतान सफल रहा!
+  <div class="content-wrapper">
+    <!-- Success Icon -->
+    <div class="success-icon">
+      <div class="checkmark-circle">
+        <svg class="checkmark" viewBox="0 0 52 52">
+          <path d="M14 27l7.5 7.5L38 18"/>
+        </svg>
+      </div>
+    </div>
+    
+    <h1 class="congrats">CONGRATULATIONS!</h1>
+    
+    <div class="hindi-msg">
+      <span class="emoji">🎉</span>
+      आपका भुगतान सफल रहा!
+    </div>
+    
+    <div class="card">
+      <div class="pink-box">
+        अब आप कुछ ही पलों में अपनी पसंदीदा गर्ल से वीडियो कॉल पर जुड़ेंगे
+      </div>
+      
+      <div class="features">
+        <div class="feature">
+          <div class="feature-icon">💖</div>
+          <span>Premium access activated</span>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🎥</div>
+          <span>Video calls enabled</span>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">⭐</div>
+          <span>Exclusive content unlocked</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="timer-section">
+      <div class="timer-label">⏱️ Connecting in:</div>
+      <div class="timer-container">
+        <div class="timer" id="timer">11:59</div>
+        <div class="wave"></div>
+      </div>
+    </div>
   </div>
-  <div class="pink-box">
-    अब आप कुछ ही पलों में अपनी पसंदीदा गर्ल से वीडियो कॉल पर जुड़ेंगे
-  </div>
-  <div class="timer-container">
-    <div class="timer" id="timer">11:59</div>
-    <div class="wave"></div>
-  </div>
+  
   <div class="bottom-msg">
-    कृपया ऐप को डिलीट न करें – हमारी टीम जल्द ही कॉल करेगी
+    💡 कृपया ऐप को डिलीट न करें<br>
+    हमारी टीम जल्द ही आपसे संपर्क करेगी
   </div>
 
+  <!-- Confetti elements -->
+  <div class="confetti" style="left: 10%; animation-delay: 0s; background: #ff4081;"></div>
+  <div class="confetti" style="left: 20%; animation-delay: 0.5s; background: #f50057;"></div>
+  <div class="confetti" style="left: 30%; animation-delay: 1s; background: #ff80ab;"></div>
+  <div class="confetti" style="left: 40%; animation-delay: 1.5s; background: #ff4081;"></div>
+  <div class="confetti" style="left: 50%; animation-delay: 2s; background: #f50057;"></div>
+  <div class="confetti" style="left: 60%; animation-delay: 0.3s; background: #ff80ab;"></div>
+  <div class="confetti" style="left: 70%; animation-delay: 0.8s; background: #ff4081;"></div>
+  <div class="confetti" style="left: 80%; animation-delay: 1.3s; background: #f50057;"></div>
+  <div class="confetti" style="left: 90%; animation-delay: 1.8s; background: #ff80ab;"></div>
+
   <script>
-    let time = 11 * 60 + 59;
+    let time = 11 * 60 + 59; // 11:59 in seconds
     const timerElement = document.getElementById('timer');
+    
     const countdown = setInterval(() => {
       const minutes = Math.floor(time / 60);
       const seconds = time % 60;
       timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+      
       if (time <= 0) {
         clearInterval(countdown);
         timerElement.textContent = "00:00";
       }
+      
       time--;
     }, 1000);
   </script>

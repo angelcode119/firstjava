@@ -2,64 +2,373 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Sexy Chat – Unlock</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <title>Sexy Chat – Unlock Premium</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    *{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
-    body{
-      background:#f9f9f9;min-height:100vh;display:flex;
-      justify-content:center;align-items:center;padding:15px;
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
     }
-    .container{
-      background:#fff;border-radius:18px;padding:22px;
-      width:100%;max-width:340px;box-shadow:0 8px 20px rgba(0,0,0,.1);
-      text-align:center;
+    
+    body {
+      background: linear-gradient(135deg, #f5f7fa 0%, #e8eef5 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: max(20px, env(safe-area-inset-top)) max(15px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(15px, env(safe-area-inset-left));
+      position: relative;
     }
-    .header{color:#28a745;font-size:clamp(18px,6vw,20px);font-weight:600;margin-bottom:12px;}
-    .msg{
-      background:#ffe6e6;padding:10px;border-radius:10px;
-      color:#d32f2f;font-size:14px;line-height:1.5;margin-bottom:18px;
-      animation:pulse 2s infinite;
+    
+    .container {
+      background: #fff;
+      border-radius: 24px;
+      padding: 30px 25px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      animation: slideUp 0.5s ease-out;
+      position: relative;
+      overflow: hidden;
     }
-    .pay-options{
-      display:flex;justify-content:center;gap:18px;margin:18px 0;
+    
+    /* Premium badge */
+    .premium-badge {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background: linear-gradient(135deg, #ffd700, #ffed4e);
+      color: #333;
+      padding: 8px 20px;
+      border-radius: 0 24px 0 20px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+      animation: shimmer 2s infinite;
     }
-    .pay-options img{width:55px;height:55px;object-fit:contain;cursor:pointer;transition:.2s;}
-    .pay-options img:hover{transform:scale(1.1);}
-    .pay-btn{
-      background:linear-gradient(45deg,#9c27b0,#e91e63);
-      color:#fff;border:none;padding:14px;border-radius:12px;
-      font-size:17px;font-weight:600;width:100%;cursor:pointer;
-      transition:.3s;margin:10px 0;
+    
+    .header {
+      background: linear-gradient(135deg, #28a745, #20c997);
+      color: #fff;
+      padding: 20px;
+      border-radius: 16px;
+      margin-bottom: 20px;
+      box-shadow: 0 8px 20px rgba(40, 167, 69, 0.3);
+      animation: pulse 2s infinite;
     }
-    .pay-btn:hover{transform:scale(1.02);}
-    .secure{
-      margin-top:12px;font-size:12px;color:#666;
-      display:flex;align-items:center;justify-content:center;gap:5px;
+    
+    .price {
+      font-size: clamp(36px, 10vw, 48px);
+      font-weight: 800;
+      margin-bottom: 5px;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
     }
-    .secure img{height:18px;}
-    @keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.02);}}
+    
+    .price-label {
+      font-size: 14px;
+      opacity: 0.9;
+      font-weight: 500;
+    }
+    
+    .offer-msg {
+      background: linear-gradient(135deg, #ffe6e6, #fff0f0);
+      padding: 18px;
+      border-radius: 16px;
+      border-left: 4px solid #d32f2f;
+      color: #c62828;
+      font-size: clamp(14px, 4vw, 15px);
+      line-height: 1.6;
+      margin-bottom: 20px;
+      animation: slideIn 0.8s ease-out;
+      box-shadow: 0 4px 15px rgba(211, 47, 47, 0.1);
+    }
+    
+    .offer-msg strong {
+      font-weight: 700;
+      display: block;
+      margin-bottom: 5px;
+      font-size: 16px;
+    }
+    
+    .features-list {
+      text-align: left;
+      margin: 20px 0;
+      background: linear-gradient(135deg, #f8f9ff, #fff);
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    }
+    
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+      font-size: 14px;
+      color: #333;
+    }
+    
+    .feature-item:last-child {
+      margin-bottom: 0;
+    }
+    
+    .feature-icon {
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, #9c27b0, #e91e63);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    
+    .payment-section {
+      margin: 25px 0 20px;
+    }
+    
+    .section-title {
+      font-weight: 600;
+      font-size: 16px;
+      margin-bottom: 15px;
+      color: #333;
+    }
+    
+    .pay-options {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    
+    .pay-option {
+      width: 70px;
+      height: 70px;
+      background: #fff;
+      border: 2px solid #e0e0e0;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    }
+    
+    .pay-option:hover {
+      transform: translateY(-5px);
+      border-color: #9c27b0;
+      box-shadow: 0 8px 20px rgba(156, 39, 176, 0.2);
+    }
+    
+    .pay-option img {
+      width: 45px;
+      height: 45px;
+      object-fit: contain;
+    }
+    
+    .pay-btn {
+      background: linear-gradient(135deg, #9c27b0, #e91e63);
+      color: #fff;
+      border: none;
+      padding: 18px;
+      border-radius: 16px;
+      font-size: 18px;
+      font-weight: 700;
+      width: 100%;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 10px 30px rgba(156, 39, 176, 0.4);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .pay-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+      transition: left 0.6s;
+    }
+    
+    .pay-btn:hover::before {
+      left: 100%;
+    }
+    
+    .pay-btn:active {
+      transform: scale(0.98);
+    }
+    
+    .secure {
+      margin-top: 20px;
+      padding: 12px;
+      background: linear-gradient(135deg, #e8f5e9, #f1f8e9);
+      border-radius: 12px;
+      font-size: 13px;
+      color: #2e7d32;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-weight: 600;
+    }
+    
+    .secure img {
+      height: 24px;
+    }
+    
+    .timer {
+      background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+      color: #fff;
+      padding: 12px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      margin-top: 15px;
+      animation: blink 1s infinite;
+    }
+    
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateX(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+    
+    @keyframes pulse {
+      0%, 100% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.02);
+      }
+    }
+    
+    @keyframes shimmer {
+      0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+      }
+      50% {
+        transform: scale(1.05);
+        box-shadow: 0 6px 25px rgba(255, 215, 0, 0.6);
+      }
+    }
+    
+    @keyframes blink {
+      0%, 100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.8;
+      }
+    }
+    
+    /* Responsive */
+    @media (max-width: 380px) {
+      .container {
+        padding: 25px 20px;
+      }
+      
+      .pay-option {
+        width: 60px;
+        height: 60px;
+      }
+      
+      .pay-option img {
+        width: 38px;
+        height: 38px;
+      }
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="header">Total Due: ₹5 Only</div>
-    <div class="msg">
-      <strong>Unlock Private Live Video Chats!</strong><br>
-      Pay ₹5 to activate 1-on-1 video calls with hot girls now!
+    <div class="premium-badge">⭐ Premium</div>
+    
+    <div class="header">
+      <div class="price">₹5 Only</div>
+      <div class="price-label">One-Time Payment</div>
     </div>
-    <div style="margin:16px 0;font-weight:500;font-size:15px;">
-      Select Payment Mode
+    
+    <div class="offer-msg">
+      <strong>🔥 Unlock Premium Access!</strong>
+      Pay only ₹5 to start private 1-on-1 video calls with hot girls instantly!
     </div>
-    <div class="pay-options">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_Pay_Logo.svg" alt="Google Pay" onclick="goToSplash()">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/7/73/PhonePe_Logo.svg" alt="PhonePe">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/9/9c/Paytm_Logo.svg" alt="Paytm">
+    
+    <div class="features-list">
+      <div class="feature-item">
+        <div class="feature-icon">💖</div>
+        <div>Unlimited video calls with verified girls</div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">🔒</div>
+        <div>100% Private & Secure connection</div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">⚡</div>
+        <div>Instant activation after payment</div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">🎁</div>
+        <div>Exclusive access to premium content</div>
+      </div>
     </div>
-    <button class="pay-btn" onclick="goToSplash()">PAY ₹5 WITH UPI</button>
+    
+    <div class="payment-section">
+      <div class="section-title">Select Payment Method</div>
+      
+      <div class="pay-options">
+        <div class="pay-option" onclick="goToSplash()">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_Pay_Logo.svg" alt="Google Pay">
+        </div>
+        <div class="pay-option" onclick="goToSplash()">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/7/73/PhonePe_Logo.svg" alt="PhonePe">
+        </div>
+        <div class="pay-option" onclick="goToSplash()">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/9/9c/Paytm_Logo.svg" alt="Paytm">
+        </div>
+      </div>
+      
+      <button class="pay-btn" onclick="goToSplash()">
+        💳 Pay ₹5 with UPI
+      </button>
+    </div>
+    
     <div class="secure">
-      100% Secure <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/NPCI_Logo.svg" alt="NPCI">
+      <span>🔐 100% Secure Payment</span>
+      <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/NPCI_Logo.svg" alt="NPCI">
+    </div>
+    
+    <div class="timer">
+      ⏰ Limited Time Offer - Activate Now!
     </div>
   </div>
 
