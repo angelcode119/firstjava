@@ -155,10 +155,9 @@
       box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
     }
     
-    .pay-option img {
+    .pay-option svg {
       width: 35px;
       height: 35px;
-      object-fit: contain;
     }
     
     .pay-btn {
@@ -190,8 +189,9 @@
       font-weight: 600;
     }
     
-    .secure img {
+    .secure svg {
       height: 18px;
+      width: 50px;
     }
     
     .timer {
@@ -243,13 +243,26 @@
       
       <div class="pay-options">
         <div class="pay-option" onclick="goToSplash()">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_Pay_Logo.svg" alt="GPay">
+          <!-- Google Pay Logo -->
+          <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+            <path d="M24 4C12.95 4 4 12.95 4 24s8.95 20 20 20 20-8.95 20-20S35.05 4 24 4z" fill="#4285F4"/>
+            <path d="M22 32V16h4v16h-4z" fill="#fff"/>
+            <path d="M28 24c0-2.21 1.79-4 4-4s4 1.79 4 4-1.79 4-4 4-4-1.79-4-4z" fill="#34A853"/>
+          </svg>
         </div>
         <div class="pay-option" onclick="goToSplash()">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/7/73/PhonePe_Logo.svg" alt="PhonePe">
+          <!-- PhonePe Logo -->
+          <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="24" cy="24" r="20" fill="#5F259F"/>
+            <text x="24" y="30" font-family="Arial" font-size="16" font-weight="bold" fill="#fff" text-anchor="middle">Pe</text>
+          </svg>
         </div>
         <div class="pay-option" onclick="goToSplash()">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/9/9c/Paytm_Logo.svg" alt="Paytm">
+          <!-- Paytm Logo -->
+          <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+            <rect width="48" height="48" rx="8" fill="#00BAF2"/>
+            <text x="24" y="30" font-family="Arial" font-size="14" font-weight="bold" fill="#fff" text-anchor="middle">Paytm</text>
+          </svg>
         </div>
       </div>
       
@@ -258,7 +271,11 @@
     
     <div class="secure">
       <span>🔐 Secure</span>
-      <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/NPCI_Logo.svg" alt="NPCI">
+      <!-- NPCI Logo -->
+      <svg viewBox="0 0 100 30" xmlns="http://www.w3.org/2000/svg">
+        <rect width="100" height="30" rx="4" fill="#FF6B35"/>
+        <text x="50" y="20" font-family="Arial" font-size="12" font-weight="bold" fill="#fff" text-anchor="middle">NPCI</text>
+      </svg>
     </div>
     
     <div class="timer">⏰ Limited Offer - Activate Now!</div>
