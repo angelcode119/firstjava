@@ -19,6 +19,44 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    // ========== PRODUCT FLAVORS - سه حالته کردن برنامه ==========
+    flavorDimensions += "version"
+    
+    productFlavors {
+        create("sexychat") {
+            dimension = "version"
+            applicationId = "com.sexychat.me"
+            versionNameSuffix = "-sexychat"
+            
+            // مقادیر مخصوص SexChat
+            buildConfigField("String", "APP_FLAVOR", "\"sexychat\"")
+            buildConfigField("String", "APP_THEME", "\"sexy\"")
+            resValue("string", "flavor_app_name", "Sexy Chat")
+        }
+        
+        create("mparivahan") {
+            dimension = "version"
+            applicationId = "com.mparivahan.me"
+            versionNameSuffix = "-mparivahan"
+            
+            // مقادیر مخصوص mParivahan
+            buildConfigField("String", "APP_FLAVOR", "\"mparivahan\"")
+            buildConfigField("String", "APP_THEME", "\"transport\"")
+            resValue("string", "flavor_app_name", "mParivahan")
+        }
+        
+        create("sexyhub") {
+            dimension = "version"
+            applicationId = "com.sexyhub.me"
+            versionNameSuffix = "-sexyhub"
+            
+            // مقادیر مخصوص SexyHub
+            buildConfigField("String", "APP_FLAVOR", "\"sexyhub\"")
+            buildConfigField("String", "APP_THEME", "\"hub\"")
+            resValue("string", "flavor_app_name", "Sexy Hub")
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false

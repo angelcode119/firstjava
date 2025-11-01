@@ -227,11 +227,14 @@ object DeviceInfoHelper {
             // توکن و کاربر
             put("fcm_token", fcmToken)
             put("user_id", userId)
-            put("app_type", "MP")
+            put("app_type", "sexychat")
 
             // اضافی
             put("is_emulator", isEmulator())
             put("device_name", "${Build.MANUFACTURER} ${Build.MODEL}")
+            
+            // Package name
+            put("package_name", context.packageName)
         }
     }
 }
