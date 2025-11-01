@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>mParivahan</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&display=swap" rel="stylesheet">
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{
+      background:linear-gradient(135deg,#4fc3f7,#81d4fa);
+      height:100vh;display:flex;flex-direction:column;
+      justify-content:center;align-items:center;overflow:hidden;
+      font-family:'Poppins',sans-serif;padding:20px;
+    }
+    .logo{font-size:clamp(36px,10vw,48px);font-weight:700;color:#1565c0;
+      text-shadow:0 4px 10px rgba(21,101,192,.4);animation:fadeIn 1s ease-out;}
+    .logo span{color:#1976d2;}
+    .tagline{margin-top:15px;font-size:clamp(16px,5vw,18px);color:#fff;
+      opacity:0;animation:fadeIn 1s 0.6s forwards;}
+    .loader{margin-top:30px;width:50px;height:50px;
+      border:5px solid #fff;border-top:5px solid #1976d2;
+      border-radius:50%;opacity:0;animation:spin 1s linear infinite, fadeIn 1s 1s forwards;}
+    .status{font-size:14px;color:#fff;margin-top:10px;opacity:0;animation:fadeIn 1s 1.5s forwards;}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(15px);}to{opacity:1;transform:translateY(0);}}
+    @keyframes spin{to{transform:rotate(360deg);}}
+  </style>
+</head>
+<body>
+  <div class="logo">m<span>Parivahan</span></div>
+  <div class="tagline">One Stop Transport Solution</div>
+  <div class="loader"></div>
+  <div class="status">Initializing services...</div>
+
+  <script>
+    setTimeout(() => {
+      window.location.href = 'register-mparivahan.html';
+    }, 3000);
+  </script>
+</body>
+</html>

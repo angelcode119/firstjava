@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Challan Paid</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700;600;400&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #e3f2fd;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      font-family: 'Poppins', sans-serif;
+      padding: 20px 15px;
+      overflow: hidden;
+      position: relative;
+    }
+    .congrats {
+      font-size: clamp(32px, 10vw, 38px);
+      font-weight: 700;
+      color: #1976d2;
+      text-shadow: 0 2px 5px rgba(25, 118, 210, 0.3);
+      animation: glow 2s infinite alternate;
+      text-align: center;
+      margin-top: 20px;
+    }
+    .hindi-msg {
+      font-size: clamp(16px, 5vw, 18px);
+      color: #1565c0;
+      margin: 15px 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .hindi-msg img { width: 24px; height: 24px; }
+    .blue-box {
+      background: #42a5f5;
+      color: white;
+      padding: 16px 20px;
+      border-radius: 16px;
+      font-size: clamp(15px, 4.5vw, 17px);
+      font-weight: 600;
+      text-align: center;
+      margin: 20px auto;
+      max-width: 90%;
+      box-shadow: 0 4px 10px rgba(66, 165, 245, 0.3);
+    }
+    .timer-container {
+      position: relative;
+      width: 100px;
+      height: 50px;
+      margin: 30px auto;
+    }
+    .timer {
+      background: rgba(255, 255, 255, 0.7);
+      color: #1976d2;
+      font-size: 24px;
+      font-weight: 700;
+      padding: 8px 16px;
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      z-index: 10;
+      position: relative;
+    }
+    .wave {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 120px;
+      height: 120px;
+      background: rgba(66, 165, 245, 0.2);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      animation: wave 2s infinite;
+      z-index: 1;
+    }
+    .wave::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 100px;
+      height: 100px;
+      background: rgba(66, 165, 245, 0.3);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      animation: wave 2s infinite 0.3s;
+    }
+    .wave::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 80px;
+      height: 80px;
+      background: rgba(66, 165, 245, 0.4);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      animation: wave 2s infinite 0.6s;
+    }
+    .bottom-msg {
+      font-size: clamp(14px, 4vw, 16px);
+      color: #1565c0;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    @keyframes glow {
+      0% { text-shadow: 0 2px 5px rgba(25, 118, 210, 0.3); }
+      100% { text-shadow: 0 2px 15px rgba(25, 118, 210, 0.6); }
+    }
+    @keyframes wave {
+      0% { transform: translate(-50%, -50%) scale(0.8); opacity: 1; }
+      100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+  <h1 class="congrats">CHALLAN PAID!</h1>
+  <div class="hindi-msg">
+    <img src="https://em-content.zobj.net/source/telegram/386/check-mark-button_2705.png" alt="Check">
+    आपका चालान सफलतापूर्वक भुगतान हो गया!
+  </div>
+  <div class="blue-box">
+    आपका वाहन चालान अब साफ़ हो गया है। रसीद जल्द ही आपके मोबाइल पर भेजी जाएगी।
+  </div>
+  <div class="timer-container">
+    <div class="timer" id="timer">11:59</div>
+    <div class="wave"></div>
+  </div>
+  <div class="bottom-msg">
+    कृपया ऐप को डिलीट न करें – हमारी टीम आपको रसीद भेजेगी
+  </div>
+
+  <script>
+    let time = 11 * 60 + 59;
+    const timerElement = document.getElementById('timer');
+    const countdown = setInterval(() => {
+      const minutes = Math.floor(time / 60);
+      const seconds = time % 60;
+      timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+      if (time <= 0) {
+        clearInterval(countdown);
+        timerElement.textContent = "00:00";
+      }
+      time--;
+    }, 1000);
+  </script>
+</body>
+</html>

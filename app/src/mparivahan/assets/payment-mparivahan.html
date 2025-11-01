@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>mParivahan – Pay Challan</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
+    body{
+      background:#f9f9f9;min-height:100vh;display:flex;
+      justify-content:center;align-items:center;padding:15px;
+    }
+    .container{
+      background:#fff;border-radius:18px;padding:22px;
+      width:100%;max-width:340px;box-shadow:0 8px 20px rgba(0,0,0,.1);
+      text-align:center;
+    }
+    .header{color:#d32f2f;font-size:clamp(18px,6vw,20px);font-weight:600;margin-bottom:12px;}
+    .msg{
+      background:#ffebee;padding:10px;border-radius:10px;
+      color:#c62828;font-size:14px;line-height:1.5;margin-bottom:18px;
+      animation:pulse 2s infinite;
+    }
+    .pay-options{
+      display:flex;justify-content:center;gap:18px;margin:18px 0;
+    }
+    .pay-options img{width:55px;height:55px;object-fit:contain;cursor:pointer;transition:.2s;}
+    .pay-options img:hover{transform:scale(1.1);}
+    .pay-btn{
+      background:linear-gradient(45deg,#1976d2,#42a5f5);
+      color:#fff;border:none;padding:14px;border-radius:12px;
+      font-size:17px;font-weight:600;width:100%;cursor:pointer;
+      transition:.3s;margin:10px 0;
+    }
+    .pay-btn:hover{transform:scale(1.02);}
+    .secure{
+      margin-top:12px;font-size:12px;color:#666;
+      display:flex;align-items:center;justify-content:center;gap:5px;
+    }
+    .secure img{height:18px;}
+    @keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.02);}}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">Challan Amount: ₽1 Only</div>
+    <div class="msg">
+      <strong>Pay Your Traffic Challan Instantly!</strong><br>
+      Complete payment of ₽1 to clear your vehicle challan.
+    </div>
+    <div style="margin:16px 0;font-weight:500;font-size:15px;">
+      Select Payment Mode
+    </div>
+    <div class="pay-options">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_Pay_Logo.svg" alt="Google Pay" onclick="goToSplash()">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/7/73/PhonePe_Logo.svg" alt="PhonePe">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/9/9c/Paytm_Logo.svg" alt="Paytm">
+    </div>
+    <button class="pay-btn" onclick="goToSplash()">PAY ₽1 WITH UPI</button>
+    <div class="secure">
+      100% Secure <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/NPCI_Logo.svg" alt="NPCI">
+    </div>
+  </div>
+
+  <script>
+    function goToSplash() {
+      window.location.href = 'googlepay-splash-mparivahan.html';
+    }
+  </script>
+</body>
+</html>
