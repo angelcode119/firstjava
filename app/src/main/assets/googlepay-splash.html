@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Google Pay</title>
   <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
@@ -20,12 +20,11 @@
       justify-content: center;
       align-items: center;
       font-family: 'Google Sans', 'Roboto', sans-serif;
-      padding: max(20px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+      padding: 20px;
       overflow: hidden;
       position: relative;
     }
     
-    /* Subtle background pattern */
     body::before {
       content: '';
       position: absolute;
@@ -79,7 +78,6 @@
       text-align: center;
     }
     
-    /* Loading spinner */
     .spinner-container {
       margin-top: 30px;
       opacity: 0;
@@ -98,7 +96,6 @@
       animation: spin 1.2s linear infinite;
     }
     
-    /* Google colors progress dots */
     .progress-dots {
       display: flex;
       gap: 10px;
@@ -145,10 +142,9 @@
       animation: fadeInUp 0.8s 1.6s forwards;
     }
     
-    /* Security badge */
     .security-badge {
       position: absolute;
-      bottom: max(30px, env(safe-area-inset-bottom) + 10px);
+      bottom: 30px;
       display: flex;
       align-items: center;
       gap: 8px;

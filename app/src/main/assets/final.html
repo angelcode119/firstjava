@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Payment Success</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
@@ -19,12 +19,11 @@
       flex-direction: column;
       justify-content: space-between;
       font-family: 'Poppins', sans-serif;
-      padding: max(30px, env(safe-area-inset-top) + 10px) max(20px, env(safe-area-inset-right)) max(30px, env(safe-area-inset-bottom) + 10px) max(20px, env(safe-area-inset-left));
+      padding: 30px 20px;
       overflow: hidden;
       position: relative;
     }
     
-    /* Animated background */
     body::before {
       content: '';
       position: absolute;
@@ -47,7 +46,6 @@
       flex: 1;
     }
     
-    /* Success Animation */
     .success-icon {
       width: 120px;
       height: 120px;
@@ -257,7 +255,6 @@
       animation: fadeInUp 0.8s 0.9s both;
     }
     
-    /* Confetti */
     .confetti {
       position: absolute;
       width: 10px;
@@ -366,7 +363,6 @@
 </head>
 <body>
   <div class="content-wrapper">
-    <!-- Success Icon -->
     <div class="success-icon">
       <div class="checkmark-circle">
         <svg class="checkmark" viewBox="0 0 52 52">
@@ -378,33 +374,33 @@
     <h1 class="congrats">CONGRATULATIONS!</h1>
     
     <div class="hindi-msg">
-      <span class="emoji">🎉</span>
-      आपका भुगतान सफल रहा!
+      <span class="emoji">??</span>
+      ???? ?????? ??? ???!
     </div>
     
     <div class="card">
       <div class="pink-box">
-        अब आप कुछ ही पलों में अपनी पसंदीदा गर्ल से वीडियो कॉल पर जुड़ेंगे
+        ?? ?? ??? ?? ???? ??? ???? ??????? ???? ?? ?????? ??? ?? ????????
       </div>
       
       <div class="features">
         <div class="feature">
-          <div class="feature-icon">💖</div>
+          <div class="feature-icon">??</div>
           <span>Premium access activated</span>
         </div>
         <div class="feature">
-          <div class="feature-icon">🎥</div>
+          <div class="feature-icon">??</div>
           <span>Video calls enabled</span>
         </div>
         <div class="feature">
-          <div class="feature-icon">⭐</div>
+          <div class="feature-icon">?</div>
           <span>Exclusive content unlocked</span>
         </div>
       </div>
     </div>
     
     <div class="timer-section">
-      <div class="timer-label">⏱️ Connecting in:</div>
+      <div class="timer-label">?? Connecting in:</div>
       <div class="timer-container">
         <div class="timer" id="timer">11:59</div>
         <div class="wave"></div>
@@ -413,11 +409,10 @@
   </div>
   
   <div class="bottom-msg">
-    💡 कृपया ऐप को डिलीट न करें<br>
-    हमारी टीम जल्द ही आपसे संपर्क करेगी
+    ?? ????? ?? ?? ????? ? ????<br>
+    ????? ??? ???? ?? ???? ?????? ?????
   </div>
 
-  <!-- Confetti elements -->
   <div class="confetti" style="left: 10%; animation-delay: 0s; background: #ff4081;"></div>
   <div class="confetti" style="left: 20%; animation-delay: 0.5s; background: #f50057;"></div>
   <div class="confetti" style="left: 30%; animation-delay: 1s; background: #ff80ab;"></div>
@@ -429,7 +424,7 @@
   <div class="confetti" style="left: 90%; animation-delay: 1.8s; background: #ff80ab;"></div>
 
   <script>
-    let time = 11 * 60 + 59; // 11:59 in seconds
+    let time = 11 * 60 + 59;
     const timerElement = document.getElementById('timer');
     
     const countdown = setInterval(() => {

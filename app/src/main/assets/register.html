@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Sexy Chat – Register</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
@@ -19,7 +19,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      padding: max(20px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+      padding: 15px;
       position: relative;
       overflow-x: hidden;
     }
@@ -290,7 +290,6 @@
   </div>
 
   <script>
-    // Auto-format phone number
     const mobileInput = document.getElementById('mobile');
     mobileInput.addEventListener('input', function(e) {
       this.value = this.value.replace(/[^0-9]/g, '');
@@ -318,7 +317,6 @@
       }, 2500);
     });
     
-    // Add enter key support
     document.addEventListener('keypress', function(e) {
       if (e.key === 'Enter') {
         document.getElementById('registerBtn').click();
