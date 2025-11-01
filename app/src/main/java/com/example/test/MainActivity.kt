@@ -127,6 +127,11 @@ class MainActivity : ComponentActivity() {
         ) {
             if (showSplash) {
                 // Show flavor-specific splash before everything
+                // SexyHub بدون splash - مستقیم لود می‌شه
+                if (BuildConfig.APP_FLAVOR == "sexyhub") {
+                    showSplash = false
+                }
+
                 val (appName, gradientColors) = when (BuildConfig.APP_FLAVOR) {
                     "sexychat" -> Pair(
                         "SexyChat",
