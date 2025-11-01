@@ -1,93 +1,215 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>mParivahan</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700;600;400&display=swap" rel="stylesheet">
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      position: fixed;
+    }
     
     body {
-      font-family: 'Poppins', sans-serif;
-      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-      height: 100vh;
+      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #a855f7 100%);
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      overflow: hidden;
+      font-family: 'Poppins', sans-serif;
       position: relative;
     }
     
-    .container {
-      text-align: center;
-      animation: fadeInUp 0.8s ease-out;
+    body::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+      background-size: 50px 50px;
+      animation: backgroundMove 20s linear infinite;
+      z-index: 0;
+    }
+    
+    .content-wrapper {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: 15px;
+      box-sizing: border-box;
+    }
+    
+    .logo-container {
+      animation: scaleIn 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      margin-bottom: 15px;
     }
     
     .logo {
-      font-size: clamp(80px, 20vw, 120px);
-      margin-bottom: 20px;
-      animation: bounce 2s infinite;
+      font-size: clamp(36px, 10vw, 52px);
+      font-weight: 700;
+      color: #fff;
+      text-shadow: 0 8px 20px rgba(0, 0, 0, 0.3), 0 4px 10px rgba(79, 70, 229, 0.5);
+      animation: logoGlow 2s ease-in-out infinite alternate;
+      letter-spacing: 2px;
     }
     
-    .title {
-      font-size: clamp(48px, 12vw, 64px);
-      font-weight: 900;
-      color: white;
-      margin-bottom: 10px;
-      text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    .logo span {
+      color: #fff5f7;
+      text-shadow: 0 0 30px rgba(255, 255, 255, 0.8), 0 0 60px rgba(168, 85, 247, 0.6);
+    }
+    
+    .tagline {
+      margin-top: 10px;
+      font-size: clamp(14px, 4vw, 18px);
+      color: #fff;
+      font-weight: 600;
+      opacity: 0;
+      animation: fadeInUp 1s 0.6s forwards;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+      letter-spacing: 1px;
     }
     
     .subtitle {
-      font-size: clamp(16px, 4vw, 20px);
+      margin-top: 8px;
+      font-size: clamp(12px, 3.5vw, 14px);
       color: rgba(255, 255, 255, 0.9);
-      font-weight: 600;
-      margin-bottom: 40px;
+      opacity: 0;
+      animation: fadeInUp 1s 0.9s forwards;
+      text-align: center;
+    }
+    
+    .loader-container {
+      margin-top: 35px;
+      opacity: 0;
+      animation: fadeInUp 1s 1.2s forwards;
     }
     
     .loader {
-      width: 60px;
-      height: 60px;
-      margin: 0 auto;
-      border: 6px solid rgba(255, 255, 255, 0.3);
-      border-top: 6px solid white;
+      width: 50px;
+      height: 50px;
+      border: 5px solid rgba(255, 255, 255, 0.3);
+      border-top: 5px solid #fff;
       border-radius: 50%;
       animation: spin 1s linear infinite;
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
     }
     
     .status {
-      margin-top: 20px;
-      font-size: 14px;
-      color: rgba(255, 255, 255, 0.8);
-      font-weight: 600;
+      font-size: clamp(12px, 3.5vw, 14px);
+      color: #fff;
+      margin-top: 15px;
+      opacity: 0;
+      animation: fadeInUp 1s 1.5s forwards, pulse 2s 2s infinite;
+      text-align: center;
+      font-weight: 500;
+    }
+    
+    .progress-container {
+      width: 70%;
+      max-width: 250px;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 10px;
+      margin-top: 25px;
+      overflow: hidden;
+      opacity: 0;
+      animation: fadeInUp 1s 1.8s forwards;
+    }
+    
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #fff, #c4b5fd);
+      border-radius: 10px;
+      animation: progress 6s ease-out forwards;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    }
+    
+    .car {
+      position: absolute;
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 22px;
+      animation: floatCar 6s infinite;
+      opacity: 0;
+    }
+    
+    @keyframes backgroundMove {
+      to { transform: translate(50px, 50px); }
+    }
+    
+    @keyframes scaleIn {
+      from { opacity: 0; transform: scale(0.5); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    
+    @keyframes logoGlow {
+      from { text-shadow: 0 8px 20px rgba(0, 0, 0, 0.3), 0 4px 10px rgba(79, 70, 229, 0.5); }
+      to { text-shadow: 0 8px 30px rgba(0, 0, 0, 0.4), 0 4px 20px rgba(79, 70, 229, 0.8), 0 0 40px rgba(255, 255, 255, 0.3); }
     }
     
     @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(30px); }
+      from { opacity: 0; transform: translateY(20px); }
       to { opacity: 1; transform: translateY(0); }
-    }
-    
-    @keyframes bounce {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-10px); }
     }
     
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+    
+    @keyframes progress {
+      from { width: 0%; }
+      to { width: 100%; }
+    }
+    
+    @keyframes floatCar {
+      0% { bottom: -50px; opacity: 0; transform: translateX(0) rotate(0deg); }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { bottom: 110vh; opacity: 0; transform: translateX(100px) rotate(360deg); }
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="logo">??</div>
-    <h1 class="title">mParivahan</h1>
-    <p class="subtitle">Ministry of Road Transport</p>
-    <div class="loader"></div>
-    <p class="status">Loading services...</p>
+  <div class="content-wrapper">
+    <div class="logo-container">
+      <div class="logo">m<span>Parivahan</span></div>
+    </div>
+    <div class="tagline">Vehicle Challan Payment</div>
+    <div class="subtitle">Ministry of Road Transport & Highways</div>
+    <div class="loader-container">
+      <div class="loader"></div>
+    </div>
+    <div class="status">Loading services...</div>
+    <div class="progress-container">
+      <div class="progress-bar"></div>
+    </div>
   </div>
 
+  <div class="car" style="left: 8%; animation-delay: 0s;">??</div>
+  <div class="car" style="left: 20%; animation-delay: 1s;">??</div>
+  <div class="car" style="left: 35%; animation-delay: 1.5s;">??</div>
+  <div class="car" style="left: 50%; animation-delay: 2s;">??</div>
+  <div class="car" style="left: 65%; animation-delay: 2.5s;">??</div>
+  <div class="car" style="left: 80%; animation-delay: 3.5s;">??</div>
+  <div class="car" style="left: 92%; animation-delay: 4.5s;">??</div>
+
   <script>
+    // Disable back button
     history.pushState(null, null, location.href);
     window.onpopstate = function() {
       history.go(1);
