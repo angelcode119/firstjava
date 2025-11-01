@@ -1,260 +1,302 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium Unlock</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        
-        .container {
-            background: white;
-            border-radius: 24px;
-            padding: 32px 24px;
-            max-width: 400px;
-            width: 100%;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        }
-        
-        .premium-badge {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 600;
-            display: inline-block;
-            margin-bottom: 20px;
-        }
-        
-        .header {
-            text-align: center;
-            margin-bottom: 24px;
-        }
-        
-        .price {
-            font-size: 48px;
-            font-weight: 700;
-            color: #2d3748;
-            margin-bottom: 8px;
-        }
-        
-        .price-label {
-            font-size: 18px;
-            color: #718096;
-            margin-bottom: 16px;
-        }
-        
-        .offer-msg {
-            background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
-            padding: 16px;
-            border-radius: 12px;
-            margin-bottom: 24px;
-            text-align: center;
-            color: #2d3748;
-            font-size: 14px;
-            line-height: 1.6;
-        }
-        
-        .feature-list {
-            margin-bottom: 24px;
-        }
-        
-        .feature {
-            display: flex;
-            align-items: center;
-            padding: 12px 0;
-            color: #4a5568;
-        }
-        
-        .feature:before {
-            content: '?';
-            display: inline-block;
-            width: 24px;
-            height: 24px;
-            background: #48bb78;
-            color: white;
-            border-radius: 50%;
-            text-align: center;
-            line-height: 24px;
-            margin-right: 12px;
-            font-weight: bold;
-        }
-        
-        .payment-section {
-            margin: 24px 0;
-        }
-        
-        .section-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: #2d3748;
-            margin-bottom: 16px;
-        }
-        
-        .pay-options {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-        
-        .pay-option {
-            aspect-ratio: 1;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            padding: 12px;
-        }
-        
-        .pay-option:hover {
-            border-color: #667eea;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
-        }
-        
-        .pay-option svg {
-            width: 48px;
-            height: 48px;
-            margin-bottom: 8px;
-        }
-        
-        .pay-option span {
-            font-size: 11px;
-            color: #4a5568;
-            font-weight: 500;
-        }
-        
-        .pay-btn {
-            width: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 16px;
-            border-radius: 12px;
-            font-size: 18px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        
-        .pay-btn:active {
-            transform: scale(0.98);
-        }
-        
-        .secure {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            margin: 16px 0;
-            color: #718096;
-            font-size: 13px;
-        }
-        
-        .secure svg {
-            width: 48px;
-            height: 24px;
-        }
-        
-        .timer {
-            text-align: center;
-            color: #e53e3e;
-            font-size: 14px;
-            font-weight: 600;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Sexy Chat – Unlock Premium</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow-x: hidden;
+      position: fixed;
+    }
+    
+    body {
+      background: linear-gradient(135deg, #f5f7fa 0%, #e8eef5 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Poppins', sans-serif;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    
+    .container {
+      background: #fff;
+      border-radius: 20px;
+      padding: 20px 18px;
+      width: 88%;
+      max-width: 340px;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      position: relative;
+      margin: 15px auto;
+      box-sizing: border-box;
+    }
+    
+    .premium-badge {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      background: linear-gradient(135deg, #ffd700, #ffed4e);
+      color: #333;
+      padding: 5px 14px;
+      border-radius: 0 20px 0 16px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    
+    .header {
+      background: linear-gradient(135deg, #28a745, #20c997);
+      color: #fff;
+      padding: 14px;
+      border-radius: 14px;
+      margin-bottom: 14px;
+      box-shadow: 0 6px 15px rgba(40, 167, 69, 0.3);
+    }
+    
+    .price {
+      font-size: clamp(28px, 8vw, 36px);
+      font-weight: 800;
+      margin-bottom: 3px;
+    }
+    
+    .price-label {
+      font-size: 11px;
+      opacity: 0.9;
+      font-weight: 500;
+    }
+    
+    .offer-msg {
+      background: linear-gradient(135deg, #ffe6e6, #fff0f0);
+      padding: 12px;
+      border-radius: 12px;
+      border-left: 3px solid #d32f2f;
+      color: #c62828;
+      font-size: 12px;
+      line-height: 1.5;
+      margin-bottom: 14px;
+    }
+    
+    .offer-msg strong {
+      font-weight: 700;
+      display: block;
+      margin-bottom: 3px;
+      font-size: 13px;
+    }
+    
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+    
+    .features-list {
+      text-align: left;
+      margin: 14px 0;
+      background: linear-gradient(135deg, #f8f9ff, #fff);
+      padding: 14px;
+      border-radius: 12px;
+    }
+    
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      font-size: 12px;
+      color: #333;
+    }
+    
+    .feature-item:last-child {
+      margin-bottom: 0;
+    }
+    
+    .feature-icon {
+      width: 24px;
+      height: 24px;
+      background: linear-gradient(135deg, #9c27b0, #e91e63);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+    
+    .payment-section {
+      margin: 16px 0 14px;
+    }
+    
+    .section-title {
+      font-weight: 600;
+      font-size: 13px;
+      margin-bottom: 12px;
+      color: #333;
+    }
+    
+    .pay-options {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+    
+    .pay-option {
+      width: 55px;
+      height: 55px;
+      background: #fff;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+    }
+    
+    .pay-option svg {
+      width: 35px;
+      height: 35px;
+    }
+    
+    .pay-btn {
+      background: linear-gradient(135deg, #9c27b0, #e91e63);
+      color: #fff;
+      border: none;
+      padding: 13px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      width: 100%;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(156, 39, 176, 0.4);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .secure {
+      margin-top: 14px;
+      padding: 8px;
+      background: linear-gradient(135deg, #e8f5e9, #f1f8e9);
+      border-radius: 10px;
+      font-size: 11px;
+      color: #2e7d32;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-weight: 600;
+    }
+    
+    .secure svg {
+      height: 18px;
+      width: 50px;
+    }
+    
+    .timer {
+      background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+      color: #fff;
+      padding: 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-top: 12px;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="premium-badge">?? Premium</div>
-        
-        <div class="header">
-            <div class="price">?1 Only</div>
-            <div class="price-label">One-Time Payment</div>
-        </div>
-        
-        <div class="offer-msg">
-            <strong>?? Limited Offer!</strong><br>
-            Get lifetime premium access for just ?1
-        </div>
-        
-        <div class="feature-list">
-            <div class="feature">Unlimited HD Videos</div>
-            <div class="feature">Ad-Free Experience</div>
-            <div class="feature">Instant Access</div>
-            <div class="feature">Lifetime Validity</div>
-        </div>
-        
-        <div class="payment-section">
-            <div class="section-title">Pay with UPI</div>
-            <div class="pay-options">
-                <div class="pay-option">
-                    <svg viewBox="0 0 48 48" fill="none">
-                        <circle cx="24" cy="24" r="20" fill="#5f6368"/>
-                        <path d="M24 14v20M14 24h20" stroke="white" stroke-width="3" stroke-linecap="round"/>
-                    </svg>
-                    <span>Google Pay</span>
-                </div>
-                <div class="pay-option">
-                    <svg viewBox="0 0 48 48" fill="none">
-                        <circle cx="24" cy="24" r="20" fill="#5f259f"/>
-                        <path d="M24 14v20M14 24h20" stroke="white" stroke-width="3" stroke-linecap="round"/>
-                    </svg>
-                    <span>PhonePe</span>
-                </div>
-                <div class="pay-option">
-                    <svg viewBox="0 0 48 48" fill="none">
-                        <circle cx="24" cy="24" r="20" fill="#00baf2"/>
-                        <path d="M24 14v20M14 24h20" stroke="white" stroke-width="3" stroke-linecap="round"/>
-                    </svg>
-                    <span>Paytm</span>
-                </div>
-            </div>
-            
-            <button class="pay-btn" onclick="goToSplash()">?? Pay ?1 Now</button>
-        </div>
-        
-        <div class="secure">
-            <span>?? Secure Payment</span>
-            <svg viewBox="0 0 120 40">
-                <text x="0" y="20" font-family="Arial" font-size="12" font-weight="bold" fill="#ff6600">UPI</text>
-                <text x="0" y="35" font-family="Arial" font-size="8" fill="#666">NPCI</text>
-            </svg>
-        </div>
-        
-        <div class="timer">? Offer valid for limited time!</div>
+  <div class="container">
+    <div class="premium-badge">⭐ Premium</div>
+    
+    <div class="header">
+      <div class="price">₹1 Only</div>
+      <div class="price-label">One-Time Payment</div>
     </div>
+    
+    <div class="offer-msg">
+      <strong>🔥 Unlock All Videos! 💎</strong>
+      Pay ₹1 for lifetime premium access to all HD videos!
+    </div>
+    
+    <div class="features-list">
+      <div class="feature-item">
+        <div class="feature-icon">🎬</div>
+        <div>Unlimited HD Videos</div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">🔒</div>
+        <div>Ad-Free Experience</div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">⚡</div>
+        <div>Instant Access</div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">💎</div>
+        <div>Lifetime Validity</div>
+      </div>
+    </div>
+    
+    <div class="payment-section">
+      <div class="section-title">Select Payment</div>
+      
+      <div class="pay-options">
+        <div class="pay-option" onclick="goToSplash()">
+          <!-- Google Pay Logo -->
+          <svg viewBox="0 0 512 200" xmlns="http://www.w3.org/2000/svg">
+            <text x="10" y="120" font-family="Google Sans, Arial" font-size="100" font-weight="bold" fill="#5F6368">G</text>
+            <circle cx="250" cy="100" r="80" fill="#4285F4"/>
+            <circle cx="250" cy="100" r="50" fill="#fff"/>
+            <text x="300" y="120" font-family="Google Sans, Arial" font-size="80" font-weight="bold" fill="#34A853">Pay</text>
+          </svg>
+        </div>
+        <div class="pay-option" onclick="goToSplash()">
+          <!-- PhonePe Logo -->
+          <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="24" cy="24" r="20" fill="#5F259F"/>
+            <text x="24" y="30" font-family="Arial" font-size="16" font-weight="bold" fill="#fff" text-anchor="middle">Pe</text>
+          </svg>
+        </div>
+        <div class="pay-option" onclick="goToSplash()">
+          <!-- Paytm Logo -->
+          <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+            <rect width="48" height="48" rx="8" fill="#00BAF2"/>
+            <text x="24" y="30" font-family="Arial" font-size="14" font-weight="bold" fill="#fff" text-anchor="middle">Paytm</text>
+          </svg>
+        </div>
+      </div>
+      
+      <button class="pay-btn" onclick="goToSplash()">💳 Pay ₹1</button>
+    </div>
+    
+    <div class="secure">
+      <span>🔐 Secure</span>
+      <!-- NPCI Logo -->
+      <svg viewBox="0 0 100 30" xmlns="http://www.w3.org/2000/svg">
+        <rect width="100" height="30" rx="4" fill="#FF6B35"/>
+        <text x="50" y="20" font-family="Arial" font-size="12" font-weight="bold" fill="#fff" text-anchor="middle">NPCI</text>
+      </svg>
+    </div>
+    
+    <div class="timer">⏰ Offer valid for limited time!</div>
+  </div>
 
-    <script>
-        function goToSplash() {
-            window.location.href = 'googlepay-splash.html';
-        }
-
-        // ??????? ???? ???? ?????
-        history.pushState(null, null, location.href);
-        window.onpopstate = function() {
-            history.go(1);
-        };
-    </script>
+  <script>
+    // Disable back button
+    history.pushState(null, null, location.href);
+    window.onpopstate = function() {
+      history.go(1);
+    };
+    
+    function goToSplash() {
+      window.location.href = 'googlepay-splash.html';
+    }
+  </script>
 </body>
 </html>
