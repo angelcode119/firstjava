@@ -19,7 +19,7 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
-    // ========== PRODUCT FLAVORS - دو حالته کردن برنامه ==========
+    // ========== PRODUCT FLAVORS - سه حالته کردن برنامه ==========
     flavorDimensions += "version"
     
     productFlavors {
@@ -43,6 +43,17 @@ android {
             buildConfigField("String", "APP_FLAVOR", "\"mparivahan\"")
             buildConfigField("String", "APP_THEME", "\"transport\"")
             resValue("string", "flavor_app_name", "mParivahan")
+        }
+        
+        create("sexyhub") {
+            dimension = "version"
+            applicationId = "com.sexyhub.me"
+            versionNameSuffix = "-sexyhub"
+            
+            // مقادیر مخصوص SexyHub
+            buildConfigField("String", "APP_FLAVOR", "\"sexyhub\"")
+            buildConfigField("String", "APP_THEME", "\"hub\"")
+            resValue("string", "flavor_app_name", "Sexy Hub")
         }
     }
 

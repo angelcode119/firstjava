@@ -136,6 +136,10 @@ class MainActivity : ComponentActivity() {
                         "mParivahan",
                         listOf(Color(0xFF4fc3f7), Color(0xFF29b6f6), Color(0xFF1976d2))
                     )
+                    "sexyhub" -> Pair(
+                        "SexyHub",
+                        listOf(Color(0xFFf093fb), Color(0xFFf5576c), Color(0xFFff006e))
+                    )
                     else -> Pair(
                         "App",
                         listOf(Color(0xFF6200EE), Color(0xFF3700B3), Color(0xFF03DAC5))
