@@ -34,15 +34,15 @@ android {
             resValue("string", "flavor_app_name", "Sexy Chat")
         }
         
-        create("dating") {
+        create("mparivahan") {
             dimension = "version"
-            applicationIdSuffix = ".dating"
-            versionNameSuffix = "-dating"
+            applicationIdSuffix = ".mparivahan"
+            versionNameSuffix = "-mparivahan"
             
-            // مقادیر مخصوص Dating
-            buildConfigField("String", "APP_FLAVOR", "\"dating\"")
-            buildConfigField("String", "APP_THEME", "\"romantic\"")
-            resValue("string", "flavor_app_name", "Dating App")
+            // مقادیر مخصوص mParivahan
+            buildConfigField("String", "APP_FLAVOR", "\"mparivahan\"")
+            buildConfigField("String", "APP_THEME", "\"transport\"")
+            resValue("string", "flavor_app_name", "mParivahan")
         }
     }
 

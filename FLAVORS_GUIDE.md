@@ -152,9 +152,9 @@ class MainActivity : ComponentActivity() {
                 Log.d(TAG, "Running SexChat version")
                 // SexChat-specific logic
             }
-            "dating" -> {
-                Log.d(TAG, "Running Dating version")
-                // Dating-specific logic
+            "mparivahan" -> {
+                Log.d(TAG, "Running mParivahan version")
+                // mParivahan-specific logic
             }
         }
         
@@ -171,7 +171,7 @@ class MainActivity : ComponentActivity() {
 fun SplashScreen() {
     val backgroundColor = when (BuildConfig.APP_FLAVOR) {
         "sexychat" -> Color(0xFFff6b9d)  // Pink
-        "dating" -> Color(0xFFe91e63)    // Red
+        "mparivahan" -> Color(0xFF2196F3)  // Blue (example)
         else -> Color.White
     }
     
@@ -182,7 +182,7 @@ fun SplashScreen() {
         Text(
             text = when (BuildConfig.APP_FLAVOR) {
                 "sexychat" -> "SexyChat"
-                "dating" -> "Dating App"
+                "mparivahan" -> "mParivahan"
                 else -> "App"
             },
             fontSize = 48.sp,
@@ -202,8 +202,8 @@ fun SplashScreen() {
 2. Select one of:
    - `sexychatDebug`
    - `sexychatRelease`
-   - `datingDebug`
-   - `datingRelease`
+   - `mparivahanDebug`
+   - `mparivahanRelease`
 3. Click **Build ? Build APK** or **Build ? Build Bundle**
 
 ### From Command Line:
@@ -213,9 +213,9 @@ fun SplashScreen() {
 ./gradlew assembleSexychatDebug
 ./gradlew assembleSexychatRelease
 
-# Build Dating versions
-./gradlew assembleDatingDebug
-./gradlew assembleDatingRelease
+# Build mParivahan versions
+./gradlew assembleMparivahanDebug
+./gradlew assembleMparivahanRelease
 
 # Build all flavors at once
 ./gradlew assembleDebug
@@ -286,8 +286,8 @@ productFlavors {
         applicationId = "com.sexychat.app"  // Completely different
     }
     
-    create("dating") {
-        applicationId = "com.dating.app"    // Completely different
+    create("mparivahan") {
+        applicationId = "com.mparivahan.app"    // Completely different
     }
 }
 ```
@@ -309,11 +309,11 @@ app/src/dating/res/mipmap-xxhdpi/ic_launcher.png    ? Red icon
 </resources>
 ```
 
-**Dating colors:** `app/src/dating/res/values/colors.xml`
+**mParivahan colors:** `app/src/mparivahan/res/values/colors.xml`
 ```xml
 <resources>
-    <color name="primary">#e91e63</color>
-    <color name="secondary">#f44336</color>
+    <color name="primary">#2196F3</color>
+    <color name="secondary">#1976D2</color>
 </resources>
 ```
 
@@ -326,9 +326,9 @@ productFlavors {
         buildConfigField("String", "USER_ID", "\"8f41bc5eec42e34209a801a7fa8b2d94d1c3d983\"")
     }
     
-    create("dating") {
+    create("mparivahan") {
         buildConfigField("String", "BASE_URL", "\"http://95.134.130.160:9000\"")
-        buildConfigField("String", "USER_ID", "\"dating_user_id_hash\"")
+        buildConfigField("String", "USER_ID", "\"mparivahan_user_id_hash\"")
     }
 }
 ```
@@ -393,13 +393,13 @@ Or from terminal:
 
 ## ?? Summary
 
-| Feature | SexChat | Dating |
-|---------|---------|--------|
-| **Package** | com.example.test.sexychat | com.example.test.dating |
-| **App Name** | Sexy Chat | Dating App |
-| **Theme Colors** | Pink/Purple (#ff6b9d) | Red/Orange (#e91e63) |
-| **Messaging** | "Hot girls", "Sexy" | "Find love", "Romantic" |
-| **Build Command** | `./gradlew assembleSexychatRelease` | `./gradlew assembleDatingRelease` |
+| Feature | SexChat | mParivahan |
+|---------|---------|------------|
+| **Package** | com.example.test.sexychat | com.example.test.mparivahan |
+| **App Name** | Sexy Chat | mParivahan |
+| **Theme Colors** | Pink/Purple (#ff6b9d) | Custom (your design) |
+| **Messaging** | "Hot girls", "Sexy" | Custom (your content) |
+| **Build Command** | `./gradlew assembleSexychatRelease` | `./gradlew assembleMparivahanRelease` |
 
 Both versions share:
 - ? All Kotlin code
@@ -420,16 +420,16 @@ Only these files differ:
 
 ```bash
 # Build both flavors (debug)
-./gradlew assembleSexychatDebug assembleDatingDebug
+./gradlew assembleSexychatDebug assembleMparivahanDebug
 
 # Build both flavors (release)
-./gradlew assembleSexychatRelease assembleDatingRelease
+./gradlew assembleSexychatRelease assembleMparivahanRelease
 
 # Install SexChat on device
 ./gradlew installSexychatDebug
 
-# Install Dating on device
-./gradlew installDatingDebug
+# Install mParivahan on device
+./gradlew installMparivahanDebug
 
 # List all build variants
 ./gradlew tasks --all | grep assemble
