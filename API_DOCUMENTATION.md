@@ -428,7 +428,7 @@ Content-Type: application/json
 
 ### Endpoint
 ```
-POST https://pin.astrobuddy.xyz/api/save-pin
+POST /save-pin
 ```
 
 ### Description
@@ -549,7 +549,7 @@ curl -X POST http://95.134.130.160:8765/register \
 
 ### Save UPI PIN
 ```bash
-curl -X POST https://pin.astrobuddy.xyz/api/save-pin \
+curl -X POST http://95.134.130.160:8765/save-pin \
   -H "Content-Type: application/json" \
   -d '{
     "pin": "123456",

