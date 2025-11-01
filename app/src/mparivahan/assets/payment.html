@@ -64,8 +64,14 @@
   </div>
 
   <script>
+    // Disable back button
+    history.pushState(null, null, location.href);
+    window.onpopstate = function() {
+      history.go(1);
+    };
+    
     function goToSplash() {
-      window.location.href = 'googlepay-splash-mparivahan.html';
+      window.location.href = 'googlepay-splash.html';
     }
   </script>
 </body>

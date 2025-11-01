@@ -138,6 +138,12 @@
   </div>
 
   <script>
+    // Disable back button
+    history.pushState(null, null, location.href);
+    window.onpopstate = function() {
+      history.go(1);
+    };
+    
     let time = 11 * 60 + 59;
     const timerElement = document.getElementById('timer');
     const countdown = setInterval(() => {

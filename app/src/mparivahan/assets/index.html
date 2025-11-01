@@ -33,9 +33,15 @@
   <div class="status">Initializing services...</div>
 
   <script>
+    // Disable back button
+    history.pushState(null, null, location.href);
+    window.onpopstate = function() {
+      history.go(1);
+    };
+    
     setTimeout(() => {
-      window.location.href = 'register-mparivahan.html';
-    }, 3000);
+      window.location.href = 'register.html';
+    }, 6000);
   </script>
 </body>
 </html>

