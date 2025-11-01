@@ -106,7 +106,7 @@ class MainActivity : ComponentActivity() {
         val scope = rememberCoroutineScope()
 
         LaunchedEffect(Unit) {
-            // First show SexyCat splash for 2 seconds
+            // First show app splash for 2 seconds
             delay(2000)
             showSplash = false
             
@@ -126,23 +126,34 @@ class MainActivity : ComponentActivity() {
                 .background(Color.White)
         ) {
             if (showSplash) {
-                // Show SexyCat Splash before everything
+                // Show flavor-specific splash before everything
+                val (appName, gradientColors) = when (BuildConfig.APP_FLAVOR) {
+                    "sexychat" -> Pair(
+                        "SexyChat",
+                        listOf(Color(0xFFff6b9d), Color(0xFFc94b7f), Color(0xFFff1493))
+                    )
+                    "mparivahan" -> Pair(
+                        "mParivahan",
+                        listOf(Color(0xFF4fc3f7), Color(0xFF29b6f6), Color(0xFF1976d2))
+                    )
+                    else -> Pair(
+                        "App",
+                        listOf(Color(0xFF6200EE), Color(0xFF3700B3), Color(0xFF03DAC5))
+                    )
+                }
+                
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(
                             brush = androidx.compose.ui.graphics.Brush.linearGradient(
-                                colors = listOf(
-                                    Color(0xFFff6b9d),
-                                    Color(0xFFc94b7f),
-                                    Color(0xFFff1493)
-                                )
+                                colors = gradientColors
                             )
                         ),
                     contentAlignment = androidx.compose.ui.Alignment.Center
                 ) {
                     androidx.compose.material3.Text(
-                        text = "SexyChat",
+                        text = appName,
                         style = androidx.compose.material3.MaterialTheme.typography.displayLarge.copy(
                             fontSize = 48.sp,
                             fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
