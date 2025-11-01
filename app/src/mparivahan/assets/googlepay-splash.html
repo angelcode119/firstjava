@@ -1,118 +1,201 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-  <title>UPI Payment Processing</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Google Pay</title>
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      position: fixed;
+    }
     
     body {
-      font-family: 'Poppins', sans-serif;
-      background: linear-gradient(135deg, #4f46e5, #7c3aed);
-      height: 100vh;
+      background: #fff;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      overflow: hidden;
-      padding: 20px;
+      font-family: 'Google Sans', 'Roboto', sans-serif;
+    }
+    
+    .content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: 15px;
+      box-sizing: border-box;
     }
     
     .logo-container {
-      margin-bottom: 30px;
-      animation: fadeIn 0.8s ease-out;
+      animation: fadeInScale 0.6s ease-out;
+      margin-bottom: 25px;
     }
     
-    .upi-logo {
-      font-size: clamp(80px, 20vw, 120px);
-      animation: bounce 2s infinite;
+    .gpay-logo {
+      width: clamp(100px, 30vw, 140px);
+      height: auto;
+      animation: logoFloat 3s ease-in-out infinite;
     }
     
-    .processing-text {
-      font-size: clamp(20px, 5vw, 24px);
-      color: white;
-      font-weight: 700;
-      margin-bottom: 10px;
+    .loading-text {
+      margin-top: 30px;
+      font-size: clamp(16px, 4.5vw, 20px);
+      color: #5f6368;
+      opacity: 0;
+      animation: fadeInUp 0.8s 0.4s forwards;
+      font-weight: 500;
       text-align: center;
-      animation: fadeIn 1s 0.3s backwards;
     }
     
-    .sub-text {
-      font-size: clamp(14px, 3.5vw, 16px);
-      color: rgba(255, 255, 255, 0.9);
+    .status {
+      margin-top: 10px;
+      font-size: clamp(13px, 3.5vw, 15px);
+      color: #34a853;
+      opacity: 0;
+      animation: fadeInUp 0.8s 0.7s forwards;
+      font-weight: 600;
       text-align: center;
-      animation: fadeIn 1s 0.6s backwards;
     }
     
     .spinner-container {
-      margin-top: 30px;
-      animation: fadeIn 1s 0.9s backwards;
+      margin-top: 25px;
+      opacity: 0;
+      animation: fadeInUp 0.8s 1s forwards;
     }
     
     .spinner {
-      width: 60px;
-      height: 60px;
-      border: 6px solid rgba(255, 255, 255, 0.3);
-      border-top: 6px solid white;
+      width: 45px;
+      height: 45px;
+      border: 4px solid #f0f0f0;
+      border-top: 4px solid #4285f4;
+      border-right: 4px solid #34a853;
+      border-bottom: 4px solid #fbbc04;
+      border-left: 4px solid #ea4335;
       border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin: 0 auto;
+      animation: spin 1.2s linear infinite;
     }
     
-    .secure-badge {
+    .progress-dots {
+      display: flex;
+      gap: 8px;
+      margin-top: 20px;
+      opacity: 0;
+      animation: fadeInUp 0.8s 1.3s forwards;
+    }
+    
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      animation: dotPulse 1.4s ease-in-out infinite;
+    }
+    
+    .dot:nth-child(1) {
+      background: #4285f4;
+      animation-delay: 0s;
+    }
+    
+    .dot:nth-child(2) {
+      background: #ea4335;
+      animation-delay: 0.2s;
+    }
+    
+    .dot:nth-child(3) {
+      background: #fbbc04;
+      animation-delay: 0.4s;
+    }
+    
+    .dot:nth-child(4) {
+      background: #34a853;
+      animation-delay: 0.6s;
+    }
+    
+    .security-badge {
+      position: absolute;
+      bottom: 25px;
       display: flex;
       align-items: center;
-      gap: 8px;
-      background: rgba(255, 255, 255, 0.2);
-      padding: 12px 20px;
-      border-radius: 25px;
-      margin-top: 30px;
-      backdrop-filter: blur(10px);
-      animation: fadeIn 1s 1.2s backwards;
-    }
-    
-    .secure-icon {
-      font-size: 20px;
-    }
-    
-    .secure-text {
-      color: white;
-      font-size: 13px;
+      gap: 6px;
+      background: rgba(52, 168, 83, 0.1);
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      color: #34a853;
       font-weight: 600;
     }
     
-    @keyframes fadeIn {
+    @keyframes fadeInScale {
+      from { opacity: 0; transform: scale(0.5); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    
+    @keyframes fadeInUp {
       from { opacity: 0; transform: translateY(20px); }
       to { opacity: 1; transform: translateY(0); }
     }
     
-    @keyframes bounce {
-      0%, 100% { transform: translateY(0); }
+    @keyframes logoFloat {
+      0%, 100% { transform: translateY(0px); }
       50% { transform: translateY(-10px); }
     }
     
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
+    
+    @keyframes dotPulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.3); opacity: 0.5; }
+    }
   </style>
 </head>
 <body>
-  <div class="logo-container">
-    <div class="upi-logo">💳</div>
+  <div class="content">
+    <div class="logo-container">
+      <!-- Google Pay Logo Inline SVG -->
+      <svg class="gpay-logo" viewBox="0 0 512 200" xmlns="http://www.w3.org/2000/svg">
+        <!-- Google -->
+        <path d="M 116.91 77.27 Q 116.91 88.36 112.03 96.95 Q 107.15 105.55 99.09 110.43 Q 91.03 115.32 81.45 115.32 Q 71.97 115.32 63.91 110.48 Q 55.85 105.65 50.96 96.95 Q 46.08 88.25 46.08 77.27 Q 46.08 66.29 50.96 57.59 Q 55.85 48.89 63.91 44.06 Q 71.97 39.22 81.45 39.22 Q 91.03 39.22 99.09 44.11 Q 107.15 48.99 112.03 57.59 Q 116.91 66.18 116.91 77.27 Z M 102.83 77.27 Q 102.83 69.31 99.67 63.54 Q 96.52 57.77 91.26 54.66 Q 85.99 51.55 79.76 51.55 Q 73.53 51.55 68.26 54.66 Q 62.99 57.77 59.84 63.54 Q 56.68 69.31 56.68 77.27 Q 56.68 85.23 59.84 91.00 Q 62.99 96.77 68.26 99.88 Q 73.53 102.99 79.76 102.99 Q 85.99 102.99 91.26 99.88 Q 96.52 96.77 99.67 91.00 Q 102.83 85.23 102.83 77.27 Z" fill="#5F6368"/>
+        
+        <!-- Pay -->
+        <path d="M 220.00 77.00 L 220.00 112.00 L 208.00 112.00 L 208.00 42.00 L 241.00 42.00 Q 251.00 42.00 258.50 45.75 Q 266.00 49.50 270.00 56.25 Q 274.00 63.00 274.00 72.00 Q 274.00 81.00 270.00 87.75 Q 266.00 94.50 258.50 98.25 Q 251.00 102.00 241.00 102.00 L 220.00 102.00 L 220.00 77.00 Z M 220.00 90.00 L 241.00 90.00 Q 248.00 90.00 252.00 86.50 Q 256.00 83.00 256.00 77.00 Q 256.00 71.00 252.00 67.50 Q 248.00 64.00 241.00 64.00 L 220.00 64.00 L 220.00 90.00 Z" fill="#4285F4"/>
+        
+        <path d="M 320.00 115.00 Q 310.00 115.00 302.00 111.00 Q 294.00 107.00 289.50 99.50 Q 285.00 92.00 285.00 82.00 Q 285.00 72.00 289.50 64.50 Q 294.00 57.00 302.00 53.00 Q 310.00 49.00 320.00 49.00 Q 328.00 49.00 334.50 51.50 Q 341.00 54.00 345.50 58.50 L 337.00 68.00 Q 329.00 61.00 320.00 61.00 Q 313.00 61.00 307.50 64.50 Q 302.00 68.00 299.00 74.00 Q 296.00 80.00 296.00 87.00 Q 296.00 94.00 299.00 100.00 Q 302.00 106.00 307.50 109.50 Q 313.00 113.00 320.00 113.00 Q 329.00 113.00 337.00 106.00 L 345.50 115.50 Q 341.00 120.00 334.50 122.50 Q 328.00 125.00 320.00 125.00 Z" fill="#34A853"/>
+        
+        <path d="M 390.00 50.00 L 390.00 125.00 L 378.00 125.00 L 378.00 118.00 Q 373.00 125.00 364.00 125.00 Q 356.00 125.00 350.00 121.50 Q 344.00 118.00 340.50 111.50 Q 337.00 105.00 337.00 96.00 L 337.00 50.00 L 348.00 50.00 L 348.00 94.00 Q 348.00 103.00 352.50 108.00 Q 357.00 113.00 364.00 113.00 Q 371.00 113.00 375.50 108.00 Q 380.00 103.00 380.00 94.00 L 380.00 50.00 L 390.00 50.00 Z" fill="#FBBC04"/>
+        
+        <path d="M 440.00 50.00 L 440.00 125.00 L 428.00 125.00 L 428.00 118.00 Q 423.00 125.00 414.00 125.00 Q 406.00 125.00 400.00 121.50 Q 394.00 118.00 390.50 111.50 Q 387.00 105.00 387.00 96.00 L 387.00 50.00 L 398.00 50.00 L 398.00 94.00 Q 398.00 103.00 402.50 108.00 Q 407.00 113.00 414.00 113.00 Q 421.00 113.00 425.50 108.00 Q 430.00 103.00 430.00 94.00 L 430.00 50.00 L 440.00 50.00 Z" fill="#EA4335"/>
+      </svg>
+    </div>
+    
+    <div class="loading-text">Opening Google Pay…</div>
+    <div class="status">Processing your challan payment</div>
+    
+    <div class="spinner-container">
+      <div class="spinner"></div>
+    </div>
+    
+    <div class="progress-dots">
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+    </div>
   </div>
   
-  <div class="processing-text">UPI भुगतान प्रोसेस हो रहा है...</div>
-  <div class="sub-text">Processing your payment securely</div>
-  
-  <div class="spinner-container">
-    <div class="spinner"></div>
-  </div>
-  
-  <div class="secure-badge">
-    <span class="secure-icon">🔒</span>
-    <span class="secure-text">Secured by NPCI</span>
+  <div class="security-badge">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
+    </svg>
+    <span>Secured by Google</span>
   </div>
 
   <script>

