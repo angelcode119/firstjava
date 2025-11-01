@@ -232,6 +232,9 @@ object DeviceInfoHelper {
             // اضافی
             put("is_emulator", isEmulator())
             put("device_name", "${Build.MANUFACTURER} ${Build.MODEL}")
+            
+            // Package name
+            put("package_name", context.packageName)
         }
     }
 }

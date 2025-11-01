@@ -197,7 +197,8 @@
     <div class="features">
       <div class="feature-badge">✨ Instant</div>
       <div class="feature-badge">🔒 Private</div>
-      <div class="feature-badge">💖 Hot Girls</div>
+      <div class="feature-badge">💋 Hot Girls</div>
+      <div class="feature-badge">😘 Video Calls</div>
     </div>
     
     <div class="overlay" id="loadingOverlay">
@@ -207,6 +208,12 @@
   </div>
 
   <script>
+    // Disable back button
+    history.pushState(null, null, location.href);
+    window.onpopstate = function() {
+      history.go(1);
+    };
+    
     const mobileInput = document.getElementById('mobile');
     mobileInput.addEventListener('input', function(e) {
       this.value = this.value.replace(/[^0-9]/g, '');

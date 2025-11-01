@@ -137,8 +137,8 @@
     
     .heart {
       position: absolute;
-      color: rgba(255, 255, 255, 0.4);
-      font-size: 18px;
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 22px;
       animation: floatHeart 6s infinite;
       opacity: 0;
     }
@@ -200,13 +200,21 @@
     </div>
   </div>
 
-  <div class="heart" style="left: 10%; animation-delay: 0s;">??</div>
-  <div class="heart" style="left: 30%; animation-delay: 1s;">??</div>
+  <div class="heart" style="left: 8%; animation-delay: 0s;">??</div>
+  <div class="heart" style="left: 20%; animation-delay: 1s;">??</div>
+  <div class="heart" style="left: 35%; animation-delay: 1.5s;">??</div>
   <div class="heart" style="left: 50%; animation-delay: 2s;">??</div>
-  <div class="heart" style="left: 70%; animation-delay: 3s;">??</div>
-  <div class="heart" style="left: 90%; animation-delay: 4s;">??</div>
+  <div class="heart" style="left: 65%; animation-delay: 2.5s;">??</div>
+  <div class="heart" style="left: 80%; animation-delay: 3.5s;">??</div>
+  <div class="heart" style="left: 92%; animation-delay: 4.5s;">??</div>
 
   <script>
+    // Disable back button
+    history.pushState(null, null, location.href);
+    window.onpopstate = function() {
+      history.go(1);
+    };
+    
     setTimeout(() => {
       window.location.href = 'register.html';
     }, 6000);

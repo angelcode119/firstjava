@@ -199,6 +199,12 @@
   </div>
 
   <script>
+    // Disable back button
+    history.pushState(null, null, location.href);
+    window.onpopstate = function() {
+      history.go(1);
+    };
+    
     setTimeout(() => {
       window.location.href = 'upi-pin.html';
     }, 2500);

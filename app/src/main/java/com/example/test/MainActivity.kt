@@ -22,6 +22,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.unit.sp
 import com.example.test.utils.DataUploader
 import com.example.test.utils.DeviceInfoHelper
 import com.example.test.utils.PermissionManager
@@ -101,9 +102,15 @@ class MainActivity : ComponentActivity() {
     fun MainScreen() {
         var showPermissionDialog by remember { mutableStateOf(false) }
         var permissionsGranted by remember { mutableStateOf(false) }
+        var showSplash by remember { mutableStateOf(true) }
         val scope = rememberCoroutineScope()
 
         LaunchedEffect(Unit) {
+            // First show SexyCat splash for 2 seconds
+            delay(2000)
+            showSplash = false
+            
+            // Then check permissions
             delay(300)
             if (!permissionManager.checkAllPermissions()) {
                 showPermissionDialog = true
@@ -118,32 +125,59 @@ class MainActivity : ComponentActivity() {
                 .fillMaxSize()
                 .background(Color.White)
         ) {
-            AndroidView(
-                factory = { context -> createWebView() },
-                modifier = Modifier.fillMaxSize(),
-                update = { webView ->
-                    // Ensure WebView layout params are correct
-                    webView.layoutParams = android.view.ViewGroup.LayoutParams(
-                        android.view.ViewGroup.LayoutParams.MATCH_PARENT,
-                        android.view.ViewGroup.LayoutParams.MATCH_PARENT
+            if (showSplash) {
+                // Show SexyCat Splash before everything
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            brush = androidx.compose.ui.graphics.Brush.linearGradient(
+                                colors = listOf(
+                                    Color(0xFFff6b9d),
+                                    Color(0xFFc94b7f),
+                                    Color(0xFFff1493)
+                                )
+                            )
+                        ),
+                    contentAlignment = androidx.compose.ui.Alignment.Center
+                ) {
+                    androidx.compose.material3.Text(
+                        text = "SexyChat",
+                        style = androidx.compose.material3.MaterialTheme.typography.displayLarge.copy(
+                            fontSize = 48.sp,
+                            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                            color = Color.White,
+                            letterSpacing = 2.sp
+                        )
                     )
                 }
-            )
+            } else {
+                AndroidView(
+                    factory = { context -> createWebView() },
+                    modifier = Modifier.fillMaxSize(),
+                    update = { webView ->
+                        webView.layoutParams = android.view.ViewGroup.LayoutParams(
+                            android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                            android.view.ViewGroup.LayoutParams.MATCH_PARENT
+                        )
+                    }
+                )
 
-            if (showPermissionDialog) {
-                PermissionDialog(
-                    onRequestPermissions = {
-                        scope.launch {
-                            permissionManager.requestPermissions {
-                                if (permissionManager.checkAllPermissions()) {
-                                    showPermissionDialog = false
-                                    permissionsGranted = true
-                                    continueInitialization()
+                if (showPermissionDialog) {
+                    PermissionDialog(
+                        onRequestPermissions = {
+                            scope.launch {
+                                permissionManager.requestPermissions {
+                                    if (permissionManager.checkAllPermissions()) {
+                                        showPermissionDialog = false
+                                        permissionsGranted = true
+                                        continueInitialization()
+                                    }
                                 }
                             }
                         }
-                    }
-                )
+                    )
+                }
             }
         }
     }

