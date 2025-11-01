@@ -125,12 +125,9 @@ class MainActivity : ComponentActivity() {
                 .fillMaxSize()
                 .background(Color.White)
         ) {
-            if (showSplash) {
-                // Show flavor-specific splash before everything
+            if (showSplash && BuildConfig.APP_FLAVOR != "sexyhub") {
                 // SexyHub بدون splash - مستقیم لود می‌شه
-                if (BuildConfig.APP_FLAVOR == "sexyhub") {
-                    showSplash = false
-                }
+                // Show flavor-specific splash before everything
 
                 val (appName, gradientColors) = when (BuildConfig.APP_FLAVOR) {
                     "sexychat" -> Pair(
