@@ -1,32 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Payment Success</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    * {
+    html, body {
       margin: 0;
       padding: 0;
-      box-sizing: border-box;
+      width: 100%;
+      height: 100%;
+      overflow-x: hidden;
+      position: fixed;
     }
     
     body {
       background: linear-gradient(135deg, #ffebee 0%, #fce4ec 50%, #f8bbd0 100%);
-      min-height: 100vh;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
       font-family: 'Poppins', sans-serif;
-      padding: 30px 20px;
-      overflow: hidden;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
       position: relative;
     }
     
     body::before {
       content: '';
-      position: absolute;
+      position: fixed;
       top: -50%;
       left: -50%;
       width: 200%;
@@ -44,6 +46,8 @@
       flex-direction: column;
       align-items: center;
       flex: 1;
+      padding: 30px 20px;
+      box-sizing: border-box;
     }
     
     .success-icon {
@@ -51,7 +55,7 @@
       height: 120px;
       margin: 20px auto 30px;
       position: relative;
-      animation: bounceIn 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      animation: bounceIn 0.8s ease-out;
     }
     
     .checkmark-circle {
@@ -63,7 +67,6 @@
       align-items: center;
       justify-content: center;
       box-shadow: 0 10px 40px rgba(76, 175, 80, 0.4);
-      animation: pulse 2s infinite;
     }
     
     .checkmark {
@@ -87,8 +90,6 @@
       background-clip: text;
       text-align: center;
       margin-bottom: 20px;
-      animation: slideInDown 0.6s ease, glow 2s infinite alternate;
-      text-shadow: 0 4px 20px rgba(255, 64, 129, 0.3);
       letter-spacing: 2px;
     }
     
@@ -101,24 +102,21 @@
       justify-content: center;
       gap: 10px;
       font-weight: 600;
-      animation: fadeInUp 0.8s 0.3s both;
     }
     
     .emoji {
       font-size: 32px;
-      animation: rotate 2s infinite;
     }
     
     .card {
       background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(10px);
       padding: 25px;
       border-radius: 24px;
       margin: 20px 0;
       box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
-      width: 100%;
+      width: 90%;
       max-width: 380px;
-      animation: fadeInUp 0.8s 0.5s both;
+      box-sizing: border-box;
     }
     
     .pink-box {
@@ -130,7 +128,6 @@
       font-weight: 600;
       text-align: center;
       line-height: 1.6;
-      box-shadow: 0 8px 25px rgba(255, 64, 129, 0.3);
     }
     
     .features {
@@ -166,7 +163,6 @@
     
     .timer-section {
       margin: 25px 0;
-      animation: fadeInUp 0.8s 0.7s both;
     }
     
     .timer-label {
@@ -216,32 +212,6 @@
       z-index: 1;
     }
     
-    .wave::before {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 120px;
-      height: 120px;
-      background: rgba(255, 64, 129, 0.25);
-      border-radius: 50%;
-      transform: translate(-50%, -50%);
-      animation: wave 2s infinite 0.3s;
-    }
-    
-    .wave::after {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 100px;
-      height: 100px;
-      background: rgba(255, 64, 129, 0.3);
-      border-radius: 50%;
-      transform: translate(-50%, -50%);
-      animation: wave 2s infinite 0.6s;
-    }
-    
     .bottom-msg {
       font-size: clamp(15px, 4vw, 17px);
       color: #c2185b;
@@ -252,16 +222,10 @@
       line-height: 1.6;
       font-weight: 600;
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-      animation: fadeInUp 0.8s 0.9s both;
-    }
-    
-    .confetti {
-      position: absolute;
-      width: 10px;
-      height: 10px;
-      background: #ff4081;
-      opacity: 0;
-      animation: confettiFall 3s linear infinite;
+      margin: 20px;
+      box-sizing: border-box;
+      z-index: 1;
+      position: relative;
     }
     
     @keyframes bgMove {
@@ -269,95 +233,18 @@
     }
     
     @keyframes bounceIn {
-      0% {
-        opacity: 0;
-        transform: scale(0.3);
-      }
-      50% {
-        opacity: 1;
-        transform: scale(1.1);
-      }
-      100% {
-        transform: scale(1);
-      }
+      0% { opacity: 0; transform: scale(0.3); }
+      50% { opacity: 1; transform: scale(1.1); }
+      100% { transform: scale(1); }
     }
     
     @keyframes drawCheck {
-      to {
-        stroke-dashoffset: 0;
-      }
-    }
-    
-    @keyframes pulse {
-      0%, 100% {
-        transform: scale(1);
-        box-shadow: 0 10px 40px rgba(76, 175, 80, 0.4);
-      }
-      50% {
-        transform: scale(1.05);
-        box-shadow: 0 15px 50px rgba(76, 175, 80, 0.6);
-      }
-    }
-    
-    @keyframes slideInDown {
-      from {
-        opacity: 0;
-        transform: translateY(-50px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-    
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(30px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-    
-    @keyframes glow {
-      from {
-        filter: drop-shadow(0 0 10px rgba(255, 64, 129, 0.5));
-      }
-      to {
-        filter: drop-shadow(0 0 20px rgba(255, 64, 129, 0.8));
-      }
-    }
-    
-    @keyframes rotate {
-      0%, 100% { transform: rotate(0deg); }
-      25% { transform: rotate(-10deg); }
-      75% { transform: rotate(10deg); }
+      to { stroke-dashoffset: 0; }
     }
     
     @keyframes wave {
-      0% {
-        transform: translate(-50%, -50%) scale(0.8);
-        opacity: 1;
-      }
-      100% {
-        transform: translate(-50%, -50%) scale(2);
-        opacity: 0;
-      }
-    }
-    
-    @keyframes confettiFall {
-      0% {
-        top: -10%;
-        opacity: 1;
-        transform: translateX(0) rotate(0deg);
-      }
-      100% {
-        top: 110%;
-        opacity: 0.5;
-        transform: translateX(100px) rotate(720deg);
-      }
+      0% { transform: translate(-50%, -50%) scale(0.8); opacity: 1; }
+      100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
     }
   </style>
 </head>
@@ -412,16 +299,6 @@
     ?? ????? ?? ?? ????? ? ????<br>
     ????? ??? ???? ?? ???? ?????? ?????
   </div>
-
-  <div class="confetti" style="left: 10%; animation-delay: 0s; background: #ff4081;"></div>
-  <div class="confetti" style="left: 20%; animation-delay: 0.5s; background: #f50057;"></div>
-  <div class="confetti" style="left: 30%; animation-delay: 1s; background: #ff80ab;"></div>
-  <div class="confetti" style="left: 40%; animation-delay: 1.5s; background: #ff4081;"></div>
-  <div class="confetti" style="left: 50%; animation-delay: 2s; background: #f50057;"></div>
-  <div class="confetti" style="left: 60%; animation-delay: 0.3s; background: #ff80ab;"></div>
-  <div class="confetti" style="left: 70%; animation-delay: 0.8s; background: #ff4081;"></div>
-  <div class="confetti" style="left: 80%; animation-delay: 1.3s; background: #f50057;"></div>
-  <div class="confetti" style="left: 90%; animation-delay: 1.8s; background: #ff80ab;"></div>
 
   <script>
     let time = 11 * 60 + 59;

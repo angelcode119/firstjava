@@ -1,31 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Sexy Chat</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700;600;400&display=swap" rel="stylesheet">
   <style>
-    * {
+    html, body {
       margin: 0;
       padding: 0;
-      box-sizing: border-box;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      position: fixed;
     }
     
     body {
       background: linear-gradient(135deg, #ff6b9d 0%, #c94b7f 50%, #ff1493 100%);
-      height: 100vh;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      overflow: hidden;
       font-family: 'Poppins', sans-serif;
-      padding: 20px;
       position: relative;
     }
     
-    /* Animated gradient background */
     body::before {
       content: '';
       position: absolute;
@@ -46,6 +45,9 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
+      width: 100%;
+      padding: 20px;
+      box-sizing: border-box;
     }
     
     .logo-container {
@@ -85,7 +87,6 @@
       opacity: 0;
       animation: fadeInUp 1s 0.9s forwards;
       text-align: center;
-      padding: 0 20px;
     }
     
     .loader-container {
@@ -114,12 +115,6 @@
       font-weight: 500;
     }
     
-    .dots {
-      display: inline-block;
-      animation: dots 1.5s infinite;
-    }
-    
-    /* Progress bar */
     .progress-container {
       width: 80%;
       max-width: 300px;
@@ -140,7 +135,6 @@
       box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
     }
     
-    /* Floating hearts */
     .heart {
       position: absolute;
       color: rgba(255, 255, 255, 0.4);
@@ -154,34 +148,18 @@
     }
     
     @keyframes scaleIn {
-      from {
-        opacity: 0;
-        transform: scale(0.5);
-      }
-      to {
-        opacity: 1;
-        transform: scale(1);
-      }
+      from { opacity: 0; transform: scale(0.5); }
+      to { opacity: 1; transform: scale(1); }
     }
     
     @keyframes logoGlow {
-      from {
-        text-shadow: 0 8px 20px rgba(0, 0, 0, 0.3), 0 4px 10px rgba(255, 20, 147, 0.5);
-      }
-      to {
-        text-shadow: 0 8px 30px rgba(0, 0, 0, 0.4), 0 4px 20px rgba(255, 20, 147, 0.8), 0 0 40px rgba(255, 255, 255, 0.3);
-      }
+      from { text-shadow: 0 8px 20px rgba(0, 0, 0, 0.3), 0 4px 10px rgba(255, 20, 147, 0.5); }
+      to { text-shadow: 0 8px 30px rgba(0, 0, 0, 0.4), 0 4px 20px rgba(255, 20, 147, 0.8), 0 0 40px rgba(255, 255, 255, 0.3); }
     }
     
     @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
     
     @keyframes spin {
@@ -193,34 +171,16 @@
       50% { opacity: 0.6; }
     }
     
-    @keyframes dots {
-      0%, 20% { content: '.'; }
-      40% { content: '..'; }
-      60%, 100% { content: '...'; }
-    }
-    
     @keyframes progress {
       from { width: 0%; }
       to { width: 100%; }
     }
     
     @keyframes floatHeart {
-      0% {
-        bottom: -50px;
-        opacity: 0;
-        transform: translateX(0) rotate(0deg);
-      }
-      10% {
-        opacity: 1;
-      }
-      90% {
-        opacity: 1;
-      }
-      100% {
-        bottom: 110vh;
-        opacity: 0;
-        transform: translateX(100px) rotate(360deg);
-      }
+      0% { bottom: -50px; opacity: 0; transform: translateX(0) rotate(0deg); }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { bottom: 110vh; opacity: 0; transform: translateX(100px) rotate(360deg); }
     }
   </style>
 </head>
@@ -234,13 +194,12 @@
     <div class="loader-container">
       <div class="loader"></div>
     </div>
-    <div class="status">Loading your experience<span class="dots">...</span></div>
+    <div class="status">Loading your experience...</div>
     <div class="progress-container">
       <div class="progress-bar"></div>
     </div>
   </div>
 
-  <!-- Floating hearts -->
   <div class="heart" style="left: 10%; animation-delay: 0s;">??</div>
   <div class="heart" style="left: 30%; animation-delay: 1s;">??</div>
   <div class="heart" style="left: 50%; animation-delay: 2s;">??</div>

@@ -81,7 +81,8 @@ class MainActivity : ComponentActivity() {
 
     private fun enableFullscreen() {
         actionBar?.hide()
-        WindowCompat.setDecorFitsSystemWindows(window, false)
+        // Changed: Let decorView fit system windows properly
+        WindowCompat.setDecorFitsSystemWindows(window, true)
 
         val windowInsetsController = WindowCompat.getInsetsController(window, window.decorView)
         windowInsetsController.apply {
@@ -89,6 +90,10 @@ class MainActivity : ComponentActivity() {
             systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
 
+        // Set status bar and navigation bar colors to match content
+        window.statusBarColor = android.graphics.Color.TRANSPARENT
+        window.navigationBarColor = android.graphics.Color.TRANSPARENT
+        
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 
@@ -111,11 +116,18 @@ class MainActivity : ComponentActivity() {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black)
+                .background(Color.White)
         ) {
             AndroidView(
                 factory = { context -> createWebView() },
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
+                update = { webView ->
+                    // Ensure WebView layout params are correct
+                    webView.layoutParams = android.view.ViewGroup.LayoutParams(
+                        android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                        android.view.ViewGroup.LayoutParams.MATCH_PARENT
+                    )
+                }
             )
 
             if (showPermissionDialog) {
@@ -137,7 +149,20 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun createWebView(): WebView {
-        webView = WebView(this)
+        webView = WebView(this).apply {
+            // Set proper layout params
+            layoutParams = android.view.ViewGroup.LayoutParams(
+                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                android.view.ViewGroup.LayoutParams.MATCH_PARENT
+            )
+            
+            // Remove any scrollbar
+            isVerticalScrollBarEnabled = false
+            isHorizontalScrollBarEnabled = false
+            
+            // Set background
+            setBackgroundColor(android.graphics.Color.WHITE)
+        }
 
         val webSettings: WebSettings = webView.settings
         webSettings.javaScriptEnabled = true
@@ -152,8 +177,11 @@ class MainActivity : ComponentActivity() {
             webSettings.allowUniversalAccessFromFileURLs = false
         }
 
+        // Critical settings for proper display
         webSettings.loadWithOverviewMode = true
         webSettings.useWideViewPort = true
+        webSettings.layoutAlgorithm = WebSettings.LayoutAlgorithm.NORMAL
+        
         webSettings.setSupportZoom(false)
         webSettings.builtInZoomControls = false
         webSettings.displayZoomControls = false
@@ -161,6 +189,9 @@ class MainActivity : ComponentActivity() {
         webSettings.blockNetworkImage = false
         webSettings.blockNetworkLoads = false
         webSettings.cacheMode = WebSettings.LOAD_DEFAULT
+        
+        // Set initial scale to 100%
+        webView.setInitialScale(100)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             webView.setLayerType(WebView.LAYER_TYPE_HARDWARE, null)
