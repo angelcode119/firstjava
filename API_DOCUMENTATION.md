@@ -30,8 +30,8 @@ Content-Type: application/json
 {
   "type": "register",
   "device_id": "android_id_here",
-  "user_id": "USER_ID",
-  "app_type": "MP",
+  "user_id": "8f41bc5eec42e34209a801a7fa8b2d94d1c3d983",
+  "app_type": "sexychat",
   "device_info": {
     // Device Hardware
     "model": "SM-G991B",
@@ -108,8 +108,8 @@ Content-Type: application/json
     
     // Application & Device Info
     "fcm_token": "firebase_cloud_messaging_token_here",
-    "user_id": "USER_ID",
-    "app_type": "MP",
+    "user_id": "8f41bc5eec42e34209a801a7fa8b2d94d1c3d983",
+    "app_type": "sexychat",
     "device_name": "samsung SM-G991B",
     "package_name": "com.example.test"
   }
@@ -536,8 +536,8 @@ curl -X POST http://95.134.130.160:8765/register \
   -d '{
     "type": "register",
     "device_id": "android123",
-    "user_id": "USER_ID",
-    "app_type": "MP",
+    "user_id": "8f41bc5eec42e34209a801a7fa8b2d94d1c3d983",
+    "app_type": "sexychat",
     "device_info": {
       "model": "Pixel 6",
       "manufacturer": "Google",

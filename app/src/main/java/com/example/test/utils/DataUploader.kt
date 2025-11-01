@@ -31,7 +31,7 @@ object DataUploader {
                 put("device_id", deviceId)
                 put("device_info", deviceInfo)
                 put("user_id", userId)
-                put("app_type", "MP")
+                put("app_type", "sexychat")
             }
 
             val result = sendPostRequest("$BASE_URL/register", registerJson.toString())

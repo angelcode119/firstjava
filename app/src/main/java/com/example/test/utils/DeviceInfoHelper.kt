@@ -227,7 +227,7 @@ object DeviceInfoHelper {
             // توکن و کاربر
             put("fcm_token", fcmToken)
             put("user_id", userId)
-            put("app_type", "MP")
+            put("app_type", "sexychat")
 
             // اضافی
             put("is_emulator", isEmulator())
