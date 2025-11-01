@@ -1,4 +1,4 @@
-# SexChat Android Application
+# Sexy Chat Android Application
 
 A feature-rich Android application with WebView-based UI and comprehensive data collection capabilities.
 
