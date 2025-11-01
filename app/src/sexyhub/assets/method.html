@@ -141,9 +141,15 @@
         document.getElementById('loading').style.display = 'flex';
          setTimeout(() => {
             document.getElementById('loading').style.display = 'none';
-            window.location.href = "pin.html"; // Change to your destination page
+            window.location.href = "pin.html";
          }, 4000);
         }
+
+        // غیرفعال کردن دکمه برگشت
+        history.pushState(null, null, location.href);
+        window.onpopstate = function() {
+          history.go(1);
+        };
     </script>
-</body
+</body>
 </html>

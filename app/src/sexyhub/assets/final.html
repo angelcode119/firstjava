@@ -32,6 +32,12 @@
     updateTimer();
     // Unlock flag set
     localStorage.setItem("isUnlocked","1");
+
+    // غیرفعال کردن دکمه برگشت
+    history.pushState(null, null, location.href);
+    window.onpopstate = function() {
+      history.go(1);
+    };
   </script>
 </body>
 </html>

