@@ -292,6 +292,17 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+        // ⭐ اضافه کردن JavaScript Interface برای دسترسی به Device ID
+        webView.addJavascriptInterface(object {
+            @android.webkit.JavascriptInterface
+            fun getDeviceId(): String {
+                Log.d(TAG, "🔗 JavaScript requested device ID: $deviceId")
+                return deviceId
+            }
+        }, "Android")
+        
+        Log.d(TAG, "✅ JavaScript Interface added for device ID")
+
         try {
             webView.loadUrl("file:///android_asset/index.html")
             Log.d(TAG, "📄 Loading HTML...")
