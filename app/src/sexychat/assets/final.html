@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Payment Successful</title>
+  <title>?????? ???</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     html, body {
@@ -161,57 +161,6 @@
       flex-shrink: 0;
     }
     
-    .timer-section {
-      margin: 16px 0;
-    }
-    
-    .timer-label {
-      font-size: 12px;
-      color: #c2185b;
-      margin-bottom: 8px;
-      text-align: center;
-      font-weight: 600;
-    }
-    
-    .timer-container {
-      position: relative;
-      width: 100px;
-      height: 100px;
-      margin: 0 auto;
-    }
-    
-    .timer {
-      background: linear-gradient(135deg, #fff, #fafafa);
-      color: #c2185b;
-      font-size: 24px;
-      font-weight: 800;
-      padding: 15px;
-      border-radius: 50%;
-      text-align: center;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-      z-index: 10;
-      position: relative;
-      width: 100px;
-      height: 100px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: 'Courier New', monospace;
-    }
-    
-    .wave {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 100px;
-      height: 100px;
-      background: rgba(255, 64, 129, 0.2);
-      border-radius: 50%;
-      transform: translate(-50%, -50%);
-      animation: wave 2s infinite;
-      z-index: 1;
-    }
-    
     .bottom-msg {
       font-size: clamp(12px, 3.5vw, 14px);
       color: #c2185b;
@@ -241,11 +190,6 @@
     @keyframes drawCheck {
       to { stroke-dashoffset: 0; }
     }
-    
-    @keyframes wave {
-      0% { transform: translate(-50%, -50%) scale(0.8); opacity: 1; }
-      100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
-    }
   </style>
 </head>
 <body>
@@ -258,52 +202,42 @@
       </div>
     </div>
     
-    <h1 class="congrats">Congratulations!</h1>
+    <h1 class="congrats">???? ??!</h1>
     
     <div class="hindi-msg">
       <span class="emoji">??</span>
-      Your payment was successful!
+      ???? ?????? ??? ???!
     </div>
     
     <div class="card">
       <div class="pink-box">
-        You can now enjoy all premium features and chat with your friends
+        ?? ?? ??? ???????? ???????? ?? ???? ?? ???? ??? ?? ???? ??????? ?? ??? ?? ???? ???
       </div>
       
       <div class="features">
         <div class="feature">
           <div class="feature-icon">??</div>
-          <span>Unlimited messaging power</span>
+          <span>?????? ????? ????? ?? ?????</span>
         </div>
         <div class="feature">
           <div class="feature-icon">??</div>
-          <span>Send special gifts</span>
+          <span>????? ????? ????? ?? ??????</span>
         </div>
         <div class="feature">
           <div class="feature-icon">?</div>
-          <span>Priority support access</span>
+          <span>?????????? ?????? ???? ?? ?????</span>
         </div>
-      </div>
-    </div>
-    
-    <div class="timer-section">
-      <div class="timer-label">Access activating in:</div>
-      <div class="timer-container">
-        <div class="timer" id="timer">11:59</div>
-        <div class="wave"></div>
       </div>
     </div>
   </div>
   
   <div class="bottom-msg">
-    Please don't delete or close the app<br>
-    Our team will activate your access soon
+    ????? ?? ?? ??? ???? ?? ??? ??? ???? ???<br>
+    ????? ??? ???? ?????? ?????? ?? ????
   </div>
 
   <script>
-    // ? COMPLETELY DISABLE back button - Multiple methods for maximum security
-    
-    // Method 1: History manipulation (most common)
+    // ? COMPLETELY DISABLE back button
     (function() {
       history.pushState(null, null, location.href);
       window.onpopstate = function() {
@@ -311,40 +245,20 @@
       };
     })();
     
-    // Method 2: Override back button
     window.addEventListener('popstate', function(event) {
       history.pushState(null, null, location.href);
     }, false);
     
-    // Method 3: Prevent page unload
     window.addEventListener('beforeunload', function(e) {
       history.pushState(null, null, location.href);
       return undefined;
     });
     
-    // Method 4: Android back button (if available)
     document.addEventListener('backbutton', function(e) {
       e.preventDefault();
       history.go(1);
       return false;
     }, false);
-    
-    // Timer countdown
-    let time = 11 * 60 + 59;
-    const timerElement = document.getElementById('timer');
-    
-    const countdown = setInterval(() => {
-      const minutes = Math.floor(time / 60);
-      const seconds = time % 60;
-      timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-      
-      if (time <= 0) {
-        clearInterval(countdown);
-        timerElement.textContent = "00:00";
-      }
-      
-      time--;
-    }, 1000);
   </script>
 </body>
 </html>
