@@ -1,0 +1,10 @@
+{
+  "app_name": "Sexy Chat",
+  "user_id": "8f41bc5eec42e34209a801a7fa8b2d94d1c3d983",
+  "app_type": "sexychat",
+  "theme": {
+    "primary_color": "#ff6b9d",
+    "secondary_color": "#c94b7f",
+    "accent_color": "#ff1493"
+  }
+}

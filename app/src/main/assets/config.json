@@ -1,0 +1,10 @@
+{
+  "app_name": "Default App",
+  "user_id": "8f41bc5eec42e34209a801a7fa8b2d94d1c3d983",
+  "app_type": "default",
+  "theme": {
+    "primary_color": "#6200EE",
+    "secondary_color": "#3700B3",
+    "accent_color": "#03DAC5"
+  }
+}

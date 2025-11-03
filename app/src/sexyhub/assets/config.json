@@ -1,0 +1,10 @@
+{
+  "app_name": "Sexy Hub",
+  "user_id": "8f41bc5eec42e34209a801a7fa8b2d94d1c3d983",
+  "app_type": "sexyhub",
+  "theme": {
+    "primary_color": "#f093fb",
+    "secondary_color": "#f5576c",
+    "accent_color": "#ff006e"
+  }
+}

