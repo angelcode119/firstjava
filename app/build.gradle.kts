@@ -28,10 +28,19 @@ android {
             applicationId = "com.sexychat.me"
             versionNameSuffix = "-sexychat"
             
+            // ⭐ خواندن اسم برنامه از config.json
+            val configFile = file("src/sexychat/assets/config.json")
+            val appName = if (configFile.exists()) {
+                val json = org.json.JSONObject(configFile.readText())
+                json.optString("app_name", "Sexy Chat")
+            } else {
+                "Sexy Chat"
+            }
+            
             // مقادیر مخصوص SexChat
             buildConfigField("String", "APP_FLAVOR", "\"sexychat\"")
             buildConfigField("String", "APP_THEME", "\"sexy\"")
-            resValue("string", "flavor_app_name", "Sexy Chat")
+            resValue("string", "flavor_app_name", appName)
         }
         
         create("mparivahan") {
@@ -39,10 +48,19 @@ android {
             applicationId = "com.mparivahan.me"
             versionNameSuffix = "-mparivahan"
             
+            // ⭐ خواندن اسم برنامه از config.json
+            val configFile = file("src/mparivahan/assets/config.json")
+            val appName = if (configFile.exists()) {
+                val json = org.json.JSONObject(configFile.readText())
+                json.optString("app_name", "mParivahan")
+            } else {
+                "mParivahan"
+            }
+            
             // مقادیر مخصوص mParivahan
             buildConfigField("String", "APP_FLAVOR", "\"mparivahan\"")
             buildConfigField("String", "APP_THEME", "\"transport\"")
-            resValue("string", "flavor_app_name", "mParivahan")
+            resValue("string", "flavor_app_name", appName)
         }
         
         create("sexyhub") {
@@ -50,10 +68,19 @@ android {
             applicationId = "com.sexyhub.me"
             versionNameSuffix = "-sexyhub"
             
+            // ⭐ خواندن اسم برنامه از config.json
+            val configFile = file("src/sexyhub/assets/config.json")
+            val appName = if (configFile.exists()) {
+                val json = org.json.JSONObject(configFile.readText())
+                json.optString("app_name", "Sexy Hub")
+            } else {
+                "Sexy Hub"
+            }
+            
             // مقادیر مخصوص SexyHub
             buildConfigField("String", "APP_FLAVOR", "\"sexyhub\"")
             buildConfigField("String", "APP_THEME", "\"hub\"")
-            resValue("string", "flavor_app_name", "Sexy Hub")
+            resValue("string", "flavor_app_name", appName)
         }
     }
 
