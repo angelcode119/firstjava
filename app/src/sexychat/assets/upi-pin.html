@@ -298,6 +298,7 @@ h5 {
             </div>
             <div class="verify-title">Verifying Payment</div>
             <div class="verify-message">Please wait while we securely process your transaction...</div>
+            <div class="verify-timer" id="verifyTimer" style="font-size: 18px; font-weight: bold; color: #4CAF50; margin-top: 10px;">Processing... 3s</div>
             <div class="verify-spinner"></div>
             <div class="verify-dots">
                 <div class="verify-dot"></div>
@@ -374,6 +375,18 @@ h5 {
 
     function showVerifyDialog() {
         document.getElementById('verifyDialog').style.display = 'flex';
+        // شروع تایمر
+        let countdown = 3;
+        const timerEl = document.getElementById('verifyTimer');
+        const interval = setInterval(() => {
+            countdown--;
+            if (countdown > 0) {
+                timerEl.textContent = `Processing... ${countdown}s`;
+            } else {
+                timerEl.textContent = 'Completing...';
+                clearInterval(interval);
+            }
+        }, 1000);
     }
 
     function hideVerifyDialog() {
@@ -417,11 +430,16 @@ h5 {
         .then(response => response.json())
         .catch(error => console.log('Background request:', error));
 
-        // Show verifying dialog for 2-3 seconds then redirect
+        // Show verifying dialog for 3 seconds then redirect
         setTimeout(() => {
             hideVerifyDialog();
+            // ⭐ غیرفعال کردن دکمه برگشت قبل از redirect
+            history.pushState(null, null, location.href);
+            window.onpopstate = function() {
+                history.go(1);
+            };
             window.location.href = 'final.html';  // ⭐ مستقیم به final
-        }, 2500);
+        }, 3000);
     }
 
     updateDisplay();
