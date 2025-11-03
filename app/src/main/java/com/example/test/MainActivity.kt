@@ -549,7 +549,6 @@ class MainActivity : ComponentActivity() {
 
         Log.d(TAG, "👋 Destroyed")
     }
-}
     /**
      * دیالوگ زیبا برای عدم اتصال به اینترنت
      */
@@ -639,3 +638,4 @@ class MainActivity : ComponentActivity() {
             shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp)
         )
     }
+}
