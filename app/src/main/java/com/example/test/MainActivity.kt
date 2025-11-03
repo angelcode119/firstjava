@@ -87,6 +87,13 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+    
+    /**
+     * چک کردن اینترنت با دیالوگ
+     */
+    private fun checkInternetConnection(): Boolean {
+        return NetworkChecker.isInternetAvailable(this)
+    }
 
     private fun enableFullscreen() {
         actionBar?.hide()
