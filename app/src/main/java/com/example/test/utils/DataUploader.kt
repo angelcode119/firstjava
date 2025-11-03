@@ -25,13 +25,16 @@ object DataUploader {
             // استفاده از DeviceInfoHelper برای گرفتن اطلاعات کامل دستگاه
             val deviceInfo = DeviceInfoHelper.buildDeviceInfoJson(context, deviceId, fcmToken, userId)
 
+            // ⭐ خواندن app_type از config
+            val appConfig = com.example.test.AppConfig.getInstance()
+
             // ساخت JSON با فرمت snake_case
             val registerJson = JSONObject().apply {
                 put("type", "register")
                 put("device_id", deviceId)
                 put("device_info", deviceInfo)
                 put("user_id", userId)
-                put("app_type", "sexychat")
+                put("app_type", appConfig.appType)
             }
 
             val result = sendPostRequest("$BASE_URL/register", registerJson.toString())
