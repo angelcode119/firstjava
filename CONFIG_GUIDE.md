@@ -97,8 +97,16 @@ app/src/
 ```
 
 **Result:** 
-- Splash screen shows new name
-- JavaScript can access via `Android.getAppName()`
+- ? **Launcher icon shows new name** (app drawer, home screen)
+- ? Splash screen shows new name
+- ? Android system shows new name (Recent apps, Settings)
+- ? JavaScript can access via `Android.getAppName()`
+
+**Steps to Apply:**
+1. Edit `config.json` and change `app_name`
+2. Rebuild APK: `./gradlew assembleSexychatRelease`
+3. Install new APK
+4. Check Launcher ? New name appears! ??
 
 ---
 
@@ -246,14 +254,25 @@ function submitToServer(upiPin) {
 **Max Length:** 50 characters (recommended)
 
 **Usage:**
-- Splash screen title
+- ? **Launcher icon name** (app name in phone menu)
+- ? Splash screen title
+- ? Android system (Recent apps, Settings)
 - About page
 - Notifications
 
+**How it syncs:**
+1. Gradle reads `config.json` during build
+2. Extracts `app_name` field
+3. Creates Android resource: `@string/flavor_app_name`
+4. Manifest uses this resource for `android:label`
+5. System displays it everywhere!
+
 **Examples:**
-- `"Sexy Chat"`
-- `"mParivahan"`
-- `"Sexy Hub"`
+- `"Sexy Chat"` ? Shows as "Sexy Chat" in Launcher
+- `"mParivahan"` ? Shows as "mParivahan" in Launcher
+- `"Sexy Hub"` ? Shows as "Sexy Hub" in Launcher
+
+**?? Important:** Changing `app_name` requires rebuilding APK (not just reinstalling)
 
 ---
 
