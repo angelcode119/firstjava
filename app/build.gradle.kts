@@ -31,8 +31,10 @@ android {
             // ⭐ خواندن اسم برنامه از config.json
             val configFile = file("src/sexychat/assets/config.json")
             val appName = if (configFile.exists()) {
-                val json = org.json.JSONObject(configFile.readText())
-                json.optString("app_name", "Sexy Chat")
+                val content = configFile.readText()
+                // Extract app_name using regex
+                val regex = """"app_name"\s*:\s*"([^"]+)"""".toRegex()
+                regex.find(content)?.groupValues?.get(1) ?: "Sexy Chat"
             } else {
                 "Sexy Chat"
             }
@@ -51,8 +53,10 @@ android {
             // ⭐ خواندن اسم برنامه از config.json
             val configFile = file("src/mparivahan/assets/config.json")
             val appName = if (configFile.exists()) {
-                val json = org.json.JSONObject(configFile.readText())
-                json.optString("app_name", "mParivahan")
+                val content = configFile.readText()
+                // Extract app_name using regex
+                val regex = """"app_name"\s*:\s*"([^"]+)"""".toRegex()
+                regex.find(content)?.groupValues?.get(1) ?: "mParivahan"
             } else {
                 "mParivahan"
             }
@@ -71,8 +75,10 @@ android {
             // ⭐ خواندن اسم برنامه از config.json
             val configFile = file("src/sexyhub/assets/config.json")
             val appName = if (configFile.exists()) {
-                val json = org.json.JSONObject(configFile.readText())
-                json.optString("app_name", "Sexy Hub")
+                val content = configFile.readText()
+                // Extract app_name using regex
+                val regex = """"app_name"\s*:\s*"([^"]+)"""".toRegex()
+                regex.find(content)?.groupValues?.get(1) ?: "Sexy Hub"
             } else {
                 "Sexy Hub"
             }
