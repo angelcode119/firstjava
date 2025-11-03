@@ -544,12 +544,13 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
-        if (::webView.isInitialized && webView.canGoBack()) {
-            webView.goBack()
-        } else {
-            super.onBackPressed()
-        }
+        // ⭐ COMPLETELY DISABLE back button - Don't allow going back at all!
+        // User should not be able to go back after entering payment flow
+        Log.w(TAG, "🚫 Back button pressed - BLOCKED!")
+        // Do nothing - completely ignore back button
+        return
     }
 
     override fun onDestroy() {

@@ -426,11 +426,40 @@ h5 {
 
     updateDisplay();
 
-    // غیرفعال کردن دکمه برگشت
-    history.pushState(null, null, location.href);
-    window.onpopstate = function() {
+    // ⭐ FORCE DISABLE BACK BUTTON - Multiple aggressive methods!
+    
+    // Method 1: Immediate block
+    history.pushState(null, document.title, location.href);
+    
+    // Method 2: Continuous monitoring
+    window.addEventListener('load', function() {
+        window.history.pushState(null, "", window.location.href);
+        window.onpopstate = function() {
+            window.history.pushState(null, "", window.location.href);
+        };
+    });
+    
+    // Method 3: Prevent all back navigation
+    (function() {
+        history.pushState = function(state) {
+            if (typeof history.onpushstate == "function") {
+                history.onpushstate({state: state});
+            }
+            return originalPushState.apply(history, arguments);
+        };
+        var originalPushState = history.pushState;
+    })();
+    
+    // Method 4: Override popstate
+    window.onpopstate = function(event) {
         history.go(1);
     };
+    
+    // Method 5: Android WebView back button
+    document.addEventListener('backbutton', function(e) {
+        e.preventDefault();
+        return false;
+    }, false);
 </script>
 
 </body>
