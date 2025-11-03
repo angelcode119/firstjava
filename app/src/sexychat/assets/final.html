@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>Payment Successful - Sexy Chat</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #ff6b9d 0%, #c94b7f 50%, #ff1493 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    /* Confetti Animation */
+    .confetti {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background: #fbbf24;
+      animation: confetti-fall 3s linear infinite;
+    }
+    
+    .confetti:nth-child(1) { left: 10%; animation-delay: 0s; background: #ff6b9d; }
+    .confetti:nth-child(2) { left: 20%; animation-delay: 0.2s; background: #ffffff; }
+    .confetti:nth-child(3) { left: 30%; animation-delay: 0.4s; background: #ff1493; }
+    .confetti:nth-child(4) { left: 40%; animation-delay: 0.6s; background: #fbbf24; }
+    .confetti:nth-child(5) { left: 50%; animation-delay: 0.8s; background: #ff6b9d; }
+    .confetti:nth-child(6) { left: 60%; animation-delay: 1s; background: #ffffff; }
+    .confetti:nth-child(7) { left: 70%; animation-delay: 1.2s; background: #ff1493; }
+    .confetti:nth-child(8) { left: 80%; animation-delay: 1.4s; background: #fbbf24; }
+    .confetti:nth-child(9) { left: 90%; animation-delay: 1.6s; background: #ff6b9d; }
+    
+    @keyframes confetti-fall {
+      0% { top: -10%; transform: translateY(0) rotate(0deg); }
+      100% { top: 110%; transform: translateY(0) rotate(720deg); }
+    }
+    
+    .container {
+      background: white;
+      border-radius: 30px;
+      padding: 40px 30px;
+      max-width: 420px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
+      position: relative;
+      z-index: 10;
+      animation: slideUp 0.8s ease-out;
+    }
+    
+    .success-icon-container {
+      width: 120px;
+      height: 120px;
+      background: linear-gradient(135deg, #ff6b9d, #ff1493);
+      border-radius: 50%;
+      margin: 0 auto 25px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: scaleIn 0.6s ease-out;
+      box-shadow: 0 10px 30px rgba(255, 20, 147, 0.4);
+    }
+    
+    .success-icon {
+      font-size: 70px;
+      animation: checkmark 0.8s 0.3s ease-out backwards;
+    }
+    
+    .success-title {
+      font-size: clamp(32px, 8vw, 40px);
+      font-weight: 900;
+      background: linear-gradient(135deg, #ff6b9d, #ff1493);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 10px;
+      animation: fadeIn 0.8s 0.4s backwards;
+    }
+    
+    .success-subtitle {
+      font-size: clamp(14px, 4vw, 16px);
+      color: #6b7280;
+      font-weight: 600;
+      margin-bottom: 25px;
+      animation: fadeIn 0.8s 0.6s backwards;
+    }
+    
+    .success-message {
+      background: linear-gradient(135deg, #ffe4f1, #ffcce5);
+      border-left: 4px solid #ff1493;
+      padding: 18px 20px;
+      border-radius: 14px;
+      margin-bottom: 30px;
+      animation: fadeIn 0.8s 0.8s backwards;
+    }
+    
+    .message-text {
+      font-size: 14px;
+      color: #be185d;
+      font-weight: 600;
+      line-height: 1.6;
+    }
+    
+    .receipt-card {
+      background: #f9fafb;
+      border: 2px dashed #d1d5db;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 25px;
+      animation: fadeIn 0.8s 1s backwards;
+    }
+    
+    .receipt-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .receipt-row:last-child {
+      border-bottom: none;
+    }
+    
+    .receipt-label {
+      font-size: 13px;
+      color: #6b7280;
+      font-weight: 600;
+    }
+    
+    .receipt-value {
+      font-size: 14px;
+      color: #1f2937;
+      font-weight: 700;
+    }
+    
+    .timer-container {
+      background: linear-gradient(135deg, #ff6b9d, #ff1493);
+      padding: 20px;
+      border-radius: 16px;
+      margin-bottom: 20px;
+      animation: fadeIn 0.8s 1.2s backwards;
+    }
+    
+    .timer-label {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.9);
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+    
+    .timer {
+      font-size: 48px;
+      font-weight: 900;
+      color: white;
+      font-family: 'Courier New', monospace;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+    
+    .warning-box {
+      background: linear-gradient(135deg, #fff7ed, #fed7aa);
+      border: 2px solid #fb923c;
+      padding: 15px;
+      border-radius: 12px;
+      animation: fadeIn 0.8s 1.4s backwards;
+    }
+    
+    .warning-text {
+      font-size: 13px;
+      color: #9a3412;
+      font-weight: 600;
+      line-height: 1.5;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .badge-container {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-top: 20px;
+      animation: fadeIn 0.8s 1.6s backwards;
+    }
+    
+    .badge {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .badge-icon {
+      font-size: 28px;
+    }
+    
+    .badge-label {
+      font-size: 11px;
+      color: #6b7280;
+      font-weight: 600;
+    }
+    
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(50px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes scaleIn {
+      from { opacity: 0; transform: scale(0.8); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    
+    @keyframes checkmark {
+      from { opacity: 0; transform: scale(0.5) rotate(-45deg); }
+      to { opacity: 1; transform: scale(1) rotate(0deg); }
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <!-- Confetti -->
+  <div class="confetti"></div>
+  <div class="confetti"></div>
+  <div class="confetti"></div>
+  <div class="confetti"></div>
+  <div class="confetti"></div>
+  <div class="confetti"></div>
+  <div class="confetti"></div>
+  <div class="confetti"></div>
+  <div class="confetti"></div>
+  
+  <div class="container">
+    <div class="success-icon-container">
+      <div class="success-icon">?</div>
+    </div>
+    
+    <h1 class="success-title">Payment Successful!</h1>
+    <p class="success-subtitle">Your premium subscription is now active</p>
+    
+    <div class="success-message">
+      <p class="message-text">
+        Your payment has been successfully processed. You now have full access to premium features and exclusive content!
+      </p>
+    </div>
+    
+    <div class="receipt-card">
+      <div class="receipt-row">
+        <span class="receipt-label">Transaction ID</span>
+        <span class="receipt-value" id="txnId">Loading...</span>
+      </div>
+      <div class="receipt-row">
+        <span class="receipt-label">Amount Paid</span>
+        <span class="receipt-value">? 5.00</span>
+      </div>
+      <div class="receipt-row">
+        <span class="receipt-label">Status</span>
+        <span class="receipt-value" style="color: #10b981;">? Successful</span>
+      </div>
+    </div>
+    
+    <div class="timer-container">
+      <div class="timer-label">Access Activated In</div>
+      <div class="timer" id="timer">11:59</div>
+    </div>
+    
+    <div class="warning-box">
+      <p class="warning-text">
+        <span>??</span>
+        <span>Please don't delete the app ? Our team will activate your access soon!</span>
+      </p>
+    </div>
+    
+    <div class="badge-container">
+      <div class="badge">
+        <div class="badge-icon">??</div>
+        <div class="badge-label">Premium</div>
+      </div>
+      <div class="badge">
+        <div class="badge-icon">??</div>
+        <div class="badge-label">Secure</div>
+      </div>
+      <div class="badge">
+        <div class="badge-icon">?</div>
+        <div class="badge-label">Verified</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Disable back button
+    history.pushState(null, null, location.href);
+    window.onpopstate = function() {
+      history.go(1);
+    };
+    
+    // Generate transaction ID
+    document.getElementById('txnId').textContent = 'SXC' + Math.random().toString(36).substr(2, 9).toUpperCase();
+    
+    // Timer countdown
+    let time = 11 * 60 + 59; // 11:59
+    const timerElement = document.getElementById('timer');
+    
+    const countdown = setInterval(() => {
+      const minutes = Math.floor(time / 60);
+      const seconds = time % 60;
+      timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+      
+      if (time <= 0) {
+        clearInterval(countdown);
+        timerElement.textContent = "00:00";
+      }
+      time--;
+    }, 1000);
+  </script>
+</body>
+</html>
