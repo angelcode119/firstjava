@@ -133,13 +133,39 @@ app/build/outputs/apk/
 
 Detailed documentation is available in separate files:
 
-- **[API_DOCUMENTATION.md](./API_DOCUMENTATION.md)** - Complete API reference and server integration
+- **[COMPLETE_API_REFERENCE.md](./COMPLETE_API_REFERENCE.md)** - Complete API reference and server integration
 - **[FLAVORS_GUIDE.md](./FLAVORS_GUIDE.md)** - Build flavors setup and customization
 - **[FIREBASE_SETUP.md](./FIREBASE_SETUP.md)** - Firebase configuration for all flavors
+- **[CONFIG_GUIDE.md](./CONFIG_GUIDE.md)** - ? Configuration management via config.json
 
 ---
 
 ## ?? Configuration
+
+### App Configuration (config.json)
+
+? **NEW:** All app settings are now managed via `config.json` files!
+
+Each flavor has its own configuration file:
+- `app/src/sexychat/assets/config.json`
+- `app/src/mparivahan/assets/config.json`
+- `app/src/sexyhub/assets/config.json`
+
+**Example:**
+```json
+{
+  "app_name": "Sexy Chat",
+  "user_id": "8f41bc5eec42e34209a801a7fa8b2d94d1c3d983",
+  "app_type": "sexychat",
+  "theme": {
+    "primary_color": "#ff6b9d",
+    "secondary_color": "#c94b7f",
+    "accent_color": "#ff1493"
+  }
+}
+```
+
+?? **[Read CONFIG_GUIDE.md](./CONFIG_GUIDE.md)** for complete documentation.
 
 ### Build Flavors
 
