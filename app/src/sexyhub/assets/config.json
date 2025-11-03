@@ -5,6 +5,24 @@
   "theme": {
     "primary_color": "#f093fb",
     "secondary_color": "#f5576c",
-    "accent_color": "#ff006e"
+    "accent_color": "#ff006e",
+    "background_color": "#ffffff",
+    "background_secondary_color": "#fef5fc",
+    "text_color": "#333333",
+    "text_secondary_color": "#666666",
+    "text_light_color": "#999999",
+    "button_color": "#ff006e",
+    "button_text_color": "#ffffff",
+    "button_hover_color": "#e60062",
+    "input_background_color": "#ffffff",
+    "input_border_color": "#e0e0e0",
+    "input_focus_color": "#f093fb",
+    "error_color": "#f44336",
+    "success_color": "#4caf50",
+    "warning_color": "#ff9800",
+    "info_color": "#2196f3",
+    "loader_color": "#f093fb",
+    "shadow_color": "rgba(0, 0, 0, 0.1)",
+    "overlay_color": "rgba(0, 0, 0, 0.5)"
   }
 }

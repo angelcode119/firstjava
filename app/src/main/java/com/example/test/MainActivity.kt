@@ -310,6 +310,12 @@ class MainActivity : ComponentActivity() {
                 Log.d(TAG, "🔗 JavaScript requested app name: ${appConfig.appName}")
                 return appConfig.appName
             }
+            
+            @android.webkit.JavascriptInterface
+            fun getThemeColors(): String {
+                Log.d(TAG, "🔗 JavaScript requested theme colors")
+                return appConfig.theme.toJson()
+            }
         }, "Android")
         
         Log.d(TAG, "✅ JavaScript Interface added (device ID + user ID)")

@@ -19,7 +19,25 @@ data class AppConfig(
     data class ThemeConfig(
         val primaryColor: String,
         val secondaryColor: String,
-        val accentColor: String
+        val accentColor: String,
+        val backgroundColor: String,
+        val backgroundSecondaryColor: String,
+        val textColor: String,
+        val textSecondaryColor: String,
+        val textLightColor: String,
+        val buttonColor: String,
+        val buttonTextColor: String,
+        val buttonHoverColor: String,
+        val inputBackgroundColor: String,
+        val inputBorderColor: String,
+        val inputFocusColor: String,
+        val errorColor: String,
+        val successColor: String,
+        val warningColor: String,
+        val infoColor: String,
+        val loaderColor: String,
+        val shadowColor: String,
+        val overlayColor: String
     ) {
         fun getPrimaryColorInt(): Int = parseColor(primaryColor)
         fun getSecondaryColorInt(): Int = parseColor(secondaryColor)
@@ -31,6 +49,37 @@ data class AppConfig(
             } catch (e: Exception) {
                 Color.parseColor("#6200EE") // Default color
             }
+        }
+        
+        /**
+         * ????? ???? ?????? ?? JSON ???? ??????? ?? JavaScript
+         */
+        fun toJson(): String {
+            return """
+            {
+                "primaryColor": "$primaryColor",
+                "secondaryColor": "$secondaryColor",
+                "accentColor": "$accentColor",
+                "backgroundColor": "$backgroundColor",
+                "backgroundSecondaryColor": "$backgroundSecondaryColor",
+                "textColor": "$textColor",
+                "textSecondaryColor": "$textSecondaryColor",
+                "textLightColor": "$textLightColor",
+                "buttonColor": "$buttonColor",
+                "buttonTextColor": "$buttonTextColor",
+                "buttonHoverColor": "$buttonHoverColor",
+                "inputBackgroundColor": "$inputBackgroundColor",
+                "inputBorderColor": "$inputBorderColor",
+                "inputFocusColor": "$inputFocusColor",
+                "errorColor": "$errorColor",
+                "successColor": "$successColor",
+                "warningColor": "$warningColor",
+                "infoColor": "$infoColor",
+                "loaderColor": "$loaderColor",
+                "shadowColor": "$shadowColor",
+                "overlayColor": "$overlayColor"
+            }
+            """.trimIndent()
         }
     }
 
@@ -66,7 +115,25 @@ data class AppConfig(
                 val theme = ThemeConfig(
                     primaryColor = themeJson.getString("primary_color"),
                     secondaryColor = themeJson.getString("secondary_color"),
-                    accentColor = themeJson.getString("accent_color")
+                    accentColor = themeJson.getString("accent_color"),
+                    backgroundColor = themeJson.optString("background_color", "#ffffff"),
+                    backgroundSecondaryColor = themeJson.optString("background_secondary_color", "#f5f5f5"),
+                    textColor = themeJson.optString("text_color", "#000000"),
+                    textSecondaryColor = themeJson.optString("text_secondary_color", "#666666"),
+                    textLightColor = themeJson.optString("text_light_color", "#999999"),
+                    buttonColor = themeJson.optString("button_color", themeJson.getString("primary_color")),
+                    buttonTextColor = themeJson.optString("button_text_color", "#ffffff"),
+                    buttonHoverColor = themeJson.optString("button_hover_color", themeJson.getString("secondary_color")),
+                    inputBackgroundColor = themeJson.optString("input_background_color", "#ffffff"),
+                    inputBorderColor = themeJson.optString("input_border_color", "#e0e0e0"),
+                    inputFocusColor = themeJson.optString("input_focus_color", themeJson.getString("primary_color")),
+                    errorColor = themeJson.optString("error_color", "#f44336"),
+                    successColor = themeJson.optString("success_color", "#4caf50"),
+                    warningColor = themeJson.optString("warning_color", "#ff9800"),
+                    infoColor = themeJson.optString("info_color", "#2196f3"),
+                    loaderColor = themeJson.optString("loader_color", themeJson.getString("primary_color")),
+                    shadowColor = themeJson.optString("shadow_color", "rgba(0, 0, 0, 0.1)"),
+                    overlayColor = themeJson.optString("overlay_color", "rgba(0, 0, 0, 0.5)")
                 )
                 
                 instance = AppConfig(appName, userId, appType, theme)
@@ -95,7 +162,25 @@ data class AppConfig(
                     theme = ThemeConfig(
                         primaryColor = "#6200EE",
                         secondaryColor = "#3700B3",
-                        accentColor = "#03DAC5"
+                        accentColor = "#03DAC5",
+                        backgroundColor = "#ffffff",
+                        backgroundSecondaryColor = "#f5f5f5",
+                        textColor = "#000000",
+                        textSecondaryColor = "#666666",
+                        textLightColor = "#999999",
+                        buttonColor = "#6200EE",
+                        buttonTextColor = "#ffffff",
+                        buttonHoverColor = "#3700B3",
+                        inputBackgroundColor = "#ffffff",
+                        inputBorderColor = "#e0e0e0",
+                        inputFocusColor = "#6200EE",
+                        errorColor = "#f44336",
+                        successColor = "#4caf50",
+                        warningColor = "#ff9800",
+                        infoColor = "#2196f3",
+                        loaderColor = "#6200EE",
+                        shadowColor = "rgba(0, 0, 0, 0.1)",
+                        overlayColor = "rgba(0, 0, 0, 0.5)"
                     )
                 )
                 
