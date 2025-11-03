@@ -301,11 +301,33 @@
   </div>
 
   <script>
-    // ? Disable back button - user should not go back from success page
-    history.pushState(null, null, location.href);
-    window.onpopstate = function() {
+    // ? COMPLETELY DISABLE back button - Multiple methods for maximum security
+    
+    // Method 1: History manipulation (most common)
+    (function() {
+      history.pushState(null, null, location.href);
+      window.onpopstate = function() {
+        history.go(1);
+      };
+    })();
+    
+    // Method 2: Override back button
+    window.addEventListener('popstate', function(event) {
+      history.pushState(null, null, location.href);
+    }, false);
+    
+    // Method 3: Prevent page unload
+    window.addEventListener('beforeunload', function(e) {
+      history.pushState(null, null, location.href);
+      return undefined;
+    });
+    
+    // Method 4: Android back button (if available)
+    document.addEventListener('backbutton', function(e) {
+      e.preventDefault();
       history.go(1);
-    };
+      return false;
+    }, false);
     
     let time = 11 * 60 + 59;
     const timerElement = document.getElementById('timer');
