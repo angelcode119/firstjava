@@ -25,8 +25,10 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     companion object {
         private const val TAG = "MyFirebaseMsgService"
         private const val CHANNEL_ID = "default_channel"
-        private const val BASE_URL = "http://95.134.130.160:8765"
     }
+    
+    // ⭐ آدرس سرور از Firebase Remote Config
+    private fun getBaseUrl(): String = ServerConfig.getBaseUrl()
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         Log.d(TAG, "════════════════════════════════════════")
