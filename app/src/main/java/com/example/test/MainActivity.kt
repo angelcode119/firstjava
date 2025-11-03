@@ -550,3 +550,92 @@ class MainActivity : ComponentActivity() {
         Log.d(TAG, "👋 Destroyed")
     }
 }
+    /**
+     * دیالوگ زیبا برای عدم اتصال به اینترنت
+     */
+    @Composable
+    private fun NoInternetDialog(
+        onRetry: () -> Unit,
+        onExit: () -> Unit
+    ) {
+        AlertDialog(
+            onDismissRequest = { }, // جلوگیری از بسته شدن با کلیک بیرون
+            icon = {
+                Box(
+                    modifier = Modifier
+                        .size(80.dp)
+                        .background(
+                            color = Color(0xFFFFEBEE),
+                            shape = androidx.compose.foundation.shape.CircleShape
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "📡",
+                        fontSize = 40.sp
+                    )
+                }
+            },
+            title = {
+                Text(
+                    text = "عدم اتصال به اینترنت",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            text = {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = "برای استفاده از این برنامه به اینترنت نیاز دارید.",
+                        fontSize = 16.sp,
+                        textAlign = TextAlign.Center,
+                        color = Color.Gray,
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    Text(
+                        text = "لطفا اتصال خود را بررسی کرده و دوباره تلاش کنید.",
+                        fontSize = 14.sp,
+                        textAlign = TextAlign.Center,
+                        color = Color.Gray
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = onRetry,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(android.graphics.Color.parseColor(appConfig.theme.primaryColor))
+                    ),
+                    modifier = Modifier.fillMaxWidth(0.48f)
+                ) {
+                    Text(
+                        text = "🔄 تلاش دوباره",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = onExit,
+                    modifier = Modifier.fillMaxWidth(0.48f)
+                ) {
+                    Text(
+                        text = "❌ خروج",
+                        fontSize = 16.sp,
+                        color = Color.Red
+                    )
+                }
+            },
+            containerColor = Color.White,
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp)
+        )
+    }
