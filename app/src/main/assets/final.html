@@ -20,9 +20,17 @@
             align-items: center;
             justify-content: flex-start;
             height: 100vh;
-            background: #ffffff;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
             text-align: center;
             padding: 20px;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
 
         @keyframes wave {
@@ -40,9 +48,10 @@
             display: flex;
             font-size: 25px;
             font-weight: 600;
-            color: skyblue;
+            color: #ffffff;
             gap: 5px;
             margin-top: 40px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
 
         .congrats span {
@@ -70,13 +79,25 @@
             font-size: 20px;
             margin-top: 20px;
             font-weight: bold;
+            color: #ffffff;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
         }
 
         .timer {
             font-size: 28px;
             font-weight: bold;
-            color: #ff001f;
+            color: #ffeb3b;
             margin-top: 30px;
+            background: rgba(255,0,31,0.2);
+            padding: 10px 30px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255,255,255,0.3);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
         }
 
         .lottie-container {
@@ -98,6 +119,12 @@
             font-size: 20px;
             margin-top: 20px;
             font-weight: bold;
+            color: #ffffff;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
         }
     </style>
 </head>
