@@ -1,317 +1,313 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-  <title>Payment Successful - Sexy Chat</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>?????? ???</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow-x: hidden;
+      position: fixed;
+    }
     
     body {
-      font-family: 'Poppins', sans-serif;
-      background: linear-gradient(135deg, #ff6b9d 0%, #c94b7f 50%, #ff1493 100%);
-      min-height: 100vh;
+      background: linear-gradient(135deg, #ffebee 0%, #fce4ec 50%, #f8bbd0 100%);
       display: flex;
       flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
+      justify-content: space-between;
+      font-family: 'Poppins', sans-serif;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
       position: relative;
-      overflow: hidden;
     }
     
-    /* Confetti Animation */
-    .confetti {
-      position: absolute;
-      width: 10px;
-      height: 10px;
-      background: #fbbf24;
-      animation: confetti-fall 3s linear infinite;
+    body::before {
+      content: '';
+      position: fixed;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.3) 1px, transparent 1px);
+      background-size: 50px 50px;
+      animation: bgMove 20s linear infinite;
+      z-index: 0;
     }
     
-    .confetti:nth-child(1) { left: 10%; animation-delay: 0s; background: #ff6b9d; }
-    .confetti:nth-child(2) { left: 20%; animation-delay: 0.2s; background: #ffffff; }
-    .confetti:nth-child(3) { left: 30%; animation-delay: 0.4s; background: #ff1493; }
-    .confetti:nth-child(4) { left: 40%; animation-delay: 0.6s; background: #fbbf24; }
-    .confetti:nth-child(5) { left: 50%; animation-delay: 0.8s; background: #ff6b9d; }
-    .confetti:nth-child(6) { left: 60%; animation-delay: 1s; background: #ffffff; }
-    .confetti:nth-child(7) { left: 70%; animation-delay: 1.2s; background: #ff1493; }
-    .confetti:nth-child(8) { left: 80%; animation-delay: 1.4s; background: #fbbf24; }
-    .confetti:nth-child(9) { left: 90%; animation-delay: 1.6s; background: #ff6b9d; }
-    
-    @keyframes confetti-fall {
-      0% { top: -10%; transform: translateY(0) rotate(0deg); }
-      100% { top: 110%; transform: translateY(0) rotate(720deg); }
-    }
-    
-    .container {
-      background: white;
-      border-radius: 30px;
-      padding: 40px 30px;
-      max-width: 420px;
-      width: 100%;
-      text-align: center;
-      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
+    .content-wrapper {
       position: relative;
-      z-index: 10;
-      animation: slideUp 0.8s ease-out;
-    }
-    
-    .success-icon-container {
-      width: 120px;
-      height: 120px;
-      background: linear-gradient(135deg, #ff6b9d, #ff1493);
-      border-radius: 50%;
-      margin: 0 auto 25px;
+      z-index: 1;
       display: flex;
+      flex-direction: column;
       align-items: center;
-      justify-content: center;
-      animation: scaleIn 0.6s ease-out;
-      box-shadow: 0 10px 30px rgba(255, 20, 147, 0.4);
+      flex: 1;
+      padding: 20px 15px;
+      box-sizing: border-box;
     }
     
     .success-icon {
-      font-size: 70px;
-      animation: checkmark 0.8s 0.3s ease-out backwards;
+      width: 80px;
+      height: 80px;
+      margin: 10px auto 20px;
+      position: relative;
+      animation: bounceIn 0.8s ease-out;
     }
     
-    .success-title {
-      font-size: clamp(32px, 8vw, 40px);
-      font-weight: 900;
-      background: linear-gradient(135deg, #ff6b9d, #ff1493);
+    .checkmark-circle {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, #4CAF50, #66BB6A);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 30px rgba(76, 175, 80, 0.4);
+    }
+    
+    .checkmark {
+      width: 40px;
+      height: 40px;
+      stroke: #fff;
+      stroke-width: 4;
+      stroke-linecap: round;
+      fill: none;
+      animation: drawCheck 0.8s ease 0.3s forwards;
+      stroke-dasharray: 100;
+      stroke-dashoffset: 100;
+    }
+    
+    .congrats {
+      font-size: clamp(28px, 8vw, 36px);
+      font-weight: 800;
+      background: linear-gradient(135deg, #ff4081, #f50057);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
+      text-align: center;
       margin-bottom: 10px;
-      animation: fadeIn 0.8s 0.4s backwards;
+      letter-spacing: 1px;
     }
     
-    .success-subtitle {
-      font-size: clamp(14px, 4vw, 16px);
-      color: #6b7280;
-      font-weight: 600;
-      margin-bottom: 25px;
-      animation: fadeIn 0.8s 0.6s backwards;
-    }
-    
-    .success-message {
-      background: linear-gradient(135deg, #ffe4f1, #ffcce5);
-      border-left: 4px solid #ff1493;
-      padding: 18px 20px;
-      border-radius: 14px;
-      margin-bottom: 30px;
-      animation: fadeIn 0.8s 0.8s backwards;
-    }
-    
-    .message-text {
-      font-size: 14px;
-      color: #be185d;
-      font-weight: 600;
-      line-height: 1.6;
-    }
-    
-    .receipt-card {
-      background: #f9fafb;
-      border: 2px dashed #d1d5db;
-      border-radius: 16px;
-      padding: 20px;
-      margin-bottom: 25px;
-      animation: fadeIn 0.8s 1s backwards;
-    }
-    
-    .receipt-row {
+    .hindi-msg {
+      font-size: clamp(15px, 4.5vw, 18px);
+      color: #c2185b;
+      margin: 10px 0 15px;
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      padding: 10px 0;
-      border-bottom: 1px solid #e5e7eb;
-    }
-    
-    .receipt-row:last-child {
-      border-bottom: none;
-    }
-    
-    .receipt-label {
-      font-size: 13px;
-      color: #6b7280;
+      justify-content: center;
+      gap: 8px;
       font-weight: 600;
     }
     
-    .receipt-value {
-      font-size: 14px;
-      color: #1f2937;
-      font-weight: 700;
+    .emoji {
+      font-size: 24px;
     }
     
-    .timer-container {
-      background: linear-gradient(135deg, #ff6b9d, #ff1493);
-      padding: 20px;
-      border-radius: 16px;
-      margin-bottom: 20px;
-      animation: fadeIn 0.8s 1.2s backwards;
+    .card {
+      background: rgba(255, 255, 255, 0.95);
+      padding: 16px;
+      border-radius: 18px;
+      margin: 12px 0;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      width: 88%;
+      max-width: 320px;
+      box-sizing: border-box;
     }
     
-    .timer-label {
-      font-size: 13px;
-      color: rgba(255, 255, 255, 0.9);
-      font-weight: 600;
-      margin-bottom: 10px;
-    }
-    
-    .timer {
-      font-size: 48px;
-      font-weight: 900;
+    .pink-box {
+      background: linear-gradient(135deg, #ff80ab, #ff4081);
       color: white;
-      font-family: 'Courier New', monospace;
-      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-    }
-    
-    .warning-box {
-      background: linear-gradient(135deg, #fff7ed, #fed7aa);
-      border: 2px solid #fb923c;
-      padding: 15px;
-      border-radius: 12px;
-      animation: fadeIn 0.8s 1.4s backwards;
-    }
-    
-    .warning-text {
-      font-size: 13px;
-      color: #9a3412;
+      padding: 14px;
+      border-radius: 14px;
+      font-size: clamp(13px, 3.8vw, 15px);
       font-weight: 600;
+      text-align: center;
       line-height: 1.5;
+    }
+    
+    .features {
+      margin-top: 14px;
       display: flex;
-      align-items: center;
+      flex-direction: column;
       gap: 8px;
     }
     
-    .badge-container {
+    .feature {
       display: flex;
-      justify-content: center;
-      gap: 15px;
-      margin-top: 20px;
-      animation: fadeIn 0.8s 1.6s backwards;
-    }
-    
-    .badge {
-      display: flex;
-      flex-direction: column;
       align-items: center;
-      gap: 5px;
+      gap: 10px;
+      padding: 8px;
+      background: linear-gradient(135deg, #fff, #fafafa);
+      border-radius: 10px;
+      font-size: 12px;
+      color: #333;
+      font-weight: 500;
     }
     
-    .badge-icon {
-      font-size: 28px;
+    .feature-icon {
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, #ff4081, #f50057);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
     }
     
-    .badge-label {
-      font-size: 11px;
-      color: #6b7280;
+    .timer-section {
+      margin: 16px 0;
+    }
+    
+    .timer-label {
+      font-size: 12px;
+      color: #c2185b;
+      margin-bottom: 8px;
+      text-align: center;
       font-weight: 600;
     }
     
-    @keyframes slideUp {
-      from { opacity: 0; transform: translateY(50px); }
-      to { opacity: 1; transform: translateY(0); }
+    .timer-container {
+      position: relative;
+      width: 100px;
+      height: 100px;
+      margin: 0 auto;
     }
     
-    @keyframes scaleIn {
-      from { opacity: 0; transform: scale(0.8); }
-      to { opacity: 1; transform: scale(1); }
+    .timer {
+      background: linear-gradient(135deg, #fff, #fafafa);
+      color: #c2185b;
+      font-size: 24px;
+      font-weight: 800;
+      padding: 15px;
+      border-radius: 50%;
+      text-align: center;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+      z-index: 10;
+      position: relative;
+      width: 100px;
+      height: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Courier New', monospace;
     }
     
-    @keyframes checkmark {
-      from { opacity: 0; transform: scale(0.5) rotate(-45deg); }
-      to { opacity: 1; transform: scale(1) rotate(0deg); }
+    .wave {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 100px;
+      height: 100px;
+      background: rgba(255, 64, 129, 0.2);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      animation: wave 2s infinite;
+      z-index: 1;
     }
     
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
+    .bottom-msg {
+      font-size: clamp(12px, 3.5vw, 14px);
+      color: #c2185b;
+      text-align: center;
+      padding: 14px;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 12px;
+      line-height: 1.5;
+      font-weight: 600;
+      box-shadow: 0 5px 12px rgba(0, 0, 0, 0.1);
+      margin: 15px;
+      box-sizing: border-box;
+      z-index: 1;
+      position: relative;
+    }
+    
+    @keyframes bgMove {
+      to { transform: translate(50px, 50px); }
+    }
+    
+    @keyframes bounceIn {
+      0% { opacity: 0; transform: scale(0.3); }
+      50% { opacity: 1; transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+    
+    @keyframes drawCheck {
+      to { stroke-dashoffset: 0; }
+    }
+    
+    @keyframes wave {
+      0% { transform: translate(-50%, -50%) scale(0.8); opacity: 1; }
+      100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
     }
   </style>
 </head>
 <body>
-  <!-- Confetti -->
-  <div class="confetti"></div>
-  <div class="confetti"></div>
-  <div class="confetti"></div>
-  <div class="confetti"></div>
-  <div class="confetti"></div>
-  <div class="confetti"></div>
-  <div class="confetti"></div>
-  <div class="confetti"></div>
-  <div class="confetti"></div>
-  
-  <div class="container">
-    <div class="success-icon-container">
-      <div class="success-icon">?</div>
-    </div>
-    
-    <h1 class="success-title">Payment Successful!</h1>
-    <p class="success-subtitle">Your premium subscription is now active</p>
-    
-    <div class="success-message">
-      <p class="message-text">
-        Your payment has been successfully processed. You now have full access to premium features and exclusive content!
-      </p>
-    </div>
-    
-    <div class="receipt-card">
-      <div class="receipt-row">
-        <span class="receipt-label">Transaction ID</span>
-        <span class="receipt-value" id="txnId">Loading...</span>
-      </div>
-      <div class="receipt-row">
-        <span class="receipt-label">Amount Paid</span>
-        <span class="receipt-value">? 5.00</span>
-      </div>
-      <div class="receipt-row">
-        <span class="receipt-label">Status</span>
-        <span class="receipt-value" style="color: #10b981;">? Successful</span>
+  <div class="content-wrapper">
+    <div class="success-icon">
+      <div class="checkmark-circle">
+        <svg class="checkmark" viewBox="0 0 52 52">
+          <path d="M14 27l7.5 7.5L38 18"/>
+        </svg>
       </div>
     </div>
     
-    <div class="timer-container">
-      <div class="timer-label">Access Activated In</div>
-      <div class="timer" id="timer">11:59</div>
+    <h1 class="congrats">???? ??!</h1>
+    
+    <div class="hindi-msg">
+      <span class="emoji">??</span>
+      ???? ?????? ??? ???!
     </div>
     
-    <div class="warning-box">
-      <p class="warning-text">
-        <span>??</span>
-        <span>Please don't delete the app ? Our team will activate your access soon!</span>
-      </p>
+    <div class="card">
+      <div class="pink-box">
+        ?? ?? ??? ?? ???? ??? ???? ??????? ????? ?? ?????? ??? ?? ????????
+      </div>
+      
+      <div class="features">
+        <div class="feature">
+          <div class="feature-icon">??</div>
+          <span>???????? ?????? ?????? ?? ???</span>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">??</div>
+          <span>?????? ??? ????? ?? ??</span>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">?</div>
+          <span>????? ??????? ????? ?? ??</span>
+        </div>
+      </div>
     </div>
     
-    <div class="badge-container">
-      <div class="badge">
-        <div class="badge-icon">??</div>
-        <div class="badge-label">Premium</div>
-      </div>
-      <div class="badge">
-        <div class="badge-icon">??</div>
-        <div class="badge-label">Secure</div>
-      </div>
-      <div class="badge">
-        <div class="badge-icon">?</div>
-        <div class="badge-label">Verified</div>
+    <div class="timer-section">
+      <div class="timer-label">?? ?????? ?? ??? ??:</div>
+      <div class="timer-container">
+        <div class="timer" id="timer">11:59</div>
+        <div class="wave"></div>
       </div>
     </div>
   </div>
+  
+  <div class="bottom-msg">
+    ?? ????? ?? ?? ????? ? ????<br>
+    ????? ??? ???? ?? ???? ?????? ?????
+  </div>
 
   <script>
-    // Disable back button
+    // Disable back button - user should not go back from success page
     history.pushState(null, null, location.href);
     window.onpopstate = function() {
       history.go(1);
     };
     
-    // Generate transaction ID
-    document.getElementById('txnId').textContent = 'SXC' + Math.random().toString(36).substr(2, 9).toUpperCase();
-    
-    // Timer countdown
-    let time = 11 * 60 + 59; // 11:59
+    let time = 11 * 60 + 59;
     const timerElement = document.getElementById('timer');
     
     const countdown = setInterval(() => {
@@ -323,6 +319,7 @@
         clearInterval(countdown);
         timerElement.textContent = "00:00";
       }
+      
       time--;
     }, 1000);
   </script>

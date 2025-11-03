@@ -130,11 +130,13 @@ class MainActivity : ComponentActivity() {
         var showNoInternetDialog by remember { mutableStateOf(false) }
         val scope = rememberCoroutineScope()
 
-        // چک کردن اینترنت در شروع
+        // چک کردن اینترنت در شروع - قبل از هر چیز
         LaunchedEffect("internet_check") {
             hasInternet = checkInternetConnection()
+            Log.d(TAG, "🌐 Internet check result: $hasInternet")
             if (!hasInternet) {
                 showNoInternetDialog = true
+                Log.w(TAG, "⚠️ Showing no internet dialog")
             }
         }
 
@@ -168,6 +170,23 @@ class MainActivity : ComponentActivity() {
             )
         }
 
+        // ⭐ دیالوگ اینترنت بالای همه چیز نمایش داده میشه
+        if (showNoInternetDialog) {
+            NoInternetDialog(
+                onRetry = {
+                    hasInternet = checkInternetConnection()
+                    Log.d(TAG, "🔄 Retry internet check: $hasInternet")
+                    if (hasInternet) {
+                        showNoInternetDialog = false
+                    }
+                },
+                onExit = {
+                    Log.w(TAG, "❌ User chose to exit - no internet")
+                    finish()
+                }
+            )
+        }
+        
         Box(
             modifier = Modifier
                 .fillMaxSize()

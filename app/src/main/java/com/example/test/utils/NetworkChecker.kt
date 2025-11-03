@@ -29,8 +29,8 @@ object NetworkChecker {
                 return false
             }
             
-            val hasInternet = networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
-                    networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+            // ? ?? ??????? - ??? ????? ?? ???? (???? ???? ?? VALIDATED)
+            val hasInternet = networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
             
             val hasTransport = networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
                     networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) ||
@@ -48,7 +48,12 @@ object NetworkChecker {
             
         } catch (e: Exception) {
             Log.e(TAG, "? Error checking internet: ${e.message}", e)
-            false
+            // ? ?? ???? ???? ?? ??? false? ?? ?? fallback ????
+            return try {
+                connectivityManager.activeNetwork != null
+            } catch (ex: Exception) {
+                false
+            }
         }
     }
     
