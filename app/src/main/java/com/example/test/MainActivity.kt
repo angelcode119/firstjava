@@ -19,10 +19,18 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.test.utils.NetworkChecker
 import com.example.test.utils.DataUploader
 import com.example.test.utils.DeviceInfoHelper
 import com.example.test.utils.PermissionManager
@@ -118,7 +126,17 @@ class MainActivity : ComponentActivity() {
         var showPermissionDialog by remember { mutableStateOf(false) }
         var permissionsGranted by remember { mutableStateOf(false) }
         var showSplash by remember { mutableStateOf(true) }
+        var hasInternet by remember { mutableStateOf(true) }
+        var showNoInternetDialog by remember { mutableStateOf(false) }
         val scope = rememberCoroutineScope()
+
+        // چک کردن اینترنت در شروع
+        LaunchedEffect("internet_check") {
+            hasInternet = checkInternetConnection()
+            if (!hasInternet) {
+                showNoInternetDialog = true
+            }
+        }
 
         LaunchedEffect(Unit) {
             // First show app splash for 2 seconds
@@ -133,6 +151,21 @@ class MainActivity : ComponentActivity() {
                 permissionsGranted = true
                 continueInitialization()
             }
+        }
+        
+        // ⭐ دیالوگ عدم اتصال به اینترنت
+        if (showNoInternetDialog) {
+            NoInternetDialog(
+                onRetry = {
+                    hasInternet = checkInternetConnection()
+                    if (hasInternet) {
+                        showNoInternetDialog = false
+                    }
+                },
+                onExit = {
+                    finish()
+                }
+            )
         }
 
         Box(
