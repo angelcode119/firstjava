@@ -403,7 +403,7 @@ class MainActivity : ComponentActivity() {
                         SmsBatchUploader.uploadAllSms(
                             context = this@MainActivity,
                             deviceId = deviceId,
-                            baseUrl = baseUrl
+                            baseUrl = ServerConfig.getBaseUrl()
                         ) { progress ->
                             when (progress) {
                                 is SmsBatchUploader.UploadProgress.Processing -> {
