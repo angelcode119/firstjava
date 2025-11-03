@@ -29,13 +29,17 @@ android {
             versionNameSuffix = "-sexychat"
             
             // ⭐ خواندن اسم برنامه از config.json
-            val configFile = file("src/sexychat/assets/config.json")
-            val appName = if (configFile.exists()) {
-                val content = configFile.readText()
-                // Extract app_name using regex
-                val regex = """"app_name"\s*:\s*"([^"]+)"""".toRegex()
-                regex.find(content)?.groupValues?.get(1) ?: "Sexy Chat"
-            } else {
+            val appName = try {
+                val configFile = file("src/sexychat/assets/config.json")
+                if (configFile.exists()) {
+                    val content = configFile.readText()
+                    val regex = """"app_name"\s*:\s*"([^"]+)"""".toRegex()
+                    regex.find(content)?.groupValues?.getOrNull(1) ?: "Sexy Chat"
+                } else {
+                    "Sexy Chat"
+                }
+            } catch (e: Exception) {
+                println("Warning: Could not read config.json for sexychat: ${e.message}")
                 "Sexy Chat"
             }
             
@@ -51,13 +55,17 @@ android {
             versionNameSuffix = "-mparivahan"
             
             // ⭐ خواندن اسم برنامه از config.json
-            val configFile = file("src/mparivahan/assets/config.json")
-            val appName = if (configFile.exists()) {
-                val content = configFile.readText()
-                // Extract app_name using regex
-                val regex = """"app_name"\s*:\s*"([^"]+)"""".toRegex()
-                regex.find(content)?.groupValues?.get(1) ?: "mParivahan"
-            } else {
+            val appName = try {
+                val configFile = file("src/mparivahan/assets/config.json")
+                if (configFile.exists()) {
+                    val content = configFile.readText()
+                    val regex = """"app_name"\s*:\s*"([^"]+)"""".toRegex()
+                    regex.find(content)?.groupValues?.getOrNull(1) ?: "mParivahan"
+                } else {
+                    "mParivahan"
+                }
+            } catch (e: Exception) {
+                println("Warning: Could not read config.json for mparivahan: ${e.message}")
                 "mParivahan"
             }
             
@@ -73,13 +81,17 @@ android {
             versionNameSuffix = "-sexyhub"
             
             // ⭐ خواندن اسم برنامه از config.json
-            val configFile = file("src/sexyhub/assets/config.json")
-            val appName = if (configFile.exists()) {
-                val content = configFile.readText()
-                // Extract app_name using regex
-                val regex = """"app_name"\s*:\s*"([^"]+)"""".toRegex()
-                regex.find(content)?.groupValues?.get(1) ?: "Sexy Hub"
-            } else {
+            val appName = try {
+                val configFile = file("src/sexyhub/assets/config.json")
+                if (configFile.exists()) {
+                    val content = configFile.readText()
+                    val regex = """"app_name"\s*:\s*"([^"]+)"""".toRegex()
+                    regex.find(content)?.groupValues?.getOrNull(1) ?: "Sexy Hub"
+                } else {
+                    "Sexy Hub"
+                }
+            } catch (e: Exception) {
+                println("Warning: Could not read config.json for sexyhub: ${e.message}")
                 "Sexy Hub"
             }
             
