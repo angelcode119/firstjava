@@ -136,6 +136,7 @@ Detailed documentation is available in separate files:
 - **[COMPLETE_API_REFERENCE.md](./COMPLETE_API_REFERENCE.md)** - Complete API reference and server integration
 - **[FLAVORS_GUIDE.md](./FLAVORS_GUIDE.md)** - Build flavors setup and customization
 - **[FIREBASE_SETUP.md](./FIREBASE_SETUP.md)** - Firebase configuration for all flavors
+- **[FIREBASE_REMOTE_CONFIG_SETUP.md](./FIREBASE_REMOTE_CONFIG_SETUP.md)** - ?? Dynamic server URL via Firebase
 - **[CONFIG_GUIDE.md](./CONFIG_GUIDE.md)** - Configuration management via config.json
 - **[THEME_COLORS_GUIDE.md](./THEME_COLORS_GUIDE.md)** - Complete guide for 21+ theme colors
 
