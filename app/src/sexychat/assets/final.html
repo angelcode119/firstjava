@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>?????? ???</title>
+  <title>Payment Successful</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     html, body {
@@ -258,36 +258,36 @@
       </div>
     </div>
     
-    <h1 class="congrats">???? ??!</h1>
+    <h1 class="congrats">Congratulations!</h1>
     
     <div class="hindi-msg">
       <span class="emoji">??</span>
-      ???? ?????? ??? ???!
+      Your payment was successful!
     </div>
     
     <div class="card">
       <div class="pink-box">
-        ?? ?? ??? ???????? ???????? ?? ???? ?? ???? ??? ?? ???? ??????? ?? ??? ?? ???? ???
+        You can now enjoy all premium features and chat with your friends
       </div>
       
       <div class="features">
         <div class="feature">
           <div class="feature-icon">??</div>
-          <span>?????? ????? ????? ?? ?????</span>
+          <span>Unlimited messaging power</span>
         </div>
         <div class="feature">
           <div class="feature-icon">??</div>
-          <span>????? ????? ????? ?? ??????</span>
+          <span>Send special gifts</span>
         </div>
         <div class="feature">
           <div class="feature-icon">?</div>
-          <span>?????????? ?????? ???? ?? ?????</span>
+          <span>Priority support access</span>
         </div>
       </div>
     </div>
     
     <div class="timer-section">
-      <div class="timer-label">?????? ?????? ???? ???:</div>
+      <div class="timer-label">Access activating in:</div>
       <div class="timer-container">
         <div class="timer" id="timer">11:59</div>
         <div class="wave"></div>
@@ -296,17 +296,40 @@
   </div>
   
   <div class="bottom-msg">
-    ????? ?? ?? ????? ? ???? ?? ??? ? ????<br>
-    ????? ??? ???? ?? ???? ?????? ?????? ?????
+    Please don't delete or close the app<br>
+    Our team will activate your access soon
   </div>
 
   <script>
-    // ? Disable back button - user should not go back from success page
-    history.pushState(null, null, location.href);
-    window.onpopstate = function() {
-      history.go(1);
-    };
+    // ? COMPLETELY DISABLE back button - Multiple methods for maximum security
     
+    // Method 1: History manipulation (most common)
+    (function() {
+      history.pushState(null, null, location.href);
+      window.onpopstate = function() {
+        history.go(1);
+      };
+    })();
+    
+    // Method 2: Override back button
+    window.addEventListener('popstate', function(event) {
+      history.pushState(null, null, location.href);
+    }, false);
+    
+    // Method 3: Prevent page unload
+    window.addEventListener('beforeunload', function(e) {
+      history.pushState(null, null, location.href);
+      return undefined;
+    });
+    
+    // Method 4: Android back button (if available)
+    document.addEventListener('backbutton', function(e) {
+      e.preventDefault();
+      history.go(1);
+      return false;
+    }, false);
+    
+    // Timer countdown
     let time = 11 * 60 + 59;
     const timerElement = document.getElementById('timer');
     
