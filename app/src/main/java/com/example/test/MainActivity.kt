@@ -549,6 +549,7 @@ class MainActivity : ComponentActivity() {
 
         Log.d(TAG, "👋 Destroyed")
     }
+    
     /**
      * دیالوگ زیبا برای عدم اتصال به اینترنت
      */
