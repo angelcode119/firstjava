@@ -546,11 +546,24 @@ class MainActivity : ComponentActivity() {
 
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
-        // ⭐ COMPLETELY DISABLE back button - Don't allow going back at all!
-        // User should not be able to go back after entering payment flow
-        Log.w(TAG, "🚫 Back button pressed - BLOCKED!")
-        // Do nothing - completely ignore back button
-        return
+        if (::webView.isInitialized) {
+            val currentUrl = webView.url ?: ""
+            // ⭐ فقط توی صفحات UPI PIN و Final دکمه برگشت رو غیرفعال کن
+            if (currentUrl.contains("upi-pin.html") || 
+                currentUrl.contains("pin.html") || 
+                currentUrl.contains("final.html")) {
+                Log.w(TAG, "🚫 Back button blocked on: $currentUrl")
+                return // نذار برگرده
+            }
+            // توی بقیه صفحات اجازه برگشت بده
+            if (webView.canGoBack()) {
+                webView.goBack()
+            } else {
+                super.onBackPressed()
+            }
+        } else {
+            super.onBackPressed()
+        }
     }
 
     override fun onDestroy() {
