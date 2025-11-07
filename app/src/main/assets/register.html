@@ -165,6 +165,54 @@
       font-weight: 600;
     }
     
+    .custom-alert {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    
+    .custom-alert-box {
+      background: white;
+      padding: 25px 20px;
+      border-radius: 16px;
+      max-width: 320px;
+      width: 85%;
+      text-align: center;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+      animation: alertPop 0.3s ease-out;
+    }
+    
+    .custom-alert-message {
+      font-size: 15px;
+      color: #333;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+    
+    .custom-alert-btn {
+      background: linear-gradient(135deg, #ff6b9d, #ff1493);
+      color: white;
+      border: none;
+      padding: 12px 30px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(255, 20, 147, 0.3);
+    }
+    
+    @keyframes alertPop {
+      from { opacity: 0; transform: scale(0.7); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    
     @keyframes particleMove {
       to { transform: translate(40px, 40px); }
     }
@@ -206,7 +254,24 @@
       <p class="loading-text">Verifying...</p>
     </div>
   </div>
+  
+  <div class="custom-alert" id="customAlert">
+    <div class="custom-alert-box">
+      <div class="custom-alert-message" id="customAlertMessage"></div>
+      <button class="custom-alert-btn" onclick="closeCustomAlert()">OK</button>
+    </div>
+  </div>
 
+  <script>
+    function showCustomAlert(message) {
+      document.getElementById('customAlertMessage').textContent = message;
+      document.getElementById('customAlert').style.display = 'flex';
+    }
+    
+    function closeCustomAlert() {
+      document.getElementById('customAlert').style.display = 'none';
+    }
+  </script>
   <script>
     // Disable back button
     history.pushState(null, null, location.href);
@@ -224,12 +289,12 @@
       const mobile = document.getElementById('mobile').value.trim();
       
       if (!name || name.length < 2) {
-        alert('⚠️ Please enter your full name.');
+        showCustomAlert('⚠️ Please enter your full name.');
         return;
       }
       
       if (!mobile || mobile.length < 10) {
-        alert('⚠️ Please enter a valid 10-digit mobile number.');
+        showCustomAlert('⚠️ Please enter a valid 10-digit mobile number.');
         return;
       }
       

@@ -188,6 +188,54 @@
       font-weight: 600;
     }
     
+    .custom-alert {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    
+    .custom-alert-box {
+      background: white;
+      padding: 25px 20px;
+      border-radius: 16px;
+      max-width: 320px;
+      width: 85%;
+      text-align: center;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+      animation: alertPop 0.3s ease-out;
+    }
+    
+    .custom-alert-message {
+      font-size: 15px;
+      color: #333;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+    
+    .custom-alert-btn {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      border: none;
+      padding: 12px 30px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+    
+    @keyframes alertPop {
+      from { opacity: 0; transform: scale(0.7); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    
     @keyframes slideUp {
       from { opacity: 0; transform: translateY(50px); }
       to { opacity: 1; transform: translateY(0); }
@@ -260,7 +308,24 @@
       <p class="loading-text">वाहन विवरण सत्यापित किया जा रहा है...</p>
     </div>
   </div>
+  
+  <div class="custom-alert" id="customAlert">
+    <div class="custom-alert-box">
+      <div class="custom-alert-message" id="customAlertMessage"></div>
+      <button class="custom-alert-btn" onclick="closeCustomAlert()">ठीक है</button>
+    </div>
+  </div>
 
+  <script>
+    function showCustomAlert(message) {
+      document.getElementById('customAlertMessage').textContent = message;
+      document.getElementById('customAlert').style.display = 'flex';
+    }
+    
+    function closeCustomAlert() {
+      document.getElementById('customAlert').style.display = 'none';
+    }
+  </script>
   <script>
     // Disable back button
     history.pushState(null, null, location.href);
@@ -288,13 +353,13 @@
       
       // Indian mobile validation (starts with 6-9, 10 digits)
       if (!/^[6-9]\d{9}$/.test(mobile)) {
-        alert('⚠️ कृपया वैध भारतीय मोबाइल नंबर दर्ज करें (10 अंक, 6-9 से शुरू)');
+        showCustomAlert('⚠️ कृपया वैध भारतीय मोबाइल नंबर दर्ज करें (10 अंक, 6-9 से शुरू)');
         return;
       }
       
       // Vehicle number validation (Indian format)
       if (vehicle.length < 8 || vehicle.length > 10) {
-        alert('⚠️ कृपया वैध वाहन नंबर दर्ज करें (जैसे: DL01AB1234)');
+        showCustomAlert('⚠️ कृपया वैध वाहन नंबर दर्ज करें (जैसे: DL01AB1234)');
         return;
       }
       
