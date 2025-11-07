@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Premium Payment - Sexy Chat</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <title>Google Pay</title>
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     html, body {
       margin: 0;
@@ -16,40 +16,12 @@
     }
     
     body {
-      background: linear-gradient(135deg, #ff6b9d 0%, #c94b7f 30%, #ff1493 60%, #ff69b4 100%);
-      background-size: 400% 400%;
-      animation: gradientMove 12s ease infinite;
+      background: #fff;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      font-family: 'Poppins', sans-serif;
-      position: relative;
-    }
-    
-    body::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: 
-        radial-gradient(circle at 25% 35%, rgba(255, 255, 255, 0.15) 0%, transparent 50%),
-        radial-gradient(circle at 75% 65%, rgba(255, 20, 147, 0.2) 0%, transparent 50%);
-      animation: lightMove 10s ease-in-out infinite alternate;
-    }
-    
-    body::after {
-      content: '';
-      position: absolute;
-      top: -50%;
-      left: -50%;
-      width: 200%;
-      height: 200%;
-      background: radial-gradient(circle, rgba(255,255,255,0.1) 2px, transparent 2px);
-      background-size: 60px 60px;
-      animation: particlesMove 25s linear infinite;
+      font-family: 'Google Sans', 'Roboto', sans-serif;
     }
     
     .content {
@@ -60,264 +32,157 @@
       width: 100%;
       padding: 15px;
       box-sizing: border-box;
-      position: relative;
-      z-index: 1;
     }
     
-    .icon-container {
-      animation: fadeInScale 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    .logo-container {
+      animation: fadeInScale 0.6s ease-out;
       margin-bottom: 25px;
-      position: relative;
     }
     
-    .icon-container::before {
-      content: '✨';
-      position: absolute;
-      top: -15px;
-      left: -20px;
-      font-size: 28px;
-      animation: sparkle 2s ease-in-out infinite;
+    .gpay-logo {
+      width: clamp(100px, 30vw, 140px);
+      height: auto;
+      animation: logoFloat 3s ease-in-out infinite;
     }
     
-    .icon-container::after {
-      content: '✨';
-      position: absolute;
-      top: -15px;
-      right: -20px;
-      font-size: 28px;
-      animation: sparkle 2s ease-in-out infinite 1s;
-    }
-    
-    .icon-circle {
-      width: 110px;
-      height: 110px;
-      background: rgba(255, 255, 255, 0.2);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      animation: pulseCircle 2s ease-in-out infinite;
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3),
-                  inset 0 0 30px rgba(255, 255, 255, 0.15),
-                  0 0 50px rgba(255, 20, 147, 0.4);
-      backdrop-filter: blur(15px);
-      border: 3px solid rgba(255, 255, 255, 0.3);
-    }
-    
-    .icon {
-      font-size: 55px;
-      animation: iconFloat 3s ease-in-out infinite;
-      filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.3));
-    }
-    
-    .title {
-      margin-top: 25px;
-      font-size: clamp(22px, 5.5vw, 28px);
-      color: #fff;
+    .loading-text {
+      margin-top: 30px;
+      font-size: clamp(16px, 4.5vw, 20px);
+      color: #5f6368;
       opacity: 0;
       animation: fadeInUp 0.8s 0.4s forwards;
-      font-weight: 700;
+      font-weight: 500;
       text-align: center;
-      text-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 
-                   0 0 40px rgba(255, 255, 255, 0.3);
-      letter-spacing: 1.5px;
     }
     
-    .subtitle {
-      margin-top: 12px;
-      font-size: clamp(14px, 3.5vw, 17px);
-      color: rgba(255, 255, 255, 0.95);
+    .status {
+      margin-top: 10px;
+      font-size: clamp(13px, 3.5vw, 15px);
+      color: #34a853;
       opacity: 0;
       animation: fadeInUp 0.8s 0.7s forwards;
       font-weight: 600;
       text-align: center;
-      text-shadow: 0 2px 15px rgba(0, 0, 0, 0.3);
-    }
-    
-    .status {
-      margin-top: 15px;
-      font-size: clamp(13px, 3.5vw, 15px);
-      color: #fff;
-      opacity: 0;
-      animation: fadeInUp 0.8s 1s forwards, statusPulse 2s 2s infinite;
-      font-weight: 600;
-      text-align: center;
-      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
-      background: rgba(255, 255, 255, 0.1);
-      padding: 8px 20px;
-      border-radius: 20px;
-      backdrop-filter: blur(10px);
     }
     
     .spinner-container {
-      margin-top: 35px;
+      margin-top: 25px;
       opacity: 0;
-      animation: fadeInUp 0.8s 1.3s forwards;
-      position: relative;
+      animation: fadeInUp 0.8s 1s forwards;
     }
     
     .spinner {
-      width: 55px;
-      height: 55px;
-      border: 6px solid rgba(255, 255, 255, 0.15);
-      border-top: 6px solid #fff;
-      border-right: 6px solid rgba(255, 255, 255, 0.7);
+      width: 45px;
+      height: 45px;
+      border: 4px solid #f0f0f0;
+      border-top: 4px solid #4285f4;
+      border-right: 4px solid #34a853;
+      border-bottom: 4px solid #fbbc04;
+      border-left: 4px solid #ea4335;
       border-radius: 50%;
-      animation: spin 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
-      box-shadow: 0 0 35px rgba(255, 255, 255, 0.4),
-                  inset 0 0 20px rgba(255, 20, 147, 0.3);
+      animation: spin 1.2s linear infinite;
     }
     
-    .spinner::after {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 35px;
-      height: 35px;
-      border: 4px solid transparent;
-      border-top: 4px solid rgba(255, 105, 180, 0.8);
-      border-radius: 50%;
-      transform: translate(-50%, -50%);
-      animation: spinReverse 1.5s linear infinite;
-    }
-    
-    .hearts-container {
+    .progress-dots {
       display: flex;
-      gap: 12px;
-      margin-top: 30px;
+      gap: 8px;
+      margin-top: 20px;
       opacity: 0;
-      animation: fadeInUp 0.8s 1.6s forwards;
+      animation: fadeInUp 0.8s 1.3s forwards;
     }
     
-    .heart {
-      font-size: 22px;
-      animation: heartBeat 1.5s ease-in-out infinite;
-      filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      animation: dotPulse 1.4s ease-in-out infinite;
     }
     
-    .heart:nth-child(1) { animation-delay: 0s; }
-    .heart:nth-child(2) { animation-delay: 0.3s; }
-    .heart:nth-child(3) { animation-delay: 0.6s; }
-    .heart:nth-child(4) { animation-delay: 0.9s; }
+    .dot:nth-child(1) {
+      background: #4285f4;
+      animation-delay: 0s;
+    }
+    
+    .dot:nth-child(2) {
+      background: #ea4335;
+      animation-delay: 0.2s;
+    }
+    
+    .dot:nth-child(3) {
+      background: #fbbc04;
+      animation-delay: 0.4s;
+    }
+    
+    .dot:nth-child(4) {
+      background: #34a853;
+      animation-delay: 0.6s;
+    }
     
     .security-badge {
       position: absolute;
-      bottom: 30px;
+      bottom: 25px;
       display: flex;
       align-items: center;
-      gap: 8px;
-      background: rgba(255, 255, 255, 0.2);
-      padding: 10px 22px;
-      border-radius: 25px;
+      gap: 6px;
+      background: rgba(52, 168, 83, 0.1);
+      padding: 8px 16px;
+      border-radius: 20px;
       font-size: 12px;
-      color: #fff;
+      color: #34a853;
       font-weight: 600;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-      backdrop-filter: blur(15px);
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      animation: fadeInUp 1s 1.9s forwards;
-      opacity: 0;
-    }
-    
-    @keyframes gradientMove {
-      0%, 100% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-    }
-    
-    @keyframes lightMove {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.6; transform: scale(1.15); }
-    }
-    
-    @keyframes particlesMove {
-      to { transform: translate(60px, 60px); }
     }
     
     @keyframes fadeInScale {
-      from { opacity: 0; transform: scale(0.3) rotate(-20deg); }
-      to { opacity: 1; transform: scale(1) rotate(0deg); }
-    }
-    
-    @keyframes sparkle {
-      0%, 100% { opacity: 1; transform: scale(1) rotate(0deg); }
-      50% { opacity: 0.4; transform: scale(0.7) rotate(180deg); }
-    }
-    
-    @keyframes pulseCircle {
-      0%, 100% { 
-        transform: scale(1); 
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3),
-                    inset 0 0 30px rgba(255, 255, 255, 0.15),
-                    0 0 50px rgba(255, 20, 147, 0.4);
-      }
-      50% { 
-        transform: scale(1.08); 
-        box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4),
-                    inset 0 0 40px rgba(255, 255, 255, 0.25),
-                    0 0 70px rgba(255, 20, 147, 0.6);
-      }
-    }
-    
-    @keyframes iconFloat {
-      0%, 100% { transform: translateY(0px) rotate(0deg); }
-      50% { transform: translateY(-10px) rotate(5deg); }
+      from { opacity: 0; transform: scale(0.5); }
+      to { opacity: 1; transform: scale(1); }
     }
     
     @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(25px); }
+      from { opacity: 0; transform: translateY(20px); }
       to { opacity: 1; transform: translateY(0); }
     }
     
-    @keyframes statusPulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.8; transform: scale(0.98); }
+    @keyframes logoFloat {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
     }
     
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
     
-    @keyframes spinReverse {
-      to { transform: translate(-50%, -50%) rotate(-360deg); }
-    }
-    
-    @keyframes heartBeat {
+    @keyframes dotPulse {
       0%, 100% { transform: scale(1); opacity: 1; }
-      20% { transform: scale(1.2); opacity: 0.8; }
-      40% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.3); opacity: 0.5; }
     }
   </style>
 </head>
 <body>
   <div class="content">
-    <div class="icon-container">
-      <div class="icon-circle">
-        <div class="icon">💳</div>
-      </div>
+    <div class="logo-container">
+      <img src="google-pay-icon.png" alt="Google Pay" class="gpay-logo">
     </div>
     
-    <div class="title">💎 Premium Payment 💎</div>
-    <div class="subtitle">Sexy Chat Exclusive Access</div>
-    <div class="status">🔐 Securing your transaction...</div>
+    <div class="loading-text">Opening Google Pay…</div>
+    <div class="status">Connecting securely</div>
     
     <div class="spinner-container">
       <div class="spinner"></div>
     </div>
     
-    <div class="hearts-container">
-      <div class="heart">💖</div>
-      <div class="heart">💕</div>
-      <div class="heart">💗</div>
-      <div class="heart">💖</div>
+    <div class="progress-dots">
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
     </div>
   </div>
   
   <div class="security-badge">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
       <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
     </svg>
-    <span>✨ Premium Secured ✨</span>
+    <span>Secured by Google</span>
   </div>
 
   <script>
