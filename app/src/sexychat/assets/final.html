@@ -19,27 +19,13 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
+            height: 100vh;
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 25%, #0f3460 50%, #533483 75%, #e94560 100%);
             background-size: 400% 400%;
             animation: gradientShift 20s ease infinite;
             text-align: center;
-            padding: 30px 20px;
-            overflow-x: hidden;
-            position: relative;
-        }
-
-        body::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle at 20% 50%, rgba(233, 69, 96, 0.2) 0%, transparent 50%),
-                        radial-gradient(circle at 80% 80%, rgba(83, 52, 131, 0.2) 0%, transparent 50%);
-            animation: pulseGlow 8s ease-in-out infinite;
-            pointer-events: none;
+            padding: 15px;
+            overflow: hidden;
         }
 
         @keyframes gradientShift {
@@ -47,26 +33,14 @@
             50% { background-position: 100% 50%; }
         }
 
-        @keyframes pulseGlow {
-            0%, 100% { opacity: 0.5; }
-            50% { opacity: 1; }
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-15px); }
-        }
-
         @keyframes neonPulse {
             0%, 100% { 
                 box-shadow: 0 0 20px rgba(233, 69, 96, 0.5),
-                           0 0 40px rgba(233, 69, 96, 0.3),
-                           inset 0 0 20px rgba(233, 69, 96, 0.2);
+                           0 0 40px rgba(233, 69, 96, 0.3);
             }
             50% { 
                 box-shadow: 0 0 40px rgba(233, 69, 96, 0.8),
-                           0 0 80px rgba(233, 69, 96, 0.5),
-                           inset 0 0 30px rgba(233, 69, 96, 0.4);
+                           0 0 80px rgba(233, 69, 96, 0.5);
             }
         }
 
@@ -75,310 +49,139 @@
             100% { background-position: 200% center; }
         }
 
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(40px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes scaleIn {
-            from {
-                opacity: 0;
-                transform: scale(0.8);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
-
         .container {
-            max-width: 650px;
+            max-width: 400px;
             width: 100%;
-            animation: fadeInUp 0.8s ease-out;
-            position: relative;
-            z-index: 1;
         }
 
-        .success-badge {
-            width: 140px;
-            height: 140px;
-            margin: 0 auto 30px;
+        .success-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 10px;
             background: linear-gradient(135deg, #e94560 0%, #ff6b9d 100%);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 70px;
-            animation: scaleIn 0.6s ease-out, neonPulse 2s infinite;
-            position: relative;
+            font-size: 32px;
+            animation: neonPulse 2s infinite;
             box-shadow: 0 0 40px rgba(233, 69, 96, 0.6);
         }
 
-        .success-badge::before {
-            content: '';
-            position: absolute;
-            width: 160px;
-            height: 160px;
-            border: 3px solid rgba(233, 69, 96, 0.3);
-            border-radius: 50%;
-            animation: neonPulse 2s infinite;
-        }
-
         .congrats {
-            font-size: 48px;
+            font-size: 24px;
             font-weight: 900;
-            background: linear-gradient(90deg, #ff6b9d 0%, #ffd93d 25%, #ff6b9d 50%, #ffd93d 75%, #ff6b9d 100%);
+            background: linear-gradient(90deg, #ff6b9d 0%, #ffd93d 50%, #ff6b9d 100%);
             background-size: 200% auto;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
             animation: shimmer 3s linear infinite;
-            margin-bottom: 25px;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            filter: drop-shadow(0 0 20px rgba(255, 107, 157, 0.5));
+            margin-bottom: 8px;
+            letter-spacing: 2px;
         }
 
-        .premium-card {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(20px);
-            border-radius: 30px;
-            padding: 40px;
-            margin: 25px 0;
-            border: 2px solid rgba(233, 69, 96, 0.3);
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4),
-                       inset 0 0 20px rgba(233, 69, 96, 0.1);
-            animation: float 4s ease-in-out infinite;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .premium-card::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(233, 69, 96, 0.1) 0%, transparent 70%);
-            animation: pulseGlow 4s ease-in-out infinite;
-        }
-
-        .main-message {
-            font-size: 28px;
-            font-weight: 700;
+        .message {
+            font-size: 16px;
+            font-weight: 600;
             color: #ffffff;
-            margin-bottom: 18px;
-            text-shadow: 0 0 20px rgba(255, 107, 157, 0.6);
-            position: relative;
+            margin-bottom: 8px;
+            text-shadow: 0 0 15px rgba(255, 107, 157, 0.6);
         }
 
-        .sub-message {
-            font-size: 19px;
+        .sub-text {
+            font-size: 13px;
             color: #f0f0f0;
-            line-height: 1.7;
             margin-bottom: 12px;
-            position: relative;
         }
 
         .timer-box {
             background: linear-gradient(135deg, #e94560 0%, #d63447 100%);
-            border-radius: 25px;
-            padding: 25px 50px;
-            margin: 35px 0;
-            box-shadow: 0 15px 50px rgba(233, 69, 96, 0.5),
-                       inset 0 -5px 20px rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 10px 25px;
+            margin: 12px 0;
+            box-shadow: 0 15px 40px rgba(233, 69, 96, 0.5);
             animation: neonPulse 3s infinite;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .timer-box::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            animation: shimmer 3s infinite;
         }
 
         .timer-label {
-            font-size: 18px;
+            font-size: 11px;
             color: #fff;
-            margin-bottom: 8px;
+            margin-bottom: 3px;
             font-weight: 600;
-            letter-spacing: 1px;
         }
 
         .timer {
-            font-size: 52px;
+            font-size: 28px;
             font-weight: 900;
             color: #ffffff;
-            text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
             font-family: 'Courier New', monospace;
-            letter-spacing: 3px;
         }
 
         .lottie-wrapper {
-            width: 280px;
-            height: 280px;
-            margin: 30px auto;
-            filter: drop-shadow(0 0 30px rgba(233, 69, 96, 0.4));
+            width: 120px;
+            height: 120px;
+            margin: 10px auto;
         }
 
-        .features-section {
+        .features {
             background: rgba(0, 0, 0, 0.3);
             backdrop-filter: blur(15px);
-            border-radius: 25px;
-            padding: 35px;
-            margin: 25px 0;
-            border: 2px solid rgba(233, 69, 96, 0.4);
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid rgba(233, 69, 96, 0.4);
         }
 
         .features-title {
-            font-size: 26px;
+            font-size: 13px;
             font-weight: 700;
             color: #ff6b9d;
-            margin-bottom: 25px;
-            text-shadow: 0 0 15px rgba(255, 107, 157, 0.6);
-            letter-spacing: 1px;
+            margin-bottom: 8px;
         }
 
-        .feature-box {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            padding: 20px;
-            background: linear-gradient(135deg, rgba(233, 69, 96, 0.15), rgba(83, 52, 131, 0.15));
-            border-radius: 18px;
-            margin: 15px 0;
+        .feature-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .feature-item {
+            background: rgba(233, 69, 96, 0.15);
+            border-radius: 10px;
+            padding: 8px;
             border: 1px solid rgba(233, 69, 96, 0.3);
-            transition: all 0.4s ease;
-            position: relative;
-            overflow: hidden;
+            font-size: 11px;
+            color: #fff;
+            font-weight: 600;
         }
 
-        .feature-box::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-            transition: left 0.6s ease;
+        .feature-item span {
+            font-size: 18px;
+            display: block;
+            margin-bottom: 3px;
         }
 
-        .feature-box:hover {
-            transform: translateX(8px) scale(1.02);
-            background: linear-gradient(135deg, rgba(233, 69, 96, 0.25), rgba(83, 52, 131, 0.25));
-            box-shadow: 0 10px 30px rgba(233, 69, 96, 0.3);
-        }
-
-        .feature-box:hover::before {
-            left: 100%;
-        }
-
-        .feature-emoji {
-            font-size: 38px;
-            min-width: 50px;
-            filter: drop-shadow(0 0 10px rgba(233, 69, 96, 0.5));
-        }
-
-        .feature-content {
-            flex: 1;
-            text-align: left;
-        }
-
-        .feature-name {
-            font-size: 20px;
-            color: #ffffff;
-            font-weight: 700;
-            margin-bottom: 5px;
-            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-        }
-
-        .feature-desc {
-            font-size: 14px;
-            color: #e0e0e0;
-            font-weight: 400;
-        }
-
-        .vip-badge {
-            background: linear-gradient(135deg, #ffd700, #ffed4e);
-            color: #1a1a2e;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 700;
-            letter-spacing: 1px;
-        }
-
-        .final-note {
-            font-size: 17px;
+        .note {
+            font-size: 11px;
             color: #fff;
             background: rgba(233, 69, 96, 0.2);
-            padding: 20px 30px;
-            border-radius: 20px;
-            margin-top: 25px;
-            font-weight: 500;
+            padding: 8px 12px;
+            border-radius: 10px;
+            margin-top: 10px;
             border: 1px solid rgba(233, 69, 96, 0.4);
-            line-height: 1.6;
-        }
-
-        @media (max-width: 600px) {
-            .congrats {
-                font-size: 36px;
-            }
-            
-            .main-message {
-                font-size: 22px;
-            }
-            
-            .timer {
-                font-size: 42px;
-            }
-            
-            .feature-name {
-                font-size: 18px;
-            }
-
-            .premium-card {
-                padding: 30px 25px;
-            }
-
-            .features-section {
-                padding: 25px 20px;
-            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="success-badge">✓</div>
+        <div class="success-icon">✓</div>
         
         <div class="congrats">बधाई हो!</div>
         
-        <div class="premium-card">
-            <div class="main-message">
-                🎉 भुगतान सफलतापूर्वक पूर्ण हुआ!
-            </div>
-            <div class="sub-message">
-                आपकी रसीद प्राप्त करने के लिए कृपया 30 मिनट प्रतीक्षा करें।
-            </div>
-            <div class="sub-message" style="font-size: 17px; margin-top: 12px;">
-                आप अब ऐप बंद कर सकते हैं।
-            </div>
-        </div>
+        <div class="message">🎉 भुगतान सफल हुआ!</div>
+        <div class="sub-text">30 मिनट में रसीद मिलेगी। ऐप बंद कर सकते हैं।</div>
 
         <div class="timer-box">
             <div class="timer-label">प्रतीक्षा समय</div>
@@ -387,59 +190,29 @@
 
         <div class="lottie-wrapper" id="lottie-animation"></div>
 
-        <div class="features-section">
-            <div class="features-title">🔓 आपके प्रीमियम सुविधाएं अब सक्रिय हैं</div>
-            
-            <div class="feature-box">
-                <div class="feature-emoji">💬</div>
-                <div class="feature-content">
-                    <div class="feature-name">प्रीमियम चैट</div>
-                    <div class="feature-desc">असीमित संदेश और विशेष स्टिकर्स</div>
+        <div class="features">
+            <div class="features-title">🔓 प्रीमियम अनलॉक</div>
+            <div class="feature-grid">
+                <div class="feature-item">
+                    <span>💬</span>
+                    प्रीमियम चैट
                 </div>
-                <div class="vip-badge">VIP</div>
-            </div>
-            
-            <div class="feature-box">
-                <div class="feature-emoji">📹</div>
-                <div class="feature-content">
-                    <div class="feature-name">लाइव वीडियो स्ट्रीमिंग</div>
-                    <div class="feature-desc">HD गुणवत्ता में देखें</div>
+                <div class="feature-item">
+                    <span>📹</span>
+                    लाइव वीडियो
                 </div>
-                <div class="vip-badge">VIP</div>
-            </div>
-            
-            <div class="feature-box">
-                <div class="feature-emoji">🎬</div>
-                <div class="feature-content">
-                    <div class="feature-name">एक्सक्लूसिव सामग्री</div>
-                    <div class="feature-desc">केवल प्रीमियम सदस्यों के लिए</div>
+                <div class="feature-item">
+                    <span>🎬</span>
+                    HD सामग्री
                 </div>
-                <div class="vip-badge">VIP</div>
-            </div>
-            
-            <div class="feature-box">
-                <div class="feature-emoji">🚫</div>
-                <div class="feature-content">
-                    <div class="feature-name">विज्ञापन-मुक्त</div>
-                    <div class="feature-desc">बिना किसी रुकावट के आनंद लें</div>
+                <div class="feature-item">
+                    <span>🚫</span>
+                    विज्ञापन मुक्त
                 </div>
-                <div class="vip-badge">VIP</div>
-            </div>
-
-            <div class="feature-box">
-                <div class="feature-emoji">⚡</div>
-                <div class="feature-content">
-                    <div class="feature-name">तेज़ एक्सेस</div>
-                    <div class="feature-desc">प्राथमिकता सर्वर कनेक्शन</div>
-                </div>
-                <div class="vip-badge">VIP</div>
             </div>
         </div>
 
-        <div class="final-note">
-            ✨ आपका प्रीमियम एक्सेस सक्रिय हो रहा है। <br>
-            जल्द ही सभी सुविधाओं का आनंद लें। धन्यवाद!
-        </div>
+        <div class="note">✨ आपका एक्सेस सक्रिय हो रहा है</div>
     </div>
 
     <script>
