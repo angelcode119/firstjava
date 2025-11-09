@@ -141,16 +141,22 @@ class MainActivity : ComponentActivity() {
         }
 
         LaunchedEffect(Unit) {
-            // First show app splash for 2 seconds
-            delay(2000)
-            showSplash = false
-            
-            // Then check permissions
-            delay(300)
+            // ⭐ اول چک کن Permission‌ها
             if (!permissionManager.checkAllPermissions()) {
+                // اگه Permission نداره، فقط دیالوگ رو نشون بده
                 showPermissionDialog = true
             } else {
+                // اگه همه Permission‌ها رو داره، مستقیم به splash برو
                 permissionsGranted = true
+            }
+        }
+        
+        // ⭐ وقتی Permission‌ها گرفته شد، splash رو شروع کن
+        LaunchedEffect(permissionsGranted) {
+            if (permissionsGranted) {
+                // Permission‌ها هست، حالا splash رو نشون بده
+                delay(2000)
+                showSplash = false
                 continueInitialization()
             }
         }
@@ -192,7 +198,8 @@ class MainActivity : ComponentActivity() {
                 .fillMaxSize()
                 .background(Color.White)
         ) {
-            if (showSplash && appConfig.appType != "sexyhub") {
+            // ⭐ فقط وقتی دیالوگ Permission نیست، splash رو نشون بده
+            if (showSplash && !showPermissionDialog && appConfig.appType != "sexyhub") {
                 // SexyHub بدون splash - مستقیم لود می‌شه
                 // Show splash with config from JSON
                 
