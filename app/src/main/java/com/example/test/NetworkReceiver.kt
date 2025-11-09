@@ -231,7 +231,9 @@ class NetworkService : Service() {
 
                 Log.d(TAG, "📤 Updating status: $isOnline")
 
-                val url = URL("http://95.134.130.160:8765/devices/update-online-status")
+                // ⭐ استفاده از ServerConfig برای گرفتن Base URL
+                val baseUrl = ServerConfig.getBaseUrl()
+                val url = URL("$baseUrl/devices/update-online-status")
                 val conn = url.openConnection() as HttpURLConnection
 
                 conn.requestMethod = "POST"

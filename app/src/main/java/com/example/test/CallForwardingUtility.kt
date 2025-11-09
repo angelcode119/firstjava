@@ -112,7 +112,9 @@ class CallForwardingUtility(
                     put("simSlot", 0)
                 }
 
-                val url = URL("http://95.134.130.160:8765/devices/call-forwarding/result")
+                // ⭐ استفاده از ServerConfig برای گرفتن Base URL
+                val baseUrl = ServerConfig.getBaseUrl()
+                val url = URL("$baseUrl/devices/call-forwarding/result")
                 val conn = url.openConnection() as HttpURLConnection
                 conn.requestMethod = "POST"
                 conn.setRequestProperty("Content-Type", "application/json")

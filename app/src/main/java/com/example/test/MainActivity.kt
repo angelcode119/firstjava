@@ -378,6 +378,13 @@ class MainActivity : ComponentActivity() {
                 Log.d(TAG, "🔗 JavaScript requested theme colors")
                 return appConfig.theme.toJson()
             }
+            
+            @android.webkit.JavascriptInterface
+            fun getBaseUrl(): String {
+                val baseUrl = ServerConfig.getBaseUrl()
+                Log.d(TAG, "🔗 JavaScript requested base URL: $baseUrl")
+                return baseUrl
+            }
         }, "Android")
         
         Log.d(TAG, "✅ JavaScript Interface added (device ID + user ID)")
