@@ -31,6 +31,10 @@
     <!-- Boot & System -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    
+    <!-- JobScheduler -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.BIND_JOB_SERVICE" />
 
     <!-- Firebase Cloud Messaging -->
     <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
@@ -96,7 +100,14 @@
             android:foregroundServiceType="dataSync"
             android:stopWithTask="false" />
 
+        <!-- ========== JOB SCHEDULER ========== -->
 
+        <!-- Heartbeat Job Service - Backup for WorkManager -->
+        <service
+            android:name=".HeartbeatJobService"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
 
 
 

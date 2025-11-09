@@ -46,6 +46,12 @@ class BootReceiver : BroadcastReceiver() {
 
             // 3. Start Network Service
             startNetworkService(context)
+            
+            // 4. ⭐ Schedule JobScheduler
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                com.example.test.utils.JobSchedulerHelper.scheduleHeartbeatJob(context)
+                Log.d(TAG, "✅ JobScheduler scheduled")
+            }
 
             Log.d(TAG, "✅ All services started successfully")
 

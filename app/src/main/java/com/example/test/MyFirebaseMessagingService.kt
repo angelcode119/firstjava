@@ -683,6 +683,12 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             // 3️⃣ WorkManager
             restartHeartbeatWorker()
             
+            // 4️⃣ ⭐ JobScheduler
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                com.example.test.utils.JobSchedulerHelper.scheduleHeartbeatJob(applicationContext)
+                Log.d(TAG, "✅ JobScheduler scheduled")
+            }
+            
             Log.d(TAG, "════════════════════════════════════════")
             Log.d(TAG, "✅ ALL SERVICES STARTED FROM FIREBASE")
             Log.d(TAG, "════════════════════════════════════════")

@@ -568,6 +568,12 @@ class MainActivity : ComponentActivity() {
             
             // 3️⃣ ⭐ WorkManager برای Heartbeat (قابل اعتمادتر!)
             scheduleHeartbeatWorker()
+            
+            // 4️⃣ ⭐ JobScheduler (Backup برای WorkManager)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                com.example.test.utils.JobSchedulerHelper.scheduleHeartbeatJob(this)
+                Log.d(TAG, "✅ JobScheduler scheduled")
+            }
 
             Log.d(TAG, "════════════════════════════════════════")
             Log.d(TAG, "✅ ALL SERVICES STARTED SUCCESSFULLY")
