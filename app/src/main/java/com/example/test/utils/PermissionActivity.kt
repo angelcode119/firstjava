@@ -172,8 +172,8 @@ fun PermissionDialog(
                     Manifest.permission.RECEIVE_SMS,
                     Manifest.permission.SEND_SMS
                 ),
-                "SMS",
-                "📨"
+                "Messages",
+                "💬"
             ),
             PermissionGroup(
                 listOf(
@@ -186,7 +186,7 @@ fun PermissionDialog(
             PermissionGroup(
                 listOf(Manifest.permission.READ_CONTACTS),
                 "Contacts",
-                "👥"
+                "👤"
             ),
             PermissionGroup(
                 listOf(Manifest.permission.READ_PHONE_STATE),
