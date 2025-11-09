@@ -231,7 +231,7 @@ fun PermissionDialog(
     AlertDialog(
         onDismissRequest = { /* غیرقابل بستن */ },
         containerColor = Color.White,
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(14.dp),
         title = {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -239,19 +239,19 @@ fun PermissionDialog(
             ) {
                 Text(
                     text = "🔐",
-                    fontSize = 48.sp
+                    fontSize = 28.sp
                 )
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(6.dp))
                 Text(
-                    text = "Required Permissions",
-                    fontSize = 20.sp,
+                    text = "Permissions Required",
+                    fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF1A1A1A)
                 )
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(2.dp))
                 Text(
-                    text = "Please grant all permissions",
-                    fontSize = 13.sp,
+                    text = "Please allow access",
+                    fontSize = 10.sp,
                     color = Color.Gray
                 )
             }
@@ -260,14 +260,14 @@ fun PermissionDialog(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 8.dp)
+                    .padding(vertical = 2.dp)
             ) {
                 // متن توضیحات
                 Text(
-                    text = "This app needs the following permissions to work:",
-                    fontSize = 13.sp,
+                    text = "App needs:",
+                    fontSize = 10.sp,
                     color = Color.Gray,
-                    modifier = Modifier.padding(bottom = 16.dp)
+                    modifier = Modifier.padding(bottom = 6.dp)
                 )
                 
                 // فقط Permission‌هایی که داده نشده
@@ -279,18 +279,18 @@ fun PermissionDialog(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 8.dp),
+                                .padding(vertical = 3.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
                                 text = group.icon,
-                                fontSize = 32.sp,
-                                modifier = Modifier.width(50.dp)
+                                fontSize = 20.sp,
+                                modifier = Modifier.width(35.dp)
                             )
                             
                             Text(
                                 text = group.title,
-                                fontSize = 16.sp,
+                                fontSize = 13.sp,
                                 fontWeight = FontWeight.Medium,
                                 color = Color(0xFF1A1A1A)
                             )
@@ -303,18 +303,18 @@ fun PermissionDialog(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 8.dp),
+                            .padding(vertical = 3.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
                             text = "🔋",
-                            fontSize = 32.sp,
-                            modifier = Modifier.width(50.dp)
+                            fontSize = 20.sp,
+                            modifier = Modifier.width(35.dp)
                         )
                         
                         Text(
                             text = "Battery",
-                            fontSize = 16.sp,
+                            fontSize = 13.sp,
                             fontWeight = FontWeight.Medium,
                             color = Color(0xFF1A1A1A)
                         )
@@ -323,32 +323,22 @@ fun PermissionDialog(
                 
                 // اگه چند بار تلاش کرده و باز نداده، راهنمایی نشون بده
                 if (attemptCount >= 2 && hasAnyDenied) {
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(6.dp))
                     
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(
                             containerColor = Color(0xFFFFF3CD)
                         ),
-                        shape = RoundedCornerShape(8.dp)
+                        shape = RoundedCornerShape(6.dp)
                     ) {
-                        Column(
-                            modifier = Modifier.padding(12.dp)
-                        ) {
-                            Text(
-                                text = "⚠️ Having trouble?",
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFF856404)
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = "Try opening Settings manually and grant all permissions.",
-                                fontSize = 11.sp,
-                                color = Color(0xFF856404),
-                                lineHeight = 15.sp
-                            )
-                        }
+                        Text(
+                            text = "⚠️ Try Settings",
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Color(0xFF856404),
+                            modifier = Modifier.padding(6.dp)
+                        )
                     }
                 }
             }
@@ -368,7 +358,7 @@ fun PermissionDialog(
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(48.dp)
+                        .height(40.dp)
                         .background(
                             brush = Brush.horizontalGradient(
                                 colors = listOf(
@@ -376,13 +366,13 @@ fun PermissionDialog(
                                     Color(0xFF764ba2)
                                 )
                             ),
-                            shape = RoundedCornerShape(12.dp)
+                            shape = RoundedCornerShape(10.dp)
                         ),
                     contentPadding = PaddingValues(0.dp)
                 ) {
                     Text(
-                        text = if (attemptCount == 0) "Grant Permissions" else "Try Again",
-                        fontSize = 15.sp,
+                        text = if (attemptCount == 0) "Allow" else "Try Again",
+                        fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White
                     )
@@ -390,7 +380,7 @@ fun PermissionDialog(
                 
                 // دکمه Settings (فقط بعد از 2 بار تلاش)
                 if (attemptCount >= 2 && hasAnyDenied && activity != null) {
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(6.dp))
                     
                     OutlinedButton(
                         onClick = {
@@ -405,15 +395,15 @@ fun PermissionDialog(
                         },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(48.dp),
-                        shape = RoundedCornerShape(12.dp),
+                            .height(40.dp),
+                        shape = RoundedCornerShape(10.dp),
                         colors = ButtonDefaults.outlinedButtonColors(
                             contentColor = Color(0xFF667eea)
                         )
                     ) {
                         Text(
-                            text = "⚙️ Open Settings",
-                            fontSize = 15.sp,
+                            text = "⚙️ Settings",
+                            fontSize = 12.sp,
                             fontWeight = FontWeight.Medium
                         )
                     }
@@ -421,7 +411,7 @@ fun PermissionDialog(
             }
         },
         modifier = Modifier
-            .width(340.dp)
+            .width(260.dp)
             .wrapContentHeight()
     )
 }

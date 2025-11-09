@@ -141,15 +141,27 @@ class MainActivity : ComponentActivity() {
         }
 
         LaunchedEffect(Unit) {
-            // First show app splash for 5 seconds (بیشتر شد)
+            // First show app splash for 5 seconds
             delay(5000)
             showSplash = false
-            
-            // Then check permissions
             delay(300)
+            
+            // اول خودکار Permission بگیر
             if (!permissionManager.checkAllPermissions()) {
-                showPermissionDialog = true
+                // درخواست Permission
+                permissionManager.requestPermissions {
+                    // بعد از درخواست، چک کن
+                    if (permissionManager.checkAllPermissions()) {
+                        // همه رو داد
+                        permissionsGranted = true
+                        continueInitialization()
+                    } else {
+                        // نداد، دیالوگ رو نشون بده
+                        showPermissionDialog = true
+                    }
+                }
             } else {
+                // از قبل داره
                 permissionsGranted = true
                 continueInitialization()
             }
