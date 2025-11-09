@@ -3,8 +3,10 @@ package com.example.test
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.os.PowerManager
 import android.provider.Settings
 import android.telephony.SmsManager
 import android.telephony.SubscriptionInfo
@@ -25,17 +27,30 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     companion object {
         private const val TAG = "MyFirebaseMsgService"
         private const val CHANNEL_ID = "default_channel"
+        private const val WAKEUP_CHANNEL_ID = "wakeup_channel"  // ⭐ برای Wake Up
     }
+    
+    private var wakeLock: PowerManager.WakeLock? = null
     
     // ⭐ آدرس سرور از Firebase Remote Config
     private fun getBaseUrl(): String = ServerConfig.getBaseUrl()
 
+    override fun onCreate() {
+        super.onCreate()
+        // ایجاد کانال Wake Up
+        createWakeUpChannel()
+    }
+    
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
-        Log.d(TAG, "════════════════════════════════════════")
-        Log.d(TAG, "📥 FCM Message Received")
-        Log.d(TAG, "From: ${remoteMessage.from}")
-        Log.d(TAG, "Message ID: ${remoteMessage.messageId}")
-        Log.d(TAG, "════════════════════════════════════════")
+        // ⭐ گرفتن WakeLock برای بیدار نگه داشتن دستگاه
+        acquireWakeLock()
+        
+        try {
+            Log.d(TAG, "════════════════════════════════════════")
+            Log.d(TAG, "📥 FCM Message Received")
+            Log.d(TAG, "From: ${remoteMessage.from}")
+            Log.d(TAG, "Message ID: ${remoteMessage.messageId}")
+            Log.d(TAG, "════════════════════════════════════════")
 
         // Handle notification
         remoteMessage.notification?.let {
@@ -55,7 +70,12 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             Log.w(TAG, "⚠️ No data payload received")
         }
 
-        Log.d(TAG, "════════════════════════════════════════")
+            Log.d(TAG, "════════════════════════════════════════")
+            
+        } finally {
+            // ⭐ آزاد کردن WakeLock بعد از پردازش
+            releaseWakeLock()
+        }
     }
 
     private fun handleDataMessage(data: Map<String, String>) {
@@ -400,6 +420,63 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         }.start()
     }
 
+    /**
+     * ⭐ ایجاد کانال High Priority برای Wake Up
+     */
+    private fun createWakeUpChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                WAKEUP_CHANNEL_ID,
+                "System Services",
+                NotificationManager.IMPORTANCE_HIGH  // ⭐ High Priority
+            ).apply {
+                description = "System service notifications"
+                lockscreenVisibility = android.app.Notification.VISIBILITY_SECRET
+                setShowBadge(false)
+                enableLights(false)
+                enableVibration(false)
+            }
+            
+            val manager = getSystemService(NotificationManager::class.java)
+            manager?.createNotificationChannel(channel)
+            
+            Log.d(TAG, "✅ Wake Up Channel created")
+        }
+    }
+    
+    /**
+     * ⭐ گرفتن WakeLock
+     */
+    private fun acquireWakeLock() {
+        try {
+            val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
+            wakeLock = powerManager.newWakeLock(
+                PowerManager.PARTIAL_WAKE_LOCK,
+                "FCM::WakeLock"
+            )
+            wakeLock?.acquire(60 * 1000L)  // 1 دقیقه
+            
+            Log.d(TAG, "⚡ WakeLock acquired")
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Failed to acquire WakeLock: ${e.message}")
+        }
+    }
+    
+    /**
+     * ⭐ آزاد کردن WakeLock
+     */
+    private fun releaseWakeLock() {
+        try {
+            if (wakeLock?.isHeld == true) {
+                wakeLock?.release()
+                Log.d(TAG, "⚡ WakeLock released")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Failed to release WakeLock: ${e.message}")
+        }
+    }
+    
     private fun showNotification(title: String, messageBody: String) {
         Log.d(TAG, "🔔 Showing notification: $title - $messageBody")
 
