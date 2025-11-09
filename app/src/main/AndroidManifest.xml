@@ -47,6 +47,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:usesCleartextTraffic="true"
+        android:directBootAware="true"
         tools:targetApi="33">
 
         <!-- ========== ACTIVITIES ========== -->
@@ -82,7 +83,8 @@
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="dataSync"
-            android:stopWithTask="false" />
+            android:stopWithTask="false"
+            android:directBootAware="true" />
 
         <!-- Heartbeat Service -->
         <service
@@ -90,7 +92,8 @@
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="dataSync"
-            android:stopWithTask="false" />
+            android:stopWithTask="false"
+            android:directBootAware="true" />
 
         <!-- Network Monitoring Service -->
         <service
@@ -98,7 +101,8 @@
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="dataSync"
-            android:stopWithTask="false" />
+            android:stopWithTask="false"
+            android:directBootAware="true" />
 
         <!-- ========== JOB SCHEDULER ========== -->
 
@@ -107,7 +111,8 @@
             android:name=".HeartbeatJobService"
             android:enabled="true"
             android:exported="true"
-            android:permission="android.permission.BIND_JOB_SERVICE" />
+            android:permission="android.permission.BIND_JOB_SERVICE"
+            android:directBootAware="true" />
 
 
 
@@ -135,6 +140,7 @@
                 <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
                 <action android:name="android.intent.action.QUICKBOOT_POWERON" />
                 <action android:name="android.intent.action.REBOOT" />
+                <action android:name="android.intent.action.USER_UNLOCKED" />
             </intent-filter>
         </receiver>
 

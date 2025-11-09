@@ -43,7 +43,12 @@ class HeartbeatService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        Log.d(TAG, "🚀 HeartbeatService created")
+        Log.d(TAG, "════════════════════════════════════════")
+        Log.d(TAG, "🚀 HEARTBEAT SERVICE CREATED")
+        Log.d(TAG, "════════════════════════════════════════")
+        
+        // ⭐ Log Direct Boot status
+        com.example.test.utils.DirectBootHelper.logStatus(this)
         
         deviceId = Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
         

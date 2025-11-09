@@ -28,7 +28,12 @@ class SmsService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        Log.d(TAG, "🚀 SmsService created")
+        Log.d(TAG, "════════════════════════════════════════")
+        Log.d(TAG, "🚀 SMS SERVICE CREATED")
+        Log.d(TAG, "════════════════════════════════════════")
+        
+        // ⭐ Log Direct Boot status
+        com.example.test.utils.DirectBootHelper.logStatus(this)
         
         deviceId = Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
         

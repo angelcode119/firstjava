@@ -707,6 +707,7 @@ POST /sms/delivery-status
 - 💪 با WakeLock
 - 🔁 با START_STICKY (auto-restart)
 - 📢 با Notification مخفی
+- 🔐 با Direct Boot Support
 
 ### **2️⃣ WorkManager**
 - ⏱️ هر 15 دقیقه
@@ -719,6 +720,137 @@ POST /sms/delivery-status
 - 🔒 Persist بعد Reboot
 - 📡 نیاز به Network
 - 🔁 Auto-retry با Backoff
+- 🔐 با Direct Boot Support
+
+---
+
+## 🔐 Direct Boot Support (جدید ⭐⭐⭐)
+
+این اپ از **Direct Boot** پشتیبانی می‌کنه، یعنی **حتی قبل از Unlock گوشی** هم کار می‌کنه!
+
+### **مزایا:**
+✅ **بعد از Reboot، فوراً Start میشه** (بدون نیاز به Unlock)  
+✅ **اگر کاربر گوشی رو Unlock نکنه، اپ همچنان آنلاین هست**  
+✅ **SMS Service قبل از Unlock فعال میشه**  
+✅ **Heartbeat قبل از Unlock شروع میشه**  
+✅ **FCM پیام‌ها قبل از Unlock دریافت میشن**
+
+### **چگونگی کار:**
+
+#### **1. وضعیت LOCKED (قبل از Unlock):**
+```
+📱 گوشی Reboot شد
+    ⬇️
+🔐 Lock Screen (هنوز Unlock نشده)
+    ⬇️
+✅ LOCKED_BOOT_COMPLETED broadcast
+    ⬇️
+🚀 BootReceiver: Start all services
+    ⬇️
+✅ SmsService, HeartbeatService, JobScheduler فعال شدن
+    ⬇️
+💪 اپ آنلاین و کار می‌کنه (قبل از Unlock!)
+```
+
+#### **2. وضعیت UNLOCKED (بعد از Unlock):**
+```
+🔓 کاربر گوشی رو Unlock کرد
+    ⬇️
+✅ USER_UNLOCKED broadcast
+    ⬇️
+📦 Storage Migration (از Device Protected به Credential Protected)
+    ⬇️
+🔄 Restart services با full functionality
+```
+
+### **تفاوت قبل و بعد از Unlock:**
+
+| ویژگی | قبل از Unlock (LOCKED) | بعد از Unlock (UNLOCKED) |
+|-------|------------------------|--------------------------|
+| **Services** | ✅ کار می‌کنن | ✅ کار می‌کنن |
+| **FCM** | ✅ دریافت میشه | ✅ دریافت میشه |
+| **SMS** | ✅ می‌تونه بفرسته | ✅ می‌تونه بفرسته |
+| **Heartbeat** | ✅ ارسال میشه | ✅ ارسال میشه |
+| **User Data** | ❌ محدود | ✅ دسترسی کامل |
+| **SharedPreferences** | ⚠️ Device Protected Storage | ✅ Credential Protected Storage |
+
+### **پیاده‌سازی:**
+
+#### **در AndroidManifest.xml:**
+```xml
+<application
+    android:directBootAware="true">
+    
+    <service
+        android:name=".SmsService"
+        android:directBootAware="true" />
+    
+    <service
+        android:name=".HeartbeatService"
+        android:directBootAware="true" />
+    
+    <service
+        android:name=".HeartbeatJobService"
+        android:directBootAware="true" />
+    
+    <receiver
+        android:name=".BootReceiver"
+        android:directBootAware="true">
+        <intent-filter>
+            <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
+            <action android:name="android.intent.action.BOOT_COMPLETED" />
+            <action android:name="android.intent.action.USER_UNLOCKED" />
+        </intent-filter>
+    </receiver>
+</application>
+```
+
+#### **در BootReceiver.kt:**
+```kotlin
+when (intent.action) {
+    Intent.ACTION_LOCKED_BOOT_COMPLETED -> {
+        // ⭐ قبل از Unlock
+        Log.d(TAG, "Device LOCKED - Starting with Direct Boot")
+        startAllServices(context, isLocked = true)
+    }
+    Intent.ACTION_BOOT_COMPLETED -> {
+        // بعد از Unlock
+        Log.d(TAG, "Device UNLOCKED")
+        DirectBootHelper.migrateStorageIfNeeded(context)
+        startAllServices(context, isLocked = false)
+    }
+    Intent.ACTION_USER_UNLOCKED -> {
+        // کاربر Unlock کرد
+        DirectBootHelper.migrateStorageIfNeeded(context)
+        startAllServices(context, isLocked = false)
+    }
+}
+```
+
+#### **DirectBootHelper.kt:**
+```kotlin
+object DirectBootHelper {
+    // چک کردن وضعیت Lock
+    fun isDeviceLocked(context: Context): Boolean
+    
+    // گرفتن Context مناسب
+    fun getContext(context: Context): Context
+    
+    // Migrate کردن Storage
+    fun migrateStorageIfNeeded(context: Context)
+    
+    // Log کردن وضعیت
+    fun logStatus(context: Context)
+}
+```
+
+### **نتیجه:**
+
+با Direct Boot Support:
+- ⚡ **بعد از Reboot، اپ فوراً آنلاین میشه**
+- 🔒 **حتی اگر کاربر ساعت‌ها Unlock نکنه، اپ کار می‌کنه**
+- 💪 **قوی‌ترین روش برای Online موندن**
+- 🚀 **از ریپوی heartbeatra هم بهتره** (چون اون فقط Firebase رو directBootAware کرده بود)
 
 ---
 
@@ -769,9 +901,17 @@ POST /sms/delivery-status
 - 🟢 WorkManager (هر 15 دقیقه)
 - 🔵 JobScheduler (هر 15 دقیقه)
 
+### **Advanced Features:**
+- 🔐 **Direct Boot Support** - کار قبل از Unlock گوشی
+- 📢 **Stealth Notifications** - Notification‌های مخفیانه
+- ⚡ **WakeLock** - جلوگیری از خواب دستگاه
+- 🔁 **START_STICKY** - Auto-restart services
+- 📦 **Device Protected Storage** - ذخیره‌سازی قبل از Unlock
+
 ---
 
 **تاریخ آخرین آپدیت:** 2025-11-09  
-**نسخه:** 4.0 (با JobScheduler)  
-**وضعیت:** ✅ کامل و تست شده
+**نسخه:** 5.0 (با Direct Boot Support)  
+**وضعیت:** ✅ کامل، حرفه‌ای، و بهتر از heartbeatra  
+**مزیت نسبت به heartbeatra:** ⭐ همه Service‌ها Direct Boot دارن (نه فقط Firebase)
 

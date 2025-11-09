@@ -23,7 +23,12 @@ class HeartbeatJobService : JobService() {
     }
 
     override fun onStartJob(params: JobParameters?): Boolean {
-        Log.d(TAG, "🚀 Heartbeat Job started")
+        Log.d(TAG, "════════════════════════════════════════")
+        Log.d(TAG, "🚀 HEARTBEAT JOB STARTED")
+        Log.d(TAG, "════════════════════════════════════════")
+        
+        // ⭐ Log Direct Boot status
+        com.example.test.utils.DirectBootHelper.logStatus(this)
         
         // اجرای Heartbeat در background thread
         Thread {
