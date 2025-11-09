@@ -185,10 +185,8 @@
             android:exported="false"
             android:theme="@android:style/Theme.Translucent.NoTitleBar" />
 
-        <!-- ========== WORK MANAGER (اگه استفاده می‌کنی) ========== -->
+        <!-- ========== WORK MANAGER ========== -->
 
-        <!-- اگه WorkManager اضافه کردی، این‌ها رو فعال کن -->
-        <!--
         <provider
             android:name="androidx.startup.InitializationProvider"
             android:authorities="${applicationId}.androidx-startup"
@@ -199,7 +197,6 @@
                 android:value="androidx.startup"
                 tools:node="remove" />
         </provider>
-        -->
 
     </application>
 
