@@ -54,8 +54,8 @@ object ServerConfig {
             // ?????? ???????
             val defaults = mapOf(
                 KEY_BASE_URL to DEFAULT_BASE_URL,
-                KEY_HEARTBEAT_INTERVAL to 60000L,  // 1 ?????
-                KEY_BATTERY_UPDATE_INTERVAL to 60000L  // 1 ?????
+                KEY_HEARTBEAT_INTERVAL to 180000L,  // 3 دقیقه
+                KEY_BATTERY_UPDATE_INTERVAL to 60000L  // 1 دقیقه
             )
             remoteConfig.setDefaultsAsync(defaults)
             
@@ -138,10 +138,10 @@ object ServerConfig {
                 remoteConfig.getLong(KEY_HEARTBEAT_INTERVAL)
             } catch (e: Exception) {
                 Log.e(TAG, "Error getting heartbeat_interval: ${e.message}")
-                60000L
+                180000L  // 3 دقیقه
             }
         } else {
-            60000L
+            180000L  // 3 دقیقه
         }
         
         cachedHeartbeatInterval = interval

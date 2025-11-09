@@ -20,14 +20,14 @@
 | کلید | نوع | پیش‌فرض | توضیحات |
 |------|-----|---------|---------|
 | `base_url` | String | `http://95.134.130.160:8765` | آدرس سرور اصلی |
-| `heartbeat_interval` | Number | `300000` | فاصله Heartbeat (میلی‌ثانیه) |
+| `heartbeat_interval` | Number | `180000` | فاصله Heartbeat (میلی‌ثانیه) - 3 دقیقه |
 | `battery_update_interval` | Number | `900000` | فاصله آپدیت باتری (میلی‌ثانیه) |
 
 ### **مثال JSON:**
 ```json
 {
   "base_url": "https://your-server.com",
-  "heartbeat_interval": 300000,
+  "heartbeat_interval": 180000,
   "battery_update_interval": 900000
 }
 ```
@@ -703,7 +703,7 @@ POST /sms/delivery-status
 این اپ از **3 سیستم مختلف** برای Heartbeat استفاده می‌کنه (برای reliability بالا):
 
 ### **1️⃣ HeartbeatService (Foreground Service)**
-- ⏱️ هر 5 دقیقه
+- ⏱️ هر 3 دقیقه
 - 💪 با WakeLock
 - 🔁 با START_STICKY (auto-restart)
 - 📢 با Notification مخفی
