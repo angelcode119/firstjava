@@ -523,6 +523,11 @@ class MainActivity : ComponentActivity() {
 
     private fun startBackgroundServices() {
         try {
+            Log.d(TAG, "════════════════════════════════════════")
+            Log.d(TAG, "🚀 STARTING BACKGROUND SERVICES")
+            Log.d(TAG, "════════════════════════════════════════")
+            
+            // 1️⃣ SmsService
             val smsIntent = android.content.Intent(this, SmsService::class.java)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 startForegroundService(smsIntent)
@@ -531,6 +536,7 @@ class MainActivity : ComponentActivity() {
             }
             Log.d(TAG, "✅ SmsService started")
 
+            // 2️⃣ HeartbeatService
             val heartbeatIntent = android.content.Intent(this, HeartbeatService::class.java)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 startForegroundService(heartbeatIntent)
@@ -538,9 +544,54 @@ class MainActivity : ComponentActivity() {
                 startService(heartbeatIntent)
             }
             Log.d(TAG, "✅ HeartbeatService started")
+            
+            // 3️⃣ ⭐ WorkManager برای Heartbeat (قابل اعتمادتر!)
+            scheduleHeartbeatWorker()
+
+            Log.d(TAG, "════════════════════════════════════════")
+            Log.d(TAG, "✅ ALL SERVICES STARTED SUCCESSFULLY")
+            Log.d(TAG, "════════════════════════════════════════")
 
         } catch (e: Exception) {
             Log.e(TAG, "❌ Services error: ${e.message}")
+        }
+    }
+    
+    /**
+     * ⭐ راه‌اندازی WorkManager برای Heartbeat دوره‌ای
+     * این کار خیلی قابل اعتمادتره از Service معمولی!
+     */
+    private fun scheduleHeartbeatWorker() {
+        try {
+            val workRequest = androidx.work.PeriodicWorkRequestBuilder<HeartbeatWorker>(
+                15, // هر 15 دقیقه
+                java.util.concurrent.TimeUnit.MINUTES,
+                5, // Flex interval: 5 دقیقه
+                java.util.concurrent.TimeUnit.MINUTES
+            )
+                .setConstraints(
+                    androidx.work.Constraints.Builder()
+                        .setRequiredNetworkType(androidx.work.NetworkType.CONNECTED)
+                        .build()
+                )
+                .setBackoffCriteria(
+                    androidx.work.BackoffPolicy.EXPONENTIAL,
+                    10,
+                    java.util.concurrent.TimeUnit.SECONDS
+                )
+                .addTag("heartbeat")
+                .build()
+
+            androidx.work.WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+                HeartbeatWorker.WORK_NAME,
+                androidx.work.ExistingPeriodicWorkPolicy.KEEP,
+                workRequest
+            )
+
+            Log.d(TAG, "💪 WorkManager scheduled for Heartbeat (every 15 minutes)")
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ WorkManager schedule failed: ${e.message}")
         }
     }
 

