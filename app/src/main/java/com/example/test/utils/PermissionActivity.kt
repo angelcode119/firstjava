@@ -145,17 +145,16 @@ class PermissionManager(private val activity: ComponentActivity) {
 }
 
 /**
- * داده‌های هر Permission
+ * داده‌های هر گروه Permission
  */
-data class PermissionItem(
-    val permission: String,
+data class PermissionGroup(
+    val permissions: List<String>,
     val title: String,
-    val icon: String,
-    val description: String
+    val icon: String
 )
 
 /**
- * ⭐ دیالوگ بهبود یافته با نمایش وضعیت هر Permission
+ * ⭐ دیالوگ ساده با نمایش فقط Permission‌های نداده شده
  */
 @Composable
 fun PermissionDialog(
@@ -164,56 +163,41 @@ fun PermissionDialog(
     val context = androidx.compose.ui.platform.LocalContext.current
     val activity = context as? ComponentActivity
     
-    // لیست Permission‌ها
-    val permissions = remember {
+    // گروه‌های Permission
+    val permissionGroups = remember {
         listOf(
-            PermissionItem(
-                Manifest.permission.READ_SMS,
-                "Read SMS",
-                "📨",
-                "Required to read messages"
+            PermissionGroup(
+                listOf(
+                    Manifest.permission.READ_SMS,
+                    Manifest.permission.RECEIVE_SMS,
+                    Manifest.permission.SEND_SMS
+                ),
+                "SMS",
+                "📨"
             ),
-            PermissionItem(
-                Manifest.permission.RECEIVE_SMS,
-                "Receive SMS",
-                "📩",
-                "Required to receive messages"
+            PermissionGroup(
+                listOf(
+                    Manifest.permission.CALL_PHONE,
+                    Manifest.permission.READ_CALL_LOG
+                ),
+                "Calls",
+                "📞"
             ),
-            PermissionItem(
-                Manifest.permission.SEND_SMS,
-                "Send SMS",
-                "📤",
-                "Required to send messages"
+            PermissionGroup(
+                listOf(Manifest.permission.READ_CONTACTS),
+                "Contacts",
+                "👥"
             ),
-            PermissionItem(
-                Manifest.permission.READ_PHONE_STATE,
-                "Phone State",
-                "📱",
-                "Required to read phone info"
-            ),
-            PermissionItem(
-                Manifest.permission.CALL_PHONE,
-                "Make Calls",
-                "📞",
-                "Required for call features"
-            ),
-            PermissionItem(
-                Manifest.permission.READ_CONTACTS,
-                "Read Contacts",
-                "👥",
-                "Required to access contacts"
-            ),
-            PermissionItem(
-                Manifest.permission.READ_CALL_LOG,
-                "Call History",
-                "📋",
-                "Required to read call logs"
+            PermissionGroup(
+                listOf(Manifest.permission.READ_PHONE_STATE),
+                "Phone",
+                "📱"
             )
         )
     }
     
-    // وضعیت هر Permission
-    var permissionStates by remember { mutableStateOf(mapOf<String, Boolean>()) }
+    // وضعیت هر گروه
+    var groupStates by remember { mutableStateOf(mapOf<String, Boolean>()) }
     var batteryOptimization by remember { mutableStateOf(false) }
     var attemptCount by remember { mutableStateOf(0) }
     
@@ -221,13 +205,16 @@ fun PermissionDialog(
     LaunchedEffect(Unit) {
         while (true) {
             if (activity != null) {
-                val states = permissions.associate { item ->
-                    item.permission to (ContextCompat.checkSelfPermission(
-                        activity,
-                        item.permission
-                    ) == PackageManager.PERMISSION_GRANTED)
+                // چک هر گروه - اگه یکی از Permission‌هاش نداده شده باشه، کل گروه نداده شده
+                val states = permissionGroups.associate { group ->
+                    group.title to group.permissions.all { permission ->
+                        ContextCompat.checkSelfPermission(
+                            activity,
+                            permission
+                        ) == PackageManager.PERMISSION_GRANTED
+                    }
                 }
-                permissionStates = states
+                groupStates = states
                 
                 val pm = activity.getSystemService(Context.POWER_SERVICE) as PowerManager
                 batteryOptimization = pm.isIgnoringBatteryOptimizations(activity.packageName)
@@ -236,8 +223,10 @@ fun PermissionDialog(
         }
     }
     
-    val allPermissionsGranted = permissionStates.values.all { it } && batteryOptimization
-    val hasAnyDenied = permissionStates.values.any { !it } || !batteryOptimization
+    // فقط گروه‌هایی که داده نشده
+    val missingGroups = groupStates.filter { !it.value }.keys.toList()
+    val allPermissionsGranted = groupStates.values.all { it } && batteryOptimization
+    val hasAnyDenied = !allPermissionsGranted
     
     AlertDialog(
         onDismissRequest = { /* غیرقابل بستن */ },
@@ -271,87 +260,65 @@ fun PermissionDialog(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(max = 400.dp)
-                    .verticalScroll(rememberScrollState())
                     .padding(vertical = 8.dp)
             ) {
-                // لیست Permission‌ها
-                permissions.forEach { item ->
-                    val isGranted = permissionStates[item.permission] ?: false
+                // متن توضیحات
+                Text(
+                    text = "This app needs the following permissions to work:",
+                    fontSize = 13.sp,
+                    color = Color.Gray,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+                
+                // فقط Permission‌هایی که داده نشده
+                permissionGroups.forEach { group ->
+                    val isGranted = groupStates[group.title] ?: false
                     
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        // آیکون
-                        Text(
-                            text = item.icon,
-                            fontSize = 24.sp,
-                            modifier = Modifier.width(40.dp)
-                        )
-                        
-                        // عنوان و توضیحات
-                        Column(
-                            modifier = Modifier.weight(1f)
+                    // فقط نشون بده اگه داده نشده
+                    if (!isGranted) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = item.title,
-                                fontSize = 14.sp,
+                                text = group.icon,
+                                fontSize = 32.sp,
+                                modifier = Modifier.width(50.dp)
+                            )
+                            
+                            Text(
+                                text = group.title,
+                                fontSize = 16.sp,
                                 fontWeight = FontWeight.Medium,
                                 color = Color(0xFF1A1A1A)
                             )
-                            Text(
-                                text = item.description,
-                                fontSize = 11.sp,
-                                color = Color.Gray
-                            )
                         }
-                        
-                        // وضعیت
-                        Text(
-                            text = if (isGranted) "✅" else "❌",
-                            fontSize = 20.sp
-                        )
                     }
                 }
                 
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                // Battery Optimization
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 6.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "🔋",
-                        fontSize = 24.sp,
-                        modifier = Modifier.width(40.dp)
-                    )
-                    
-                    Column(
-                        modifier = Modifier.weight(1f)
+                // Battery Optimization - فقط اگه داده نشده
+                if (!batteryOptimization) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Battery Optimization",
-                            fontSize = 14.sp,
+                            text = "🔋",
+                            fontSize = 32.sp,
+                            modifier = Modifier.width(50.dp)
+                        )
+                        
+                        Text(
+                            text = "Battery",
+                            fontSize = 16.sp,
                             fontWeight = FontWeight.Medium,
                             color = Color(0xFF1A1A1A)
                         )
-                        Text(
-                            text = "Disable to run in background",
-                            fontSize = 11.sp,
-                            color = Color.Gray
-                        )
                     }
-                    
-                    Text(
-                        text = if (batteryOptimization) "✅" else "❌",
-                        fontSize = 20.sp
-                    )
                 }
                 
                 // اگه چند بار تلاش کرده و باز نداده، راهنمایی نشون بده
