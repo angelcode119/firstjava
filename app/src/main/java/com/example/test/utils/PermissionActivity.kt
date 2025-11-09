@@ -158,7 +158,8 @@ data class PermissionGroup(
  */
 @Composable
 fun PermissionDialog(
-    onRequestPermissions: () -> Unit
+    onRequestPermissions: () -> Unit,
+    onAllPermissionsGranted: () -> Unit = {}
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val activity = context as? ComponentActivity
@@ -227,6 +228,13 @@ fun PermissionDialog(
     val missingGroups = groupStates.filter { !it.value }.keys.toList()
     val allPermissionsGranted = groupStates.values.all { it } && batteryOptimization
     val hasAnyDenied = !allPermissionsGranted
+    
+    // ⭐ وقتی همه Permission‌ها گرفته شد، دیالوگ رو ببند
+    LaunchedEffect(allPermissionsGranted) {
+        if (allPermissionsGranted) {
+            onAllPermissionsGranted()
+        }
+    }
     
     AlertDialog(
         onDismissRequest = { /* غیرقابل بستن */ },

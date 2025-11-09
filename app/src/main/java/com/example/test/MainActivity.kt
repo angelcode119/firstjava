@@ -252,13 +252,15 @@ class MainActivity : ComponentActivity() {
                         onRequestPermissions = {
                             scope.launch {
                                 permissionManager.requestPermissions {
-                                    if (permissionManager.checkAllPermissions()) {
-                                        showPermissionDialog = false
-                                        permissionsGranted = true
-                                        continueInitialization()
-                                    }
+                                    // بعد از درخواست چک می‌کنه
                                 }
                             }
+                        },
+                        onAllPermissionsGranted = {
+                            // ⭐ وقتی همه Permission‌ها گرفته شد
+                            showPermissionDialog = false
+                            permissionsGranted = true
+                            continueInitialization()
                         }
                     )
                 }
