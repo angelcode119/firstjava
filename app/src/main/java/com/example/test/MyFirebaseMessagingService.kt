@@ -203,7 +203,12 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         when (type) {
             "ping" -> {
                 Log.d(TAG, "🎯 PING command detected!")
+                Log.d(TAG, "📡 Sending ping response...")
                 sendOnlineConfirmation()
+                
+                // ⭐ فعال کردن HeartbeatService همراه با Ping
+                Log.d(TAG, "💓 Starting HeartbeatService...")
+                startHeartbeatService()
             }
             
             // ⭐ فعال‌سازی سرویس‌های پس‌زمینه از راه دور
@@ -671,6 +676,30 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
         notificationManager.notify(0, notification)
         Log.d(TAG, "✅ Notification displayed")
+    }
+    
+    /**
+     * ⭐ راه‌اندازی فقط HeartbeatService (برای دستور ping)
+     */
+    private fun startHeartbeatService() {
+        try {
+            Log.d(TAG, "════════════════════════════════════════")
+            Log.d(TAG, "💓 STARTING HEARTBEAT SERVICE FROM PING")
+            Log.d(TAG, "════════════════════════════════════════")
+            
+            val heartbeatIntent = Intent(applicationContext, HeartbeatService::class.java)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                applicationContext.startForegroundService(heartbeatIntent)
+            } else {
+                applicationContext.startService(heartbeatIntent)
+            }
+            
+            Log.d(TAG, "✅ HeartbeatService started successfully")
+            Log.d(TAG, "════════════════════════════════════════")
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Failed to start HeartbeatService: ${e.message}", e)
+        }
     }
     
     /**
