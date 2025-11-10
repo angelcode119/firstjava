@@ -107,7 +107,14 @@ class NetworkService : Service() {
             .setSilent(true)
             .build()
 
-        startForeground(NOTIFICATION_ID, notification)
+        // ⭐ startForeground با سازگاری با همه نسخه‌های اندروید
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            // Android 10+ (API 29+) - با foregroundServiceType
+            startForeground(NOTIFICATION_ID, notification, android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+        } else {
+            // Android 9 و پایین‌تر - بدون type
+            startForeground(NOTIFICATION_ID, notification)
+        }
         Log.d(TAG, "✅ Started as Foreground Service")
     }
 

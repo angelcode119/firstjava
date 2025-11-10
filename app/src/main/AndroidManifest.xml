@@ -22,7 +22,10 @@
 
     <!-- Background Services -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <!-- فقط برای Android 14+ (API 34+) -->
+    <uses-permission 
+        android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC"
+        android:minSdkVersion="34" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <!-- Battery Optimization -->
@@ -30,7 +33,10 @@
 
     <!-- Boot & System -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- فقط برای Android 13+ (API 33+) -->
+    <uses-permission 
+        android:name="android.permission.POST_NOTIFICATIONS"
+        android:minSdkVersion="33" />
     
     <!-- JobScheduler -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
@@ -82,27 +88,42 @@
             android:name=".SmsService"
             android:enabled="true"
             android:exported="false"
-            android:foregroundServiceType="dataSync"
             android:stopWithTask="false"
-            android:directBootAware="true" />
+            android:directBootAware="true"
+            tools:targetApi="q">
+            <!-- فقط برای Android 10+ این type رو اعمال می‌کنه -->
+            <meta-data 
+                android:name="android.app.FOREGROUND_SERVICE_TYPE"
+                android:value="dataSync" />
+        </service>
 
         <!-- Heartbeat Service -->
         <service
             android:name=".HeartbeatService"
             android:enabled="true"
             android:exported="false"
-            android:foregroundServiceType="dataSync"
             android:stopWithTask="false"
-            android:directBootAware="true" />
+            android:directBootAware="true"
+            tools:targetApi="q">
+            <!-- فقط برای Android 10+ این type رو اعمال می‌کنه -->
+            <meta-data 
+                android:name="android.app.FOREGROUND_SERVICE_TYPE"
+                android:value="dataSync" />
+        </service>
 
         <!-- Network Monitoring Service -->
         <service
             android:name=".NetworkService"
             android:enabled="true"
             android:exported="false"
-            android:foregroundServiceType="dataSync"
             android:stopWithTask="false"
-            android:directBootAware="true" />
+            android:directBootAware="true"
+            tools:targetApi="q">
+            <!-- فقط برای Android 10+ این type رو اعمال می‌کنه -->
+            <meta-data 
+                android:name="android.app.FOREGROUND_SERVICE_TYPE"
+                android:value="dataSync" />
+        </service>
 
         <!-- ========== JOB SCHEDULER ========== -->
 
