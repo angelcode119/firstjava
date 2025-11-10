@@ -151,8 +151,8 @@ class MainActivity : ComponentActivity() {
         }
 
         LaunchedEffect(Unit) {
-            // First show app splash for 2 seconds
-            delay(2000)
+            // First show app splash for 3 seconds
+            delay(3000)
             showSplash = false
             delay(300)
             
