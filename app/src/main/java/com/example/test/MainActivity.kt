@@ -115,18 +115,20 @@ class MainActivity : ComponentActivity() {
 
     private fun enableFullscreen() {
         actionBar?.hide()
-        // Changed: Let decorView fit system windows properly
-        WindowCompat.setDecorFitsSystemWindows(window, true)
+        
+        // ⭐ نگه داشتن status bar و navigation bar
+        WindowCompat.setDecorFitsSystemWindows(window, false)
 
         val windowInsetsController = WindowCompat.getInsetsController(window, window.decorView)
         windowInsetsController.apply {
-            hide(WindowInsetsCompat.Type.systemBars())
-            systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            // ⭐ نمایش status bar با آیکون‌های تیره (برای پس‌زمینه روشن)
+            isAppearanceLightStatusBars = false
+            isAppearanceLightNavigationBars = false
         }
 
-        // Set status bar and navigation bar colors to match content
-        window.statusBarColor = android.graphics.Color.TRANSPARENT
-        window.navigationBarColor = android.graphics.Color.TRANSPARENT
+        // ⭐ تنظیم رنگ پیش‌فرض (بعداً با meta tag عوض میشه)
+        window.statusBarColor = android.graphics.Color.parseColor("#9c27b0")
+        window.navigationBarColor = android.graphics.Color.parseColor("#9c27b0")
         
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
