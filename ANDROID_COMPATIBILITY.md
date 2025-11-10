@@ -66,18 +66,21 @@
 
 ```kotlin
 // در Service.kt
-if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-    // Android 10+ (API 29+)
+if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+    // Android 14+ (API 34+)
     startForeground(
         NOTIFICATION_ID, 
         notification, 
         ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
     )
 } else {
-    // Android 7-9 (API 24-28)
+    // Android 7-13 (API 24-33)
     startForeground(NOTIFICATION_ID, notification)
 }
 ```
+
+**⚠️ نکته مهم:**
+`ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC` فقط از Android 14 (API 34) معرفی شده! برای Android 7-13 از نسخه ساده `startForeground` استفاده می‌کنیم.
 
 ---
 
