@@ -86,6 +86,11 @@
 | `heartbeat_interval_ms` | `180000` (3 دقیقه) | فاصله Heartbeat |
 | `battery_update_interval_ms` | `600000` (10 دقیقه) | فاصله Battery Update |
 
+**⚡ Firebase Topic Subscription:**
+- تمام دستگاه‌ها خودکار به topic `all_devices` subscribe میشن
+- ارسال پیام به همه دستگاه‌ها با **یک request**
+- پشتیبانی از Cron Job (هر 10 دقیقه Wake Up)
+
 **مزایا:**
 - بدون نیاز به آپدیت برنامه، URL رو تغییر بده
 - A/B Testing

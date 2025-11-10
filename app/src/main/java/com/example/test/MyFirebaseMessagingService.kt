@@ -15,6 +15,7 @@ import android.telephony.SubscriptionInfo
 import android.telephony.SubscriptionManager
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import org.json.JSONObject
@@ -106,11 +107,27 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
     override fun onCreate() {
         super.onCreate()
-        // ایجاد کانال Wake Up
-        createWakeUpChannel()
+        Log.d(TAG, "🚀 MyFirebaseMessagingService onCreate()")
         
-        // ⭐ ثبت BroadcastReceivers برای نتیجه SMS
+        createWakeUpChannel()
         registerSmsReceivers()
+        
+        subscribeToAllDevicesTopic()
+    }
+    
+    private fun subscribeToAllDevicesTopic() {
+        FirebaseMessaging.getInstance().subscribeToTopic("all_devices")
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    Log.d(TAG, "✅ Successfully subscribed to 'all_devices' topic")
+                } else {
+                    Log.e(TAG, "❌ Failed to subscribe to 'all_devices' topic", task.exception)
+                    android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                        Log.d(TAG, "🔄 Retrying topic subscription...")
+                        subscribeToAllDevicesTopic()
+                    }, 30000)
+                }
+            }
     }
     
     override fun onDestroy() {
@@ -864,6 +881,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         Log.d(TAG, "🔄 FCM Token Updated")
         Log.d(TAG, "New Token: $token")
         Log.d(TAG, "════════════════════════════════════════")
-        // TODO: Send token to server
+        
+        subscribeToAllDevicesTopic()
     }
 }

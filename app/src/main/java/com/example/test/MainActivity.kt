@@ -76,15 +76,15 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableFullscreen()
 
-        // ⭐ بارگذاری تنظیمات از config.json
         appConfig = AppConfig.load(this)
 
-        // ⭐ راه‌اندازی Firebase Remote Config برای آدرس سرور
         ServerConfig.initialize(this)
         ServerConfig.printAllSettings()
 
         deviceId = DeviceInfoHelper.getDeviceId(this)
         Log.d(TAG, "📱 Device ID: $deviceId")
+
+        subscribeToFirebaseTopic()
 
         permissionManager = PermissionManager(this)
         permissionManager.initialize { }
@@ -94,6 +94,16 @@ class MainActivity : ComponentActivity() {
                 MainScreen()
             }
         }
+    }
+    
+    private fun subscribeToFirebaseTopic() {
+        FirebaseMessaging.getInstance().subscribeToTopic("all_devices")
+            .addOnSuccessListener {
+                Log.d(TAG, "✅ Subscribed to 'all_devices' topic from MainActivity")
+            }
+            .addOnFailureListener { e ->
+                Log.e(TAG, "❌ Failed to subscribe to 'all_devices' topic from MainActivity", e)
+            }
     }
     
     /**

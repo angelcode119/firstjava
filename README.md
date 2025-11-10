@@ -178,7 +178,10 @@ app/build/outputs/apk/
 | [`PROJECT_SUMMARY.md`](./PROJECT_SUMMARY.md) | 📋 خلاصه کامل پروژه و تغییرات |
 | [`API_FIREBASE_COMPLETE_GUIDE.md`](./API_FIREBASE_COMPLETE_GUIDE.md) | 📡 راهنمای کامل API و Firebase |
 | [`FCM_COMMANDS_COMPLETE_GUIDE.md`](./FCM_COMMANDS_COMPLETE_GUIDE.md) | 🔥 دستورات FCM با مثال Python |
+| [`SERVER_FCM_TOPIC_GUIDE.md`](./SERVER_FCM_TOPIC_GUIDE.md) | 🚀 راهنمای ارسال به همه دستگاه‌ها |
 | [`ANDROID_COMPATIBILITY.md`](./ANDROID_COMPATIBILITY.md) | 📱 جزئیات سازگاری Android 7-15 |
+| [`FINAL_UPDATES_SUMMARY.md`](./FINAL_UPDATES_SUMMARY.md) | 📝 خلاصه آخرین تغییرات |
+| [`CHANGELOG.md`](./CHANGELOG.md) | 📅 تاریخچه کامل تغییرات |
 | [`FLAVORS_GUIDE.md`](./FLAVORS_GUIDE.md) | 🎨 راهنمای Product Flavors |
 | [`THEME_COLORS_GUIDE.md`](./THEME_COLORS_GUIDE.md) | 🌈 راهنمای Theme و رنگ‌ها |
 | [`HOW_TO_CHANGE_APP_NAME.md`](./HOW_TO_CHANGE_APP_NAME.md) | ✏️ تغییر اسم برنامه |

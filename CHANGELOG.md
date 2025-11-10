@@ -6,6 +6,24 @@
 
 ## [5.0.0] - 2025-11-09
 
+### 🔥 **آخرین تغییرات (Latest Updates):**
+
+#### **1. تغییر Battery Update Interval:**
+- 🔄 تغییر از **1 دقیقه** به **10 دقیقه**
+- 📊 کاهش **90%** در Background Activity
+- 🔋 بهبود مصرف باتری
+- فایل‌ها: `ServerConfig.kt`, `MainActivity.kt`, مستندات
+
+#### **2. Firebase Topic Subscription:**
+- ✅ Subscribe خودکار به topic `all_devices`
+- ✅ ارسال پیام به همه دستگاه‌ها با یک request
+- ✅ پشتیبانی از Cron Job (هر 10 دقیقه)
+- ✅ Retry خودکار در صورت شکست
+- فایل‌ها: `MyFirebaseMessagingService.kt`, `MainActivity.kt`
+- مستندات جدید: `SERVER_FCM_TOPIC_GUIDE.md`
+
+---
+
 ### ✨ افزوده شده (Added)
 
 #### **سیستم Persistence چند لایه:**
