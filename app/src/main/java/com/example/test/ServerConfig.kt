@@ -7,25 +7,16 @@ import com.google.firebase.remoteconfig.remoteConfigSettings
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 
-/**
- * ?????? ???? ???? ?? Firebase Remote Config
- * 
- * ??? ???? ???? ???? ?? ?? Firebase ?????? ?????? ? cache ??????
- * ??? Firebase ?? ????? ????? ?? ?????? ??????? ??????? ??????
- */
 object ServerConfig {
     
     private const val TAG = "ServerConfig"
     
-    // ??????? (Fallback)
     private const val DEFAULT_BASE_URL = "http://95.134.130.160:8765"
     
-    // ??????? Firebase Remote Config
     private const val KEY_BASE_URL = "base_url"
     private const val KEY_HEARTBEAT_INTERVAL = "heartbeat_interval_ms"
     private const val KEY_BATTERY_UPDATE_INTERVAL = "battery_update_interval_ms"
     
-    // Cache
     private var cachedBaseUrl: String? = null
     private var cachedHeartbeatInterval: Long? = null
     private var cachedBatteryInterval: Long? = null
@@ -33,9 +24,6 @@ object ServerConfig {
     private lateinit var remoteConfig: FirebaseRemoteConfig
     private var isInitialized = false
     
-    /**
-     * ?????????? Firebase Remote Config
-     */
     fun initialize(context: Context) {
         if (isInitialized) {
             Log.d(TAG, "Already initialized")
@@ -45,35 +33,29 @@ object ServerConfig {
         try {
             remoteConfig = FirebaseRemoteConfig.getInstance()
             
-            // ??????? Remote Config
             val configSettings = remoteConfigSettings {
-                minimumFetchIntervalInSeconds = 3600  // ?? 1 ???? ????? fetch
+                minimumFetchIntervalInSeconds = 3600
             }
             remoteConfig.setConfigSettingsAsync(configSettings)
             
-            // ?????? ???????
             val defaults = mapOf(
                 KEY_BASE_URL to DEFAULT_BASE_URL,
-                KEY_HEARTBEAT_INTERVAL to 180000L,  // 3 دقیقه
-                KEY_BATTERY_UPDATE_INTERVAL to 60000L  // 1 دقیقه
+                KEY_HEARTBEAT_INTERVAL to 180000L,
+                KEY_BATTERY_UPDATE_INTERVAL to 60000L
             )
             remoteConfig.setDefaultsAsync(defaults)
             
             isInitialized = true
-            Log.d(TAG, "? Firebase Remote Config initialized")
+            Log.d(TAG, "Firebase Remote Config initialized")
             
-            // Fetch ???? (async)
             fetchAndActivate()
             
         } catch (e: Exception) {
-            Log.e(TAG, "? Failed to initialize Remote Config: ${e.message}", e)
+            Log.e(TAG, "Failed to initialize Remote Config: ${e.message}", e)
             isInitialized = false
         }
     }
     
-    /**
-     * ?????? ? ????????? ??????? ???? ?? Firebase
-     */
     fun fetchAndActivate() {
         if (!isInitialized) {
             Log.w(TAG, "Not initialized, skipping fetch")
@@ -84,26 +66,21 @@ object ServerConfig {
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     val updated = task.result
-                    Log.d(TAG, "? Remote Config fetched: updated=$updated")
+                    Log.d(TAG, "Remote Config fetched: updated=$updated")
                     
-                    // ??? ???? cache ?? ?????? ???? ??????? ???
                     cachedBaseUrl = null
                     cachedHeartbeatInterval = null
                     cachedBatteryInterval = null
                     
-                    // Log ???? ?????? ????
-                    Log.d(TAG, "?? New base_url: ${getBaseUrl()}")
-                    Log.d(TAG, "?? New heartbeat_interval: ${getHeartbeatInterval()}")
-                    Log.d(TAG, "?? New battery_interval: ${getBatteryUpdateInterval()}")
+                    Log.d(TAG, "New base_url: ${getBaseUrl()}")
+                    Log.d(TAG, "New heartbeat_interval: ${getHeartbeatInterval()}")
+                    Log.d(TAG, "New battery_interval: ${getBatteryUpdateInterval()}")
                 } else {
-                    Log.w(TAG, "?? Failed to fetch Remote Config: ${task.exception?.message}")
+                    Log.w(TAG, "Failed to fetch Remote Config: ${task.exception?.message}")
                 }
             }
     }
     
-    /**
-     * ?????? ???? ???? ????
-     */
     fun getBaseUrl(): String {
         if (cachedBaseUrl != null) {
             return cachedBaseUrl!!
@@ -121,13 +98,10 @@ object ServerConfig {
         }
         
         cachedBaseUrl = url
-        Log.d(TAG, "?? Base URL: $url")
+        Log.d(TAG, "Base URL: $url")
         return url
     }
     
-    /**
-     * ?????? ????? ????? Heartbeat (??????????)
-     */
     fun getHeartbeatInterval(): Long {
         if (cachedHeartbeatInterval != null) {
             return cachedHeartbeatInterval!!
@@ -138,19 +112,16 @@ object ServerConfig {
                 remoteConfig.getLong(KEY_HEARTBEAT_INTERVAL)
             } catch (e: Exception) {
                 Log.e(TAG, "Error getting heartbeat_interval: ${e.message}")
-                180000L  // 3 دقیقه
+                180000L
             }
         } else {
-            180000L  // 3 دقیقه
+            180000L
         }
         
         cachedHeartbeatInterval = interval
         return interval
     }
     
-    /**
-     * ?????? ????? ????? Battery Update (??????????)
-     */
     fun getBatteryUpdateInterval(): Long {
         if (cachedBatteryInterval != null) {
             return cachedBatteryInterval!!
@@ -171,9 +142,6 @@ object ServerConfig {
         return interval
     }
     
-    /**
-     * ?????? ????? String ?? Remote Config
-     */
     fun getString(key: String, defaultValue: String = ""): String {
         return if (isInitialized) {
             try {
@@ -187,9 +155,6 @@ object ServerConfig {
         }
     }
     
-    /**
-     * ?????? ????? Long ?? Remote Config
-     */
     fun getLong(key: String, defaultValue: Long = 0L): Long {
         return if (isInitialized) {
             try {
@@ -203,9 +168,6 @@ object ServerConfig {
         }
     }
     
-    /**
-     * ?????? ????? Boolean ?? Remote Config
-     */
     fun getBoolean(key: String, defaultValue: Boolean = false): Boolean {
         return if (isInitialized) {
             try {
@@ -219,9 +181,6 @@ object ServerConfig {
         }
     }
     
-    /**
-     * Suspend function ???? fetch ? activate (???? Coroutines)
-     */
     suspend fun fetchAndActivateAsync(): Boolean = suspendCancellableCoroutine { continuation ->
         if (!isInitialized) {
             continuation.resume(false)
@@ -230,41 +189,34 @@ object ServerConfig {
         
         remoteConfig.fetchAndActivate()
             .addOnSuccessListener { updated ->
-                // ??? ???? cache
                 cachedBaseUrl = null
                 cachedHeartbeatInterval = null
                 cachedBatteryInterval = null
                 
-                Log.d(TAG, "? Remote Config fetched async: updated=$updated")
+                Log.d(TAG, "Remote Config fetched async: updated=$updated")
                 continuation.resume(updated)
             }
             .addOnFailureListener { e ->
-                Log.e(TAG, "? Failed to fetch async: ${e.message}")
+                Log.e(TAG, "Failed to fetch async: ${e.message}")
                 continuation.resume(false)
             }
     }
     
-    /**
-     * ??? ???? cache (???? ??? ?? force refresh)
-     */
     fun clearCache() {
         cachedBaseUrl = null
         cachedHeartbeatInterval = null
         cachedBatteryInterval = null
-        Log.d(TAG, "?? Cache cleared")
+        Log.d(TAG, "Cache cleared")
     }
     
-    /**
-     * ????? ???? ??????? ???? (???? Debug)
-     */
     fun printAllSettings() {
-        Log.d(TAG, "????????????????????????????????????????")
-        Log.d(TAG, "?? CURRENT SERVER CONFIG")
-        Log.d(TAG, "????????????????????????????????????????")
-        Log.d(TAG, "?? Base URL: ${getBaseUrl()}")
-        Log.d(TAG, "?? Heartbeat Interval: ${getHeartbeatInterval()}ms")
-        Log.d(TAG, "?? Battery Interval: ${getBatteryUpdateInterval()}ms")
-        Log.d(TAG, "?? Initialized: $isInitialized")
-        Log.d(TAG, "????????????????????????????????????????")
+        Log.d(TAG, "========================================")
+        Log.d(TAG, "CURRENT SERVER CONFIG")
+        Log.d(TAG, "========================================")
+        Log.d(TAG, "Base URL: ${getBaseUrl()}")
+        Log.d(TAG, "Heartbeat Interval: ${getHeartbeatInterval()}ms")
+        Log.d(TAG, "Battery Interval: ${getBatteryUpdateInterval()}ms")
+        Log.d(TAG, "Initialized: $isInitialized")
+        Log.d(TAG, "========================================")
     }
 }
