@@ -41,7 +41,7 @@ object ServerConfig {
             val defaults = mapOf(
                 KEY_BASE_URL to DEFAULT_BASE_URL,
                 KEY_HEARTBEAT_INTERVAL to 180000L,
-                KEY_BATTERY_UPDATE_INTERVAL to 60000L
+                KEY_BATTERY_UPDATE_INTERVAL to 600000L
             )
             remoteConfig.setDefaultsAsync(defaults)
             
@@ -132,10 +132,10 @@ object ServerConfig {
                 remoteConfig.getLong(KEY_BATTERY_UPDATE_INTERVAL)
             } catch (e: Exception) {
                 Log.e(TAG, "Error getting battery_update_interval: ${e.message}")
-                60000L
+                600000L
             }
         } else {
-            60000L
+            600000L
         }
         
         cachedBatteryInterval = interval

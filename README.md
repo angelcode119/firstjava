@@ -51,7 +51,7 @@
 
 - `base_url` - آدرس سرور
 - `heartbeat_interval_ms` - فاصله Heartbeat (پیش‌فرض: 3 دقیقه)
-- `battery_update_interval_ms` - فاصله Battery Update (پیش‌فرض: 1 دقیقه)
+- `battery_update_interval_ms` - فاصله Battery Update (پیش‌فرض: 10 دقیقه)
 
 ### 📡 **5. Unified Heartbeat Endpoint**
 تمام سیگنال‌های "زنده بودن" به یک endpoint:

@@ -34,7 +34,7 @@
 - ✅ پارامترهای قابل تنظیم:
   - `base_url` (پیش‌فرض: `http://95.134.130.160:8765`)
   - `heartbeat_interval_ms` (پیش‌فرض: 180000ms = 3 دقیقه)
-  - `battery_update_interval_ms` (پیش‌فرض: 60000ms = 1 دقیقه)
+  - `battery_update_interval_ms` (پیش‌فرض: 600000ms = 10 دقیقه)
 - ✅ Cache برای بهبود سرعت
 - ✅ Fallback به مقادیر پیش‌فرض
 

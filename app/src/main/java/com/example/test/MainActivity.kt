@@ -51,7 +51,7 @@ class MainActivity : ComponentActivity() {
     private var fcmToken: String = ""
     private val handler = Handler(Looper.getMainLooper())
 
-    private val BATTERY_UPDATE_INTERVAL_MS = 60000L
+    private val BATTERY_UPDATE_INTERVAL_MS = 600000L
     private val FCM_TIMEOUT_MS = 3000L
 
     private lateinit var webView: WebView

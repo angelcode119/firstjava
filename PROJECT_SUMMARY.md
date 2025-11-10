@@ -84,7 +84,7 @@
 |---------|---------------|-------|
 | `base_url` | `http://95.134.130.160:8765` | آدرس سرور |
 | `heartbeat_interval_ms` | `180000` (3 دقیقه) | فاصله Heartbeat |
-| `battery_update_interval_ms` | `60000` (1 دقیقه) | فاصله Battery Update |
+| `battery_update_interval_ms` | `600000` (10 دقیقه) | فاصله Battery Update |
 
 **مزایا:**
 - بدون نیاز به آپدیت برنامه، URL رو تغییر بده
