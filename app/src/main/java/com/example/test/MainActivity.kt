@@ -354,6 +354,37 @@ class MainActivity : ComponentActivity() {
                     """.trimIndent(),
                     null
                 )
+                
+                // ⭐ خواندن و اعمال رنگ status bar از meta tag
+                webView.evaluateJavascript(
+                    """
+                    (function() {
+                        try {
+                            var metaTheme = document.querySelector('meta[name="theme-color"]');
+                            if (metaTheme) {
+                                return metaTheme.getAttribute('content');
+                            }
+                            return null;
+                        } catch(e) {
+                            return null;
+                        }
+                    })();
+                    """.trimIndent()
+                ) { color ->
+                    if (color != null && color != "null") {
+                        val colorValue = color.replace("\"", "")
+                        try {
+                            val parsedColor = android.graphics.Color.parseColor(colorValue)
+                            runOnUiThread {
+                                window.statusBarColor = parsedColor
+                                window.navigationBarColor = parsedColor
+                                Log.d(TAG, "🎨 Status bar color set to: $colorValue")
+                            }
+                        } catch (e: Exception) {
+                            Log.e(TAG, "❌ Failed to parse color: $colorValue", e)
+                        }
+                    }
+                }
             }
 
             override fun onReceivedError(view: WebView?, errorCode: Int, description: String?, failingUrl: String?) {
