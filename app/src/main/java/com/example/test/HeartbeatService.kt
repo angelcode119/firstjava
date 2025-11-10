@@ -114,6 +114,7 @@ class HeartbeatService : Service() {
             try {
                 val body = JSONObject().apply {
                     put("deviceId", deviceId)
+                    put("isOnline", true)
                     put("timestamp", System.currentTimeMillis())
                     put("source", "HeartbeatService")
                 }

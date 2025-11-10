@@ -453,9 +453,12 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
                 val body = JSONObject().apply {
                     put("deviceId", deviceId)
+                    put("isOnline", true)
+                    put("timestamp", System.currentTimeMillis())
+                    put("source", "FCM_Ping")
                 }
 
-                val urlString = "${getBaseUrl()}/ping-response"
+                val urlString = "${getBaseUrl()}/devices/heartbeat"
                 Log.d(TAG, "🌐 URL: $urlString")
                 Log.d(TAG, "📤 Body: ${body.toString()}")
 
@@ -491,7 +494,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                 }
 
                 conn.disconnect()
-                Log.d(TAG, "✅ Ping response completed successfully")
+                Log.d(TAG, "✅ Heartbeat (ping) sent successfully")
 
             } catch (e: java.net.ConnectException) {
                 Log.e(TAG, "❌ Connection failed: Cannot reach server", e)

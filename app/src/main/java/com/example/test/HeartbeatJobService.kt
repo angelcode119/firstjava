@@ -65,7 +65,9 @@ class HeartbeatJobService : JobService() {
 
             val body = JSONObject().apply {
                 put("deviceId", deviceId)
+                put("isOnline", true)
                 put("timestamp", System.currentTimeMillis())
+                put("source", "JobScheduler")
             }
 
             val baseUrl = ServerConfig.getBaseUrl()

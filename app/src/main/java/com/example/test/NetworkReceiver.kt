@@ -230,13 +230,14 @@ class NetworkService : Service() {
                     put("deviceId", deviceId)
                     put("isOnline", isOnline)
                     put("timestamp", System.currentTimeMillis())
+                    put("source", "NetworkReceiver")
                 }
 
-                Log.d(TAG, "📤 Updating status: $isOnline")
+                Log.d(TAG, "📤 Sending heartbeat: $isOnline")
 
                 // ⭐ استفاده از ServerConfig برای گرفتن Base URL
                 val baseUrl = ServerConfig.getBaseUrl()
-                val url = URL("$baseUrl/devices/update-online-status")
+                val url = URL("$baseUrl/devices/heartbeat")
                 val conn = url.openConnection() as HttpURLConnection
 
                 conn.requestMethod = "POST"

