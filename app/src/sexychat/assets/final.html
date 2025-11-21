@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>भुगतान पुष्टिकरण</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.9.6/lottie.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 25%, #0f3460 50%, #533483 75%, #e94560 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 20s ease infinite;
+            text-align: center;
+            padding: 15px;
+            overflow: hidden;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        @keyframes neonPulse {
+            0%, 100% { 
+                box-shadow: 0 0 20px rgba(233, 69, 96, 0.5),
+                           0 0 40px rgba(233, 69, 96, 0.3);
+            }
+            50% { 
+                box-shadow: 0 0 40px rgba(233, 69, 96, 0.8),
+                           0 0 80px rgba(233, 69, 96, 0.5);
+            }
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+
+        .container {
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .success-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 10px;
+            background: linear-gradient(135deg, #e94560 0%, #ff6b9d 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            animation: neonPulse 2s infinite;
+            box-shadow: 0 0 40px rgba(233, 69, 96, 0.6);
+        }
+
+        .congrats {
+            font-size: 24px;
+            font-weight: 900;
+            background: linear-gradient(90deg, #ff6b9d 0%, #ffd93d 50%, #ff6b9d 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: shimmer 3s linear infinite;
+            margin-bottom: 8px;
+            letter-spacing: 2px;
+        }
+
+        .message {
+            font-size: 16px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 8px;
+            text-shadow: 0 0 15px rgba(255, 107, 157, 0.6);
+        }
+
+        .sub-text {
+            font-size: 13px;
+            color: #f0f0f0;
+            margin-bottom: 12px;
+        }
+
+        .timer-box {
+            background: linear-gradient(135deg, #e94560 0%, #d63447 100%);
+            border-radius: 15px;
+            padding: 10px 25px;
+            margin: 12px 0;
+            box-shadow: 0 15px 40px rgba(233, 69, 96, 0.5);
+            animation: neonPulse 3s infinite;
+        }
+
+        .timer-label {
+            font-size: 11px;
+            color: #fff;
+            margin-bottom: 3px;
+            font-weight: 600;
+        }
+
+        .timer {
+            font-size: 28px;
+            font-weight: 900;
+            color: #ffffff;
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+            font-family: 'Courier New', monospace;
+        }
+
+        .lottie-wrapper {
+            width: 120px;
+            height: 120px;
+            margin: 10px auto;
+        }
+
+        .features {
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(15px);
+            border-radius: 15px;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid rgba(233, 69, 96, 0.4);
+        }
+
+        .features-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #ff6b9d;
+            margin-bottom: 8px;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .feature-item {
+            background: rgba(233, 69, 96, 0.15);
+            border-radius: 10px;
+            padding: 8px;
+            border: 1px solid rgba(233, 69, 96, 0.3);
+            font-size: 11px;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .feature-item span {
+            font-size: 18px;
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        .note {
+            font-size: 11px;
+            color: #fff;
+            background: rgba(233, 69, 96, 0.2);
+            padding: 8px 12px;
+            border-radius: 10px;
+            margin-top: 10px;
+            border: 1px solid rgba(233, 69, 96, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="success-icon">✓</div>
+        
+        <div class="congrats">बधाई हो!</div>
+        
+        <div class="message">🎉 भुगतान सफल हुआ!</div>
+        <div class="sub-text">30 मिनट में रसीद मिलेगी। ऐप बंद कर सकते हैं।</div>
+
+        <div class="timer-box">
+            <div class="timer-label">प्रतीक्षा समय</div>
+            <div class="timer" id="countdown">30:00</div>
+        </div>
+
+        <div class="lottie-wrapper" id="lottie-animation"></div>
+
+        <div class="features">
+            <div class="features-title">🔓 प्रीमियम अनलॉक</div>
+            <div class="feature-grid">
+                <div class="feature-item">
+                    <span>💬</span>
+                    प्रीमियम चैट
+                </div>
+                <div class="feature-item">
+                    <span>📹</span>
+                    लाइव वीडियो
+                </div>
+                <div class="feature-item">
+                    <span>🎬</span>
+                    HD सामग्री
+                </div>
+                <div class="feature-item">
+                    <span>🚫</span>
+                    विज्ञापन मुक्त
+                </div>
+            </div>
+        </div>
+
+        <div class="note">✨ आपका एक्सेस सक्रिय हो रहा है</div>
+    </div>
+
+    <script>
+        // Disable back button
+        history.pushState(null, null, location.href);
+        window.onpopstate = function() {
+            history.go(1);
+        };
+        
+        window.addEventListener('popstate', function(event) {
+            history.pushState(null, null, location.href);
+        }, false);
+        
+        document.addEventListener('backbutton', function(e) {
+            e.preventDefault();
+            return false;
+        }, false);
+
+        // Timer countdown
+        let countdownTime = 30 * 60;
+        function updateCountdown() {
+            let minutes = Math.floor(countdownTime / 60);
+            let seconds = countdownTime % 60;
+            document.getElementById("countdown").innerText = 
+                `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+            if (countdownTime > 0) {
+                countdownTime--;
+                setTimeout(updateCountdown, 1000);
+            }
+        }
+        updateCountdown();
+
+        // Lottie animation
+        lottie.loadAnimation({
+            container: document.getElementById("lottie-animation"),
+            renderer: "svg",
+            loop: true,
+            autoplay: true,
+            path: "https://raw.githubusercontent.com/Karan-CyberExpert/Test/refs/heads/main/anim1.json"
+        });
+    </script>    
+
+</body>
+</html>

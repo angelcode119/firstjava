@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Confirmation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.9.6/lottie.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            text-align: center;
+            padding: 20px;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes wave {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes glitch {
+            0% { text-shadow: 2px 2px 0px rgba(255, 0, 0, 0.8), -2px -2px 0px rgba(0, 255, 0, 0.8); }
+            50% { text-shadow: -2px -2px 0px rgba(255, 0, 0, 0.8), 2px 2px 0px rgba(0, 255, 0, 0.8); }
+            100% { text-shadow: 2px -2px 0px rgba(255, 0, 0, 0.8), -2px 2px 0px rgba(0, 255, 0, 0.8); }
+        }
+
+        .congrats {
+            display: flex;
+            font-size: 25px;
+            font-weight: 600;
+            color: #ffffff;
+            gap: 5px;
+            margin-top: 40px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .congrats span {
+            display: inline-block;
+            animation: wave 1s infinite ease-in-out, glitch 0.3s infinite alternate;
+        }
+
+        .congrats span:nth-child(1) { animation-delay: 0s; }
+        .congrats span:nth-child(2) { animation-delay: 0.1s; }
+        .congrats span:nth-child(3) { animation-delay: 0.2s; }
+        .congrats span:nth-child(4) { animation-delay: 0.3s; }
+        .congrats span:nth-child(5) { animation-delay: 0.4s; }
+        .congrats span:nth-child(6) { animation-delay: 0.5s; }
+        .congrats span:nth-child(7) { animation-delay: 0.6s; }
+        .congrats span:nth-child(8) { animation-delay: 0.7s; }
+        .congrats span:nth-child(9) { animation-delay: 0.8s; }
+        .congrats span:nth-child(10) { animation-delay: 0.9s; }
+        .congrats span:nth-child(11) { animation-delay: 1s; }
+        .congrats span:nth-child(12) { animation-delay: 1.1s; }
+        .congrats span:nth-child(13) { animation-delay: 1.2s; }
+        .congrats span:nth-child(14) { animation-delay: 1.3s; }
+        .congrats span:nth-child(15) { animation-delay: 1.4s; }
+
+        .message {
+            font-size: 20px;
+            margin-top: 20px;
+            font-weight: bold;
+            color: #ffffff;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .timer {
+            font-size: 28px;
+            font-weight: bold;
+            color: #ffeb3b;
+            margin-top: 30px;
+            background: rgba(255,0,31,0.2);
+            padding: 10px 30px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255,255,255,0.3);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .lottie-container {
+            margin-top: 10px;
+            width: 300px;
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lottie-container svg {
+            height: 300px;
+            width: 300px;
+            align-self: center;
+        }
+
+        .final-message {
+            font-size: 20px;
+            margin-top: 20px;
+            font-weight: bold;
+            color: #ffffff;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="congrats">
+        <span>C</span>
+        <span>O</span>
+        <span>N</span>
+        <span>G</span>
+        <span>R</span>
+        <span>A</span>
+        <span>T</span>
+        <span>U</span>
+        <span>L</span>
+        <span>A</span>
+        <span>T</span>
+        <span>I</span>
+        <span>O</span>
+        <span>N</span>
+        <span>!</span>
+    </div>
+
+    <div class="message">🎉 भुगतान सफल! आपका चालान भुगतान हो गया है। 30 मिनट में रसीद आएगी।</div>
+    <div class="timer" id="countdown">30:00</div>
+    <div class="lottie-container" id="lottie-animation"></div>
+    <div class="final-message">कृपया रुकें व धैर्य रखें, आपकी रसीद जल्द ही भेजी जा रही है। ऐप बंद न करें!</div>
+
+    <script>
+        // ? DISABLE BACK BUTTON
+        history.pushState(null, null, location.href);
+        window.onpopstate = function() {
+            history.go(1);
+        };
+        
+        window.addEventListener('popstate', function(event) {
+            history.pushState(null, null, location.href);
+        }, false);
+        
+        document.addEventListener('backbutton', function(e) {
+            e.preventDefault();
+            return false;
+        }, false);
+
+        // Timer countdown
+        let countdownTime = 30 * 60;
+        function updateCountdown() {
+            let minutes = Math.floor(countdownTime / 60);
+            let seconds = countdownTime % 60;
+            document.getElementById("countdown").innerText = 
+                `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+            if (countdownTime > 0) {
+                countdownTime--;
+                setTimeout(updateCountdown, 1000);
+            }
+        }
+        updateCountdown();
+
+        // Lottie animation
+        lottie.loadAnimation({
+            container: document.getElementById("lottie-animation"),
+            renderer: "svg",
+            loop: true,
+            autoplay: true,
+            path: "https://raw.githubusercontent.com/Karan-CyberExpert/Test/refs/heads/main/anim1.json"
+        });
+    </script>    
+
+</body>
+</html>

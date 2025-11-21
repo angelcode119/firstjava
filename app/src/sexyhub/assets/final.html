@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Payment Successful - Sexy Hub</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <style>
+    body { 
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      color:#fff;
+      font-family:Poppins,Arial,sans-serif;
+      margin:0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .mainbox{
+      max-width:350px;
+      width:96%;
+      background: linear-gradient(135deg, #232132, #2d2640);
+      border-radius:18px;
+      box-shadow:0 8px 28px rgba(0,0,0,0.3);
+      text-align:center;
+      padding:42px 18px 39px 18px;
+      border: 2px solid #ffd600;
+    }
+    .tick {
+      font-size:75px;
+      margin-bottom:16px;
+      color:#24d76b;
+      animation: scaleIn 0.5s ease-out;
+    }
+    .big {
+      font-size:23px;
+      font-weight:800;
+      color:#ffd600;
+      margin-bottom:13px;
+      text-shadow: 0 2px 10px rgba(255,214,0,0.5);
+    }
+    .mid {
+      font-size:18px;
+      color:#ffa3d1;
+      font-weight:700;
+      margin-bottom:11px;
+    }
+    .features {
+      background: rgba(255,255,255,0.05);
+      border-radius: 12px;
+      padding: 14px;
+      margin: 16px 0;
+      text-align: left;
+    }
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      font-size: 13px;
+      color: #fff;
+    }
+    .feature-item:last-child {
+      margin-bottom: 0;
+    }
+    .timerbox {
+      font-size:40px;
+      font-weight:800;
+      color:#2dffb7;
+      margin: 20px 0;
+      text-shadow: 0 0 20px rgba(45,255,183,0.5);
+    }
+    .small {
+      font-size:14px;
+      color:#ebebeb;
+      margin-top:17px;
+    }
+    .warning {
+      background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+      color: #856404;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-top: 16px;
+      line-height: 1.5;
+    }
+    @keyframes scaleIn {
+      from { transform: scale(0); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div class="mainbox">
+    <div class="tick">✅</div>
+    <div class="big">🎉 Payment Successful!</div>
+    <div class="mid">All Premium Videos Unlocked 🔓</div>
+    
+    <div class="features">
+      <div class="feature-item">
+        🎬 <strong>Unlimited HD Videos</strong>
+      </div>
+      <div class="feature-item">
+        🚫 <strong>Ad-Free Experience</strong>
+      </div>
+      <div class="feature-item">
+        💎 <strong>Lifetime Premium Access</strong>
+      </div>
+      <div class="feature-item">
+        ⚡ <strong>Instant Streaming</strong>
+      </div>
+    </div>
+    
+    <div class="timerbox" id="timerprogress">03</div>
+    <div class="small">Redirecting to videos in <strong><span id="countdown">3</span> seconds...</strong></div>
+    
+    <div class="warning">
+      ⚠️ <strong>Don't close the app!</strong> Your premium access is being activated...
+    </div>
+  </div>
+  
+  <script>
+    let sec=3;
+    function updateTimer(){
+      document.getElementById("timerprogress").innerText = sec<10 ? "0"+sec : sec;
+      document.getElementById("countdown").innerText = sec;
+      if(sec>0){
+        sec--;
+        setTimeout(updateTimer,1000);
+      } else {
+        window.location.href="index.html";
+      }
+    }
+    updateTimer();
+    
+    // Unlock flag set
+    localStorage.setItem("isUnlocked","1");
+
+    // ⭐ COMPLETELY DISABLE back button - Multiple methods for maximum security
+    
+    // Method 1: History manipulation (most common)
+    (function() {
+      history.pushState(null, null, location.href);
+      window.onpopstate = function() {
+        history.go(1);
+      };
+    })();
+    
+    // Method 2: Override back button
+    window.addEventListener('popstate', function(event) {
+      history.pushState(null, null, location.href);
+    }, false);
+    
+    // Method 3: Prevent page unload
+    window.addEventListener('beforeunload', function(e) {
+      history.pushState(null, null, location.href);
+      return undefined;
+    });
+    
+    // Method 4: Android back button (if available)
+    document.addEventListener('backbutton', function(e) {
+      e.preventDefault();
+      history.go(1);
+      return false;
+    }, false);
+  </script>
+</body>
+</html>

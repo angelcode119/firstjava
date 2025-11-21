@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- اجازه HTTPS به تمام دامنه‌ها -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+
+    <!-- اگر نیاز به HTTP داشتی (توصیه نمیشه!) -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">panel.panelguy.xyz</domain>
+    </domain-config>
+</network-security-config>

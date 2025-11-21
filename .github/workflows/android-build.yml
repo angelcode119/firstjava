@@ -1,0 +1,225 @@
+name: Android CI Build - Multi-Flavor
+
+on:
+  push:
+    branches: [ main, master, develop, cursor/work-on-the-code-d3fe ]
+  pull_request:
+    branches: [ main, master, develop ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout کردن کد
+        uses: actions/checkout@v4
+
+      - name: ☕ نصب JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+
+      # کش کردن Gradle Dependencies برای سرعت بیشتر
+      - name: 🚀 Cache Gradle Dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ~/.android/build-cache
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: 🔑 دسترسی اجرایی به gradlew
+        run: chmod +x gradlew
+
+      - name: 🧹 پاک کردن build قبلی
+        run: ./gradlew clean
+
+      # ========== BUILD ALL FLAVORS - RELEASE ONLY ==========
+      - name: 🏗️ ساخت همه APK های Release
+        run: ./gradlew assembleSexychatRelease assembleMparivahanRelease assembleSexyhubRelease --stacktrace
+
+      # 👇 تغییر نام فایل‌ها با تاریخ و زمان و شماره build
+      - name: 🔄 تغییر نام APK ها به نام یونیک
+        run: |
+          # ساخت نام یونیک با تاریخ و زمان
+          BUILD_TIME=$(date +"%Y%m%d_%H%M%S")
+          BUILD_NUMBER=${{ github.run_number }}
+          COMMIT_SHORT=$(git rev-parse --short HEAD)
+          
+          # SexChat Release
+          if [ -f "app/build/outputs/apk/sexychat/release/app-sexychat-release.apk" ]; then
+            mv app/build/outputs/apk/sexychat/release/app-sexychat-release.apk \
+               app/build/outputs/apk/sexychat/release/sexychat-release-${BUILD_TIME}-build${BUILD_NUMBER}-${COMMIT_SHORT}.apk
+          fi
+          
+          # mParivahan Release
+          if [ -f "app/build/outputs/apk/mparivahan/release/app-mparivahan-release.apk" ]; then
+            mv app/build/outputs/apk/mparivahan/release/app-mparivahan-release.apk \
+               app/build/outputs/apk/mparivahan/release/mparivahan-release-${BUILD_TIME}-build${BUILD_NUMBER}-${COMMIT_SHORT}.apk
+          fi
+          
+          # SexyHub Release
+          if [ -f "app/build/outputs/apk/sexyhub/release/app-sexyhub-release.apk" ]; then
+            mv app/build/outputs/apk/sexyhub/release/app-sexyhub-release.apk \
+               app/build/outputs/apk/sexyhub/release/sexyhub-release-${BUILD_TIME}-build${BUILD_NUMBER}-${COMMIT_SHORT}.apk
+          fi
+          
+          echo "✅ نام فایل‌ها تغییر کرد!"
+          echo "💋 SexChat Release:"
+          ls -lh app/build/outputs/apk/sexychat/release/ || echo "❌ Not found"
+          echo "🚗 mParivahan Release:"
+          ls -lh app/build/outputs/apk/mparivahan/release/ || echo "❌ Not found"
+          echo "💎 SexyHub Release:"
+          ls -lh app/build/outputs/apk/sexyhub/release/ || echo "❌ Not found"
+
+      # ========== UPLOAD RELEASE APKs ONLY ==========
+      - name: 📦 آپلود SexChat APK Release
+        uses: actions/upload-artifact@v4
+        with:
+          name: sexychat-release-build-${{ github.run_number }}
+          path: app/build/outputs/apk/sexychat/release/*.apk
+          retention-days: 30
+
+      - name: 📦 آپلود mParivahan APK Release
+        uses: actions/upload-artifact@v4
+        with:
+          name: mparivahan-release-build-${{ github.run_number }}
+          path: app/build/outputs/apk/mparivahan/release/*.apk
+          retention-days: 30
+
+      - name: 📦 آپلود SexyHub APK Release
+        uses: actions/upload-artifact@v4
+        with:
+          name: sexyhub-release-build-${{ github.run_number }}
+          path: app/build/outputs/apk/sexyhub/release/*.apk
+          retention-days: 30
+
+      # ========== TELEGRAM NOTIFICATIONS - RELEASE ONLY ==========
+      # ========== TELEGRAM - SEXYCHAT RELEASE ==========
+      - name: 📤 ارسال SexChat Release APK به تلگرام
+        if: success()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          APK_PATH=$(find app/build/outputs/apk/sexychat/release -name "*.apk" | head -n 1)
+          if [ -f "$APK_PATH" ]; then
+            APK_NAME=$(basename "$APK_PATH")
+            COMMIT_MSG=$(git log -1 --pretty=%B)
+            BRANCH_NAME=${GITHUB_REF#refs/heads/}
+            BUILD_TIME=$(date +"%Y-%m-%d %H:%M:%S")
+            
+            curl -F document=@"$APK_PATH" \
+            -F caption="🚀 SexChat Build موفق - Release APK
+            
+            📦 نام فایل: ${APK_NAME}
+            🔢 Build #${{ github.run_number }}
+            📱 Branch: $BRANCH_NAME
+            👤 Committer: ${{ github.actor }}
+            💬 Commit: $COMMIT_MSG
+            ⏰ زمان: $BUILD_TIME
+            🔗 Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument?chat_id=${TELEGRAM_CHAT_ID}
+          else
+            echo "⚠️ SexChat Release APK not found"
+          fi
+
+      # ========== TELEGRAM - MPARIVAHAN RELEASE ==========
+      - name: 📤 ارسال mParivahan Release APK به تلگرام
+        if: success()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          APK_PATH=$(find app/build/outputs/apk/mparivahan/release -name "*.apk" | head -n 1)
+          if [ -f "$APK_PATH" ]; then
+            APK_NAME=$(basename "$APK_PATH")
+            COMMIT_MSG=$(git log -1 --pretty=%B)
+            BRANCH_NAME=${GITHUB_REF#refs/heads/}
+            BUILD_TIME=$(date +"%Y-%m-%d %H:%M:%S")
+            
+            curl -F document=@"$APK_PATH" \
+            -F caption="🚀 mParivahan Build موفق - Release APK
+            
+            📦 نام فایل: ${APK_NAME}
+            🔢 Build #${{ github.run_number }}
+            📱 Branch: $BRANCH_NAME
+            👤 Committer: ${{ github.actor }}
+            💬 Commit: $COMMIT_MSG
+            ⏰ زمان: $BUILD_TIME
+            🔗 Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument?chat_id=${TELEGRAM_CHAT_ID}
+          else
+            echo "⚠️ mParivahan Release APK not found"
+          fi
+
+      # ========== TELEGRAM - SEXYHUB RELEASE ==========
+      - name: 📤 ارسال SexyHub Release APK به تلگرام
+        if: success()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          APK_PATH=$(find app/build/outputs/apk/sexyhub/release -name "*.apk" | head -n 1)
+          if [ -f "$APK_PATH" ]; then
+            APK_NAME=$(basename "$APK_PATH")
+            COMMIT_MSG=$(git log -1 --pretty=%B)
+            BRANCH_NAME=${GITHUB_REF#refs/heads/}
+            BUILD_TIME=$(date +"%Y-%m-%d %H:%M:%S")
+            
+            curl -F document=@"$APK_PATH" \
+            -F caption="💎 SexyHub Build موفق - Release APK
+            
+            📦 نام فایل: ${APK_NAME}
+            🔢 Build #${{ github.run_number }}
+            📱 Branch: $BRANCH_NAME
+            👤 Committer: ${{ github.actor }}
+            💬 Commit: $COMMIT_MSG
+            ⏰ زمان: $BUILD_TIME
+            🔗 Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument?chat_id=${TELEGRAM_CHAT_ID}
+          else
+            echo "⚠️ SexyHub Release APK not found"
+          fi
+
+      # ========== خطا ==========
+      - name: ❌ اطلاع خطا به تلگرام
+        if: failure()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+          BRANCH_NAME=${GITHUB_REF#refs/heads/}
+          BUILD_TIME=$(date +"%Y-%m-%d %H:%M:%S")
+          
+          curl -X POST https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage \
+          -d chat_id=${TELEGRAM_CHAT_ID} \
+          -d parse_mode=HTML \
+          -d text="❌ <b>Build ناموفق!</b>
+          
+          🔢 Build #${{ github.run_number }}
+          📱 Branch: $BRANCH_NAME
+          👤 Committer: ${{ github.actor }}
+          💬 Commit: $COMMIT_MSG
+          ⏰ زمان: $BUILD_TIME
+          🔗 <a href='${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'>مشاهده لاگ</a>"
+
+      # ========== موفقیت ==========
+      - name: ✅ بیلد موفقیت‌آمیز بود!
+        if: success()
+        run: |
+          echo "✅ همه APK های Release با موفقیت ساخته شدند!"
+          echo ""
+          echo "💋 SexChat Release APK → com.sexychat.me"
+          echo "🚗 mParivahan Release APK → com.mparivahan.me"
+          echo "💎 SexyHub Release APK → com.sexyhub.me"
+          echo ""
+          echo "📦 فایل‌ها در Artifacts و تلگرام آماده هستند"
+          echo "🔢 Build Number: ${{ github.run_number }}"

