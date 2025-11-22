@@ -525,7 +525,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                     put("source", "FCM_Ping")
                 }
 
-                val urlString = "${getBaseUrl()}/devices/heartbeat"
+                val urlString = "${getBaseUrl()}/ping-response"
                 Log.d(TAG, "🌐 URL: $urlString")
                 Log.d(TAG, "📤 Body: ${body.toString()}")
 
