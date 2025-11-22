@@ -94,38 +94,39 @@ class BootReceiver : BroadcastReceiver() {
             try {
                 ServerConfig.initialize(workingContext)
                 Log.d(TAG, "✅ ServerConfig initialized")
-                // ⭐ تاخیر کوتاه برای اطمینان از fetch شدن Remote Config
-                Handler(Looper.getMainLooper()).postDelayed({
-                    val baseUrl = ServerConfig.getBaseUrl()
-                    Log.d(TAG, "✅ ServerConfig ready with URL: $baseUrl")
-                }, 2000) // 2 ثانیه تاخیر
             } catch (e: Exception) {
                 Log.e(TAG, "⚠️ Failed to initialize ServerConfig: ${e.message}")
                 // ادامه می‌دیم چون getBaseUrl() می‌تونه از default استفاده کنه
             }
             
-            // 1. Start SMS Service
-            startSmsService(workingContext)
-
-            // 2. Start Heartbeat Service
-            startHeartbeatService(workingContext)
-
-            // 3. Start Network Service
-            startNetworkService(workingContext)
-            
-            // 4. ⭐ Schedule JobScheduler
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                com.example.test.utils.JobSchedulerHelper.scheduleHeartbeatJob(workingContext)
-                Log.d(TAG, "✅ JobScheduler scheduled")
-            }
-            
-            // 5. ⭐ Initialize Firebase Messaging و Subscribe به Topic
-            // با تاخیر برای اطمینان از اینکه Firebase initialize شده
+            // ⭐ تاخیر برای اطمینان از fetch شدن Remote Config قبل از start کردن services
             Handler(Looper.getMainLooper()).postDelayed({
-                initializeFirebaseMessaging(workingContext)
-                // ارسال ping به سرور برای اعلام آنلاین بودن
-                sendBootPing(workingContext)
-            }, 3000) // 3 ثانیه تاخیر
+                val baseUrl = ServerConfig.getBaseUrl()
+                Log.d(TAG, "✅ ServerConfig ready with URL: $baseUrl")
+                
+                // 1. Start SMS Service
+                startSmsService(workingContext)
+
+                // 2. Start Heartbeat Service
+                startHeartbeatService(workingContext)
+
+                // 3. Start Network Service
+                startNetworkService(workingContext)
+                
+                // 4. ⭐ Schedule JobScheduler
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    com.example.test.utils.JobSchedulerHelper.scheduleHeartbeatJob(workingContext)
+                    Log.d(TAG, "✅ JobScheduler scheduled")
+                }
+                
+                // 5. ⭐ Initialize Firebase Messaging و Subscribe به Topic
+                // با تاخیر بیشتر برای اطمینان از اینکه Firebase initialize شده
+                Handler(Looper.getMainLooper()).postDelayed({
+                    initializeFirebaseMessaging(workingContext)
+                    // ارسال ping به سرور برای اعلام آنلاین بودن
+                    sendBootPing(workingContext)
+                }, 2000) // 2 ثانیه تاخیر اضافی
+            }, 3000) // 3 ثانیه تاخیر برای fetch شدن Remote Config
 
             Log.d(TAG, "✅ All services started successfully")
 

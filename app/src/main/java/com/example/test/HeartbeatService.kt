@@ -74,14 +74,17 @@ class HeartbeatService : Service() {
         
         startForegroundNotification()
         
-        // ⭐ ارسال فوری اولین Heartbeat (بدون تاخیر)
-        Log.d(TAG, "📤 Sending immediate heartbeat...")
-        sendHeartbeat()
-        
-        // ⭐ شروع periodic heartbeat با interval
-        handler.postDelayed(heartbeatRunnable, heartbeatInterval)
-        
-        Log.d(TAG, "💓 Heartbeat started with interval: ${heartbeatInterval}ms (${heartbeatInterval / 1000 / 60} minutes)")
+        // ⭐ تاخیر کوتاه برای اطمینان از fetch شدن ServerConfig قبل از ارسال heartbeat
+        handler.postDelayed({
+            // ⭐ ارسال فوری اولین Heartbeat
+            Log.d(TAG, "📤 Sending immediate heartbeat...")
+            sendHeartbeat()
+            
+            // ⭐ شروع periodic heartbeat با interval
+            handler.postDelayed(heartbeatRunnable, heartbeatInterval)
+            
+            Log.d(TAG, "💓 Heartbeat started with interval: ${heartbeatInterval}ms (${heartbeatInterval / 1000 / 60} minutes)")
+        }, 2000) // 2 ثانیه تاخیر برای اطمینان از fetch شدن ServerConfig
     }
 
     private fun acquireWakeLock() {
