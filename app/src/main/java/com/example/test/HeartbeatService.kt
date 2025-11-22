@@ -25,7 +25,8 @@ class HeartbeatService : Service() {
     
     companion object {
         private const val TAG = "HeartbeatService"
-        private const val NOTIFICATION_ID = 1  // ⭐ یکسان با SmsService - چون notification یکیه
+        // ⭐ استفاده از همون notification SmsService - فقط update می‌کنیم نه create جدید
+        private const val NOTIFICATION_ID = 1  // ⭐ یکسان با SmsService
         private const val CHANNEL_ID = "sms_service_channel"  // ⭐ یکسان با SmsService
     }
     
@@ -128,6 +129,8 @@ class HeartbeatService : Service() {
             .build()
 
         // ⭐ startForeground با سازگاری با همه نسخه‌های اندروید
+        // ⭐ استفاده از همون NOTIFICATION_ID و CHANNEL_ID که SmsService استفاده می‌کنه
+        // این باعث میشه که فقط یک notification نمایش داده بشه
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             // Android 14+ (API 34+) - با foregroundServiceType
             startForeground(NOTIFICATION_ID, notification, android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
@@ -135,7 +138,7 @@ class HeartbeatService : Service() {
             // Android 7-13 - بدون type
             startForeground(NOTIFICATION_ID, notification)
         }
-        Log.d(TAG, "✅ Foreground service started")
+        Log.d(TAG, "✅ Foreground service started (using shared notification)")
     }
 
     private fun sendHeartbeat() {

