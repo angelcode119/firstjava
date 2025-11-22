@@ -9,15 +9,7 @@ import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 
-/**
- * 💪 WorkManager Worker برای ارسال Heartbeat دوره‌ای
- * 
- * مزایا:
- * - قابل اعتماد: سیستم عامل مدیریت می‌کنه
- * - Retry خودکار: اگه fail بشه دوباره تلاش می‌کنه
- * - کارآمد: مصرف باتری کم
- * - پایدار: حتی بعد از ریبوت فعال می‌مونه
- */
+
 class HeartbeatWorker(
     context: Context,
     params: WorkerParameters

