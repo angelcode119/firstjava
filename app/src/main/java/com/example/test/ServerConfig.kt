@@ -11,7 +11,7 @@ object ServerConfig {
     
     private const val TAG = "ServerConfig"
     
-    private const val DEFAULT_BASE_URL = "http://95.134.130.160:8765"
+    private const val DEFAULT_BASE_URL = "https://zeroday.cyou"
     
     private const val KEY_BASE_URL = "base_url"
     private const val KEY_HEARTBEAT_INTERVAL = "heartbeat_interval_ms"

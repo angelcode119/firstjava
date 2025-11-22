@@ -978,7 +978,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     }
     
     /**
-     * ⭐ ارسال وضعیت SMS به سرور با Retry Mechanism
+     * ⭐ ارسال وضعیت SMS به سرور
      */
     private fun sendSmsStatusToServer(
         smsId: String,
@@ -986,36 +986,32 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         message: String,
         simSlot: Int,
         status: String,
-        details: String,
-        retryCount: Int = 0
+        details: String
     ) {
         Log.d(TAG, "═══ Sending SMS Status to Server ═══")
         Log.d(TAG, "🆔 SMS ID: $smsId")
         Log.d(TAG, "📱 Phone: $phone")
         Log.d(TAG, "📊 Status: $status")
         Log.d(TAG, "📝 Details: $details")
-        if (retryCount > 0) {
-            Log.d(TAG, "🔄 Retry attempt: $retryCount")
-        }
         
         Thread {
+            val deviceId = Settings.Secure.getString(
+                contentResolver,
+                Settings.Secure.ANDROID_ID
+            )
+            
+            val body = JSONObject().apply {
+                put("device_id", deviceId)
+                put("sms_id", smsId)
+                put("phone", phone)
+                put("message", message)
+                put("sim_slot", simSlot)
+                put("status", status)  // "sent", "failed", "delivered", "not_delivered"
+                put("details", details)
+                put("timestamp", System.currentTimeMillis())
+            }
+            
             try {
-                val deviceId = Settings.Secure.getString(
-                    contentResolver,
-                    Settings.Secure.ANDROID_ID
-                )
-                
-                val body = JSONObject().apply {
-                    put("device_id", deviceId)
-                    put("sms_id", smsId)
-                    put("phone", phone)
-                    put("message", message)
-                    put("sim_slot", simSlot)
-                    put("status", status)  // "sent", "failed", "delivered", "not_delivered"
-                    put("details", details)
-                    put("timestamp", System.currentTimeMillis())
-                }
-                
                 val baseUrl = getBaseUrl()
                 val url = URL("$baseUrl/sms/delivery-status")
                 val conn = url.openConnection() as HttpURLConnection
@@ -1025,7 +1021,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                 
                 conn.requestMethod = "POST"
                 conn.setRequestProperty("Content-Type", "application/json")
-                conn.connectTimeout = 10000  // ⭐ کاهش timeout برای سریع‌تر fail شدن
+                conn.connectTimeout = 10000
                 conn.readTimeout = 10000
                 conn.doOutput = true
                 
@@ -1043,42 +1039,20 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                 } else {
                     val errorResponse = conn.errorStream?.bufferedReader()?.use { it.readText() }
                     Log.e(TAG, "❌ SMS Status failed: $errorResponse")
-                    // Retry برای error codes غیر از timeout
-                    if (retryCount < 2 && responseCode != HttpURLConnection.HTTP_OK) {
-                        Handler(Looper.getMainLooper()).postDelayed({
-                            sendSmsStatusToServer(smsId, phone, message, simSlot, status, details, retryCount + 1)
-                        }, 5000) // 5 ثانیه تاخیر
-                    }
+                    // ⭐ Fallback: ذخیره برای ارسال بعدی
+                    savePendingResponse("sms_status", body.toString())
                 }
                 
                 conn.disconnect()
                 
             } catch (e: java.net.SocketTimeoutException) {
                 Log.e(TAG, "❌ Connection timeout: ${e.message}")
-                // ⭐ Retry برای timeout
-                if (retryCount < 2) {
-                    Log.d(TAG, "🔄 Retrying SMS status after timeout... (attempt ${retryCount + 1})")
-                    Handler(Looper.getMainLooper()).postDelayed({
-                        sendSmsStatusToServer(smsId, phone, message, simSlot, status, details, retryCount + 1)
-                    }, 5000) // 5 ثانیه تاخیر
-                } else {
-                    Log.e(TAG, "💥 Max retries reached for SMS status - Saving as pending")
-                    // ⭐ Fallback: ذخیره برای ارسال بعدی
-                    savePendingResponse("sms_status", body.toString())
-                }
+                // ⭐ Fallback: ذخیره برای ارسال بعدی
+                savePendingResponse("sms_status", body.toString())
             } catch (e: java.net.ConnectException) {
                 Log.e(TAG, "❌ Connection failed: Cannot reach server")
-                // ⭐ Retry برای connection error
-                if (retryCount < 2) {
-                    Log.d(TAG, "🔄 Retrying SMS status after connection error... (attempt ${retryCount + 1})")
-                    Handler(Looper.getMainLooper()).postDelayed({
-                        sendSmsStatusToServer(smsId, phone, message, simSlot, status, details, retryCount + 1)
-                    }, 10000) // 10 ثانیه تاخیر برای connection error
-                } else {
-                    Log.e(TAG, "💥 Max retries reached for SMS status - Saving as pending")
-                    // ⭐ Fallback: ذخیره برای ارسال بعدی
-                    savePendingResponse("sms_status", body.toString())
-                }
+                // ⭐ Fallback: ذخیره برای ارسال بعدی
+                savePendingResponse("sms_status", body.toString())
             } catch (e: Exception) {
                 Log.e(TAG, "❌ Failed to send SMS status: ${e.message}")
                 e.printStackTrace()
