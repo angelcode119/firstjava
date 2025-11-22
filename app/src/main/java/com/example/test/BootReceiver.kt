@@ -94,6 +94,11 @@ class BootReceiver : BroadcastReceiver() {
             try {
                 ServerConfig.initialize(workingContext)
                 Log.d(TAG, "✅ ServerConfig initialized")
+                // ⭐ تاخیر کوتاه برای اطمینان از fetch شدن Remote Config
+                Handler(Looper.getMainLooper()).postDelayed({
+                    val baseUrl = ServerConfig.getBaseUrl()
+                    Log.d(TAG, "✅ ServerConfig ready with URL: $baseUrl")
+                }, 2000) // 2 ثانیه تاخیر
             } catch (e: Exception) {
                 Log.e(TAG, "⚠️ Failed to initialize ServerConfig: ${e.message}")
                 // ادامه می‌دیم چون getBaseUrl() می‌تونه از default استفاده کنه

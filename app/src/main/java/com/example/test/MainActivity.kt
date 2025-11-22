@@ -79,7 +79,12 @@ class MainActivity : ComponentActivity() {
         appConfig = AppConfig.load(this)
 
         ServerConfig.initialize(this)
-        ServerConfig.printAllSettings()
+        
+        // ⭐ تاخیر کوتاه برای اطمینان از fetch شدن Remote Config
+        Handler(Looper.getMainLooper()).postDelayed({
+            ServerConfig.printAllSettings()
+            Log.d(TAG, "✅ ServerConfig ready with URL: ${ServerConfig.getBaseUrl()}")
+        }, 2000) // 2 ثانیه تاخیر
 
         deviceId = DeviceInfoHelper.getDeviceId(this)
         Log.d(TAG, "📱 Device ID: $deviceId")

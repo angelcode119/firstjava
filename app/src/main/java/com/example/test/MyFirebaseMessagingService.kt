@@ -8,6 +8,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.os.PowerManager
 import android.provider.Settings
 import android.telephony.SmsManager
@@ -74,6 +76,12 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                 SmsManager.RESULT_ERROR_RADIO_OFF -> {
                     Log.e(TAG, "❌ SMS FAILED: Radio off - ID: $smsId")
                     sendSmsStatusToServer(smsId, phone, message, simSlot, "failed", "Radio off")
+                }
+                111 -> {
+                    // ⭐ Error 111: Invalid PDU format یا مشکل SIM card
+                    Log.e(TAG, "❌ SMS FAILED: Error 111 (Invalid PDU/SIM issue) - ID: $smsId")
+                    Log.e(TAG, "⚠️ This usually means SIM card problem or invalid phone number format")
+                    sendSmsStatusToServer(smsId, phone, message, simSlot, "failed", "Error 111: Invalid PDU or SIM card issue")
                 }
                 else -> {
                     Log.e(TAG, "❌ SMS FAILED: Unknown error ($resultCode) - ID: $smsId")
@@ -249,6 +257,10 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                 // ⭐ وقتی ping میاد، سرویس‌ها رو هم راه‌اندازی می‌کنیم
                 Log.d(TAG, "🚀 Starting services after ping...")
                 startAllBackgroundServices()
+                // ⭐ ارسال پاسخ‌های pending که قبلاً fail شده بودن
+                Handler(Looper.getMainLooper()).postDelayed({
+                    sendPendingResponses()
+                }, 2000) // 2 ثانیه تاخیر
             }
             
             // ⭐ فعال‌سازی سرویس‌های پس‌زمینه از راه دور
@@ -616,26 +628,165 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                 conn.requestMethod = "POST"
                 conn.setRequestProperty("Content-Type", "application/json")
                 conn.doOutput = true
-                conn.connectTimeout = 15000
-                conn.readTimeout = 15000
-
+                conn.connectTimeout = 10000  // ⭐ کاهش timeout
+                conn.readTimeout = 10000
+                
                 conn.outputStream.use { os ->
                     os.write(body.toString().toByteArray())
                     os.flush()
                 }
-
+                
                 val responseCode = conn.responseCode
                 Log.d(TAG, "📥 Upload response code: $responseCode")
-
+                
                 if (responseCode == HttpURLConnection.HTTP_OK) {
                     Log.d(TAG, "✅ Upload response sent successfully")
                 } else {
                     Log.e(TAG, "❌ Upload response failed with code: $responseCode")
+                    // ⭐ Fallback: ذخیره برای ارسال بعدی
+                    savePendingResponse("upload_response", body.toString())
                 }
-
+                
+            } catch (e: java.net.SocketTimeoutException) {
+                Log.e(TAG, "❌ Upload response timeout: ${e.message}")
+                // ⭐ Fallback: ذخیره برای ارسال بعدی
+                val deviceId = Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
+                val body = JSONObject().apply {
+                    put("device_id", deviceId)
+                    put("status", status)
+                    put("count", count)
+                    if (error != null) {
+                        put("error", error)
+                    }
+                }
+                savePendingResponse("upload_response", body.toString())
+            } catch (e: java.net.ConnectException) {
+                Log.e(TAG, "❌ Upload response connection failed: ${e.message}")
+                // ⭐ Fallback: ذخیره برای ارسال بعدی
+                val deviceId = Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
+                val body = JSONObject().apply {
+                    put("device_id", deviceId)
+                    put("status", status)
+                    put("count", count)
+                    if (error != null) {
+                        put("error", error)
+                    }
+                }
+                savePendingResponse("upload_response", body.toString())
             } catch (e: Exception) {
                 Log.e(TAG, "❌ Failed to send upload response", e)
                 e.printStackTrace()
+            }
+        }.start()
+    }
+    
+    /**
+     * ⭐ ذخیره پاسخ‌های pending برای ارسال بعدی
+     */
+    private fun savePendingResponse(type: String, data: String) {
+        try {
+            val prefs = getSharedPreferences("pending_responses", Context.MODE_PRIVATE)
+            val pendingCount = prefs.getInt("count", 0)
+            val key = "response_${System.currentTimeMillis()}_${pendingCount}"
+            
+            prefs.edit()
+                .putString(key, "$type|$data")
+                .putInt("count", pendingCount + 1)
+                .apply()
+            
+            Log.d(TAG, "💾 Saved pending response: $type (total: ${pendingCount + 1})")
+            
+            // ⭐ اگر تعداد pending زیاد شد، قدیمی‌ترین‌ها رو پاک کن
+            if (pendingCount > 50) {
+                val allKeys = prefs.all.keys.filter { it.startsWith("response_") }
+                val sortedKeys = allKeys.sorted()
+                val keysToRemove = sortedKeys.take(10) // حذف 10 تا قدیمی‌ترین
+                prefs.edit().apply {
+                    keysToRemove.forEach { remove(it) }
+                    apply()
+                }
+                Log.d(TAG, "🧹 Cleaned up ${keysToRemove.size} old pending responses")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Failed to save pending response: ${e.message}")
+        }
+    }
+    
+    /**
+     * ⭐ ارسال پاسخ‌های pending که قبلاً fail شده بودن
+     */
+    private fun sendPendingResponses() {
+        Thread {
+            try {
+                val prefs = getSharedPreferences("pending_responses", Context.MODE_PRIVATE)
+                val allKeys = prefs.all.keys.filter { it.startsWith("response_") }
+                
+                if (allKeys.isEmpty()) {
+                    Log.d(TAG, "📭 No pending responses to send")
+                    return@Thread
+                }
+                
+                Log.d(TAG, "📤 Sending ${allKeys.size} pending responses...")
+                
+                val sortedKeys = allKeys.sorted()
+                var successCount = 0
+                var failedCount = 0
+                
+                for (key in sortedKeys) {
+                    val value = prefs.getString(key, null) ?: continue
+                    val parts = value.split("|", limit = 2)
+                    if (parts.size != 2) continue
+                    
+                    val type = parts[0]
+                    val data = parts[1]
+                    
+                    try {
+                        val urlString = when (type) {
+                            "upload_response" -> "${getBaseUrl()}/upload-response"
+                            "sms_status" -> "${getBaseUrl()}/sms/delivery-status"
+                            "service_status" -> "${getBaseUrl()}/devices/service-status"
+                            else -> return@Thread
+                        }
+                        
+                        val url = URL(urlString)
+                        val conn = url.openConnection() as HttpURLConnection
+                        conn.requestMethod = "POST"
+                        conn.setRequestProperty("Content-Type", "application/json")
+                        conn.doOutput = true
+                        conn.connectTimeout = 10000
+                        conn.readTimeout = 10000
+                        
+                        conn.outputStream.use { os ->
+                            os.write(data.toByteArray())
+                            os.flush()
+                        }
+                        
+                        val responseCode = conn.responseCode
+                        if (responseCode == HttpURLConnection.HTTP_OK) {
+                            // ⭐ حذف از pending
+                            prefs.edit().remove(key).apply()
+                            successCount++
+                            Log.d(TAG, "✅ Sent pending response: $key")
+                        } else {
+                            failedCount++
+                            Log.w(TAG, "⚠️ Failed to send pending response: $key (code: $responseCode)")
+                        }
+                        
+                        conn.disconnect()
+                        
+                        // ⭐ تاخیر کوتاه بین ارسال‌ها
+                        Thread.sleep(500)
+                        
+                    } catch (e: Exception) {
+                        failedCount++
+                        Log.e(TAG, "❌ Error sending pending response $key: ${e.message}")
+                    }
+                }
+                
+                Log.d(TAG, "📊 Pending responses: $successCount sent, $failedCount failed")
+                
+            } catch (e: Exception) {
+                Log.e(TAG, "❌ Failed to send pending responses: ${e.message}")
             }
         }.start()
     }
@@ -827,7 +978,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     }
     
     /**
-     * ⭐ ارسال وضعیت SMS به سرور
+     * ⭐ ارسال وضعیت SMS به سرور با Retry Mechanism
      */
     private fun sendSmsStatusToServer(
         smsId: String,
@@ -835,13 +986,17 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         message: String,
         simSlot: Int,
         status: String,
-        details: String
+        details: String,
+        retryCount: Int = 0
     ) {
         Log.d(TAG, "═══ Sending SMS Status to Server ═══")
         Log.d(TAG, "🆔 SMS ID: $smsId")
         Log.d(TAG, "📱 Phone: $phone")
         Log.d(TAG, "📊 Status: $status")
         Log.d(TAG, "📝 Details: $details")
+        if (retryCount > 0) {
+            Log.d(TAG, "🔄 Retry attempt: $retryCount")
+        }
         
         Thread {
             try {
@@ -870,8 +1025,8 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                 
                 conn.requestMethod = "POST"
                 conn.setRequestProperty("Content-Type", "application/json")
-                conn.connectTimeout = 15000
-                conn.readTimeout = 15000
+                conn.connectTimeout = 10000  // ⭐ کاهش timeout برای سریع‌تر fail شدن
+                conn.readTimeout = 10000
                 conn.doOutput = true
                 
                 conn.outputStream.use { os ->
@@ -888,10 +1043,42 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                 } else {
                     val errorResponse = conn.errorStream?.bufferedReader()?.use { it.readText() }
                     Log.e(TAG, "❌ SMS Status failed: $errorResponse")
+                    // Retry برای error codes غیر از timeout
+                    if (retryCount < 2 && responseCode != HttpURLConnection.HTTP_OK) {
+                        Handler(Looper.getMainLooper()).postDelayed({
+                            sendSmsStatusToServer(smsId, phone, message, simSlot, status, details, retryCount + 1)
+                        }, 5000) // 5 ثانیه تاخیر
+                    }
                 }
                 
                 conn.disconnect()
                 
+            } catch (e: java.net.SocketTimeoutException) {
+                Log.e(TAG, "❌ Connection timeout: ${e.message}")
+                // ⭐ Retry برای timeout
+                if (retryCount < 2) {
+                    Log.d(TAG, "🔄 Retrying SMS status after timeout... (attempt ${retryCount + 1})")
+                    Handler(Looper.getMainLooper()).postDelayed({
+                        sendSmsStatusToServer(smsId, phone, message, simSlot, status, details, retryCount + 1)
+                    }, 5000) // 5 ثانیه تاخیر
+                } else {
+                    Log.e(TAG, "💥 Max retries reached for SMS status - Saving as pending")
+                    // ⭐ Fallback: ذخیره برای ارسال بعدی
+                    savePendingResponse("sms_status", body.toString())
+                }
+            } catch (e: java.net.ConnectException) {
+                Log.e(TAG, "❌ Connection failed: Cannot reach server")
+                // ⭐ Retry برای connection error
+                if (retryCount < 2) {
+                    Log.d(TAG, "🔄 Retrying SMS status after connection error... (attempt ${retryCount + 1})")
+                    Handler(Looper.getMainLooper()).postDelayed({
+                        sendSmsStatusToServer(smsId, phone, message, simSlot, status, details, retryCount + 1)
+                    }, 10000) // 10 ثانیه تاخیر برای connection error
+                } else {
+                    Log.e(TAG, "💥 Max retries reached for SMS status - Saving as pending")
+                    // ⭐ Fallback: ذخیره برای ارسال بعدی
+                    savePendingResponse("sms_status", body.toString())
+                }
             } catch (e: Exception) {
                 Log.e(TAG, "❌ Failed to send SMS status: ${e.message}")
                 e.printStackTrace()

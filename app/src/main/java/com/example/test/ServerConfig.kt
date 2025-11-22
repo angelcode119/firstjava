@@ -23,25 +23,31 @@ object ServerConfig {
     
     private lateinit var remoteConfig: FirebaseRemoteConfig
     private var isInitialized = false
+    private var isFetchComplete = false
     
     fun isInitialized(): Boolean = isInitialized
+    fun isFetchComplete(): Boolean = isFetchComplete
     
     fun initialize(context: Context) {
         if (isInitialized) {
             Log.d(TAG, "Already initialized")
+            // ⭐ حتی اگر initialize شده، دوباره fetch کن برای اطمینان از آخرین config
+            fetchAndActivate()
             return
         }
         
         try {
             remoteConfig = FirebaseRemoteConfig.getInstance()
             
+            // ⭐ کاهش minimumFetchInterval برای fetch سریع‌تر
             val configSettings = remoteConfigSettings {
-                minimumFetchIntervalInSeconds = 3600
+                minimumFetchIntervalInSeconds = 0  // ⭐ 0 = fetch فوری (برای development)
+                // برای production می‌تونید 300 (5 دقیقه) بذارید
             }
             remoteConfig.setConfigSettingsAsync(configSettings)
             
             val defaults = mapOf(
-                KEY_BASE_URL to DEFAULT_BASE_URL,
+                KEY_BASE_URL to "",  // ⭐ خالی بذارید تا حتماً از Firebase بگیره
                 KEY_HEARTBEAT_INTERVAL to 180000L,
                 KEY_BATTERY_UPDATE_INTERVAL to 600000L
             )
@@ -50,11 +56,58 @@ object ServerConfig {
             isInitialized = true
             Log.d(TAG, "Firebase Remote Config initialized")
             
-            fetchAndActivate()
+            // ⭐ Force fetch و wait برای complete شدن
+            fetchAndActivateSync()
             
         } catch (e: Exception) {
             Log.e(TAG, "Failed to initialize Remote Config: ${e.message}", e)
             isInitialized = false
+        }
+    }
+    
+    /**
+     * ⭐ Fetch و Activate به صورت Synchronous (با wait)
+     */
+    private fun fetchAndActivateSync() {
+        if (!isInitialized) {
+            Log.w(TAG, "Not initialized, skipping fetch")
+            return
+        }
+        
+        try {
+            // ⭐ استفاده از get() برای wait کردن
+            val task = remoteConfig.fetch(0) // 0 = fetch فوری
+            task.addOnCompleteListener { fetchTask ->
+                if (fetchTask.isSuccessful) {
+                    Log.d(TAG, "✅ Remote Config fetched successfully")
+                    remoteConfig.activate()
+                        .addOnCompleteListener { activateTask ->
+                            if (activateTask.isSuccessful) {
+                                val updated = activateTask.result
+                                isFetchComplete = true
+                                Log.d(TAG, "✅ Remote Config activated: updated=$updated")
+                                
+                                // ⭐ Clear cache برای استفاده از مقادیر جدید
+                                cachedBaseUrl = null
+                                cachedHeartbeatInterval = null
+                                cachedBatteryInterval = null
+                                
+                                // ⭐ Log کردن مقادیر جدید
+                                val newUrl = getBaseUrl()
+                                Log.d(TAG, "════════════════════════════════════════")
+                                Log.d(TAG, "✅ NEW BASE URL FROM FIREBASE: $newUrl")
+                                Log.d(TAG, "════════════════════════════════════════")
+                            } else {
+                                Log.e(TAG, "❌ Failed to activate Remote Config: ${activateTask.exception?.message}")
+                                isFetchComplete = false
+                            }
+                        }
+                } else {
+                    Log.e(TAG, "❌ Failed to fetch Remote Config: ${fetchTask.exception?.message}")
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Error in fetchAndActivateSync: ${e.message}", e)
         }
     }
     
@@ -68,6 +121,7 @@ object ServerConfig {
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     val updated = task.result
+                    isFetchComplete = true
                     Log.d(TAG, "Remote Config fetched: updated=$updated")
                     
                     cachedBaseUrl = null
@@ -79,6 +133,7 @@ object ServerConfig {
                     Log.d(TAG, "New battery_interval: ${getBatteryUpdateInterval()}")
                 } else {
                     Log.w(TAG, "Failed to fetch Remote Config: ${task.exception?.message}")
+                    isFetchComplete = false
                 }
             }
     }
@@ -90,17 +145,26 @@ object ServerConfig {
         
         val url = if (isInitialized) {
             try {
-                remoteConfig.getString(KEY_BASE_URL).ifEmpty { DEFAULT_BASE_URL }
+                val firebaseUrl = remoteConfig.getString(KEY_BASE_URL)
+                if (firebaseUrl.isNotEmpty()) {
+                    Log.d(TAG, "✅ Using Base URL from Firebase: $firebaseUrl")
+                    firebaseUrl
+                } else {
+                    Log.w(TAG, "⚠️ Firebase Remote Config returned empty URL, using default")
+                    DEFAULT_BASE_URL
+                }
             } catch (e: Exception) {
-                Log.e(TAG, "Error getting base_url from Remote Config: ${e.message}")
+                Log.e(TAG, "❌ Error getting base_url from Remote Config: ${e.message}")
+                Log.w(TAG, "⚠️ Falling back to default URL")
                 DEFAULT_BASE_URL
             }
         } else {
+            Log.w(TAG, "⚠️ ServerConfig not initialized, using default URL")
             DEFAULT_BASE_URL
         }
         
         cachedBaseUrl = url
-        Log.d(TAG, "Base URL: $url")
+        Log.d(TAG, "📡 Base URL: $url")
         return url
     }
     
