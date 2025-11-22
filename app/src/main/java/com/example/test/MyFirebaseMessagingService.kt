@@ -139,6 +139,8 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     override fun onDestroy() {
         super.onDestroy()
         
+        Log.w(TAG, "⚠️ MyFirebaseMessagingService destroyed")
+        
         // ⭐ آزاد کردن WakeLock
         releaseWakeLock()
         
@@ -156,6 +158,17 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             } catch (e: Exception) {
                 Log.e(TAG, "❌ Error unregistering receivers: ${e.message}")
             }
+        }
+        
+        // ⭐ Firebase Messaging Service معمولاً توسط سیستم مدیریت می‌شه
+        // اما برای اطمینان، سرویس‌های دیگه رو restart می‌کنیم
+        try {
+            Log.d(TAG, "🔄 Ensuring other services are running...")
+            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                startAllBackgroundServices()
+            }, 2000) // 2 ثانیه تاخیر برای اطمینان از cleanup کامل
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Failed to restart services: ${e.message}")
         }
     }
     

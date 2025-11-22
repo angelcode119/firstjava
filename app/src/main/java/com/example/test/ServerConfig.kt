@@ -24,6 +24,8 @@ object ServerConfig {
     private lateinit var remoteConfig: FirebaseRemoteConfig
     private var isInitialized = false
     
+    fun isInitialized(): Boolean = isInitialized
+    
     fun initialize(context: Context) {
         if (isInitialized) {
             Log.d(TAG, "Already initialized")

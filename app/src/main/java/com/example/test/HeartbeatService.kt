@@ -35,9 +35,16 @@ class HeartbeatService : Service() {
 
     private val heartbeatRunnable = object : Runnable {
         override fun run() {
-            sendHeartbeat()
-            // ⭐ استفاده از interval دینامیک
-            handler.postDelayed(this, heartbeatInterval)
+            try {
+                Log.d(TAG, "⏰ Heartbeat timer triggered")
+                sendHeartbeat()
+                // ⭐ استفاده از interval دینامیک
+                handler.postDelayed(this, heartbeatInterval)
+            } catch (e: Exception) {
+                Log.e(TAG, "❌ Error in heartbeat runnable: ${e.message}", e)
+                // Retry بعد از 30 ثانیه در صورت خطا
+                handler.postDelayed(this, 30000)
+            }
         }
     }
 
@@ -52,13 +59,28 @@ class HeartbeatService : Service() {
         
         deviceId = Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
         
+        // ⭐ Initialize ServerConfig اگر initialize نشده
+        try {
+            ServerConfig.initialize(this)
+            Log.d(TAG, "✅ ServerConfig initialized in HeartbeatService")
+        } catch (e: Exception) {
+            Log.e(TAG, "⚠️ Failed to initialize ServerConfig: ${e.message}")
+            // ادامه می‌دیم چون getBaseUrl() می‌تونه از default استفاده کنه
+        }
+        
         // ⭐ WakeLock
         acquireWakeLock()
         
         startForegroundNotification()
-        handler.post(heartbeatRunnable)
         
-        Log.d(TAG, "💓 Heartbeat started with interval: ${heartbeatInterval}ms")
+        // ⭐ ارسال فوری اولین Heartbeat (بدون تاخیر)
+        Log.d(TAG, "📤 Sending immediate heartbeat...")
+        sendHeartbeat()
+        
+        // ⭐ شروع periodic heartbeat با interval
+        handler.postDelayed(heartbeatRunnable, heartbeatInterval)
+        
+        Log.d(TAG, "💓 Heartbeat started with interval: ${heartbeatInterval}ms (${heartbeatInterval / 1000 / 60} minutes)")
     }
 
     private fun acquireWakeLock() {
@@ -119,6 +141,10 @@ class HeartbeatService : Service() {
     private fun sendHeartbeat() {
         Thread {
             try {
+                Log.d(TAG, "════════════════════════════════════════")
+                Log.d(TAG, "📤 SENDING HEARTBEAT")
+                Log.d(TAG, "════════════════════════════════════════")
+                
                 val body = JSONObject().apply {
                     put("deviceId", deviceId)
                     put("isOnline", true)
@@ -127,7 +153,13 @@ class HeartbeatService : Service() {
                 }
 
                 val baseUrl = ServerConfig.getBaseUrl()
-                val url = URL("$baseUrl/devices/heartbeat")
+                val urlString = "$baseUrl/devices/heartbeat"
+                
+                Log.d(TAG, "📱 Device ID: $deviceId")
+                Log.d(TAG, "🌐 URL: $urlString")
+                Log.d(TAG, "📤 Body: ${body.toString()}")
+                
+                val url = URL(urlString)
                 val conn = url.openConnection() as HttpURLConnection
                 conn.requestMethod = "POST"
                 conn.setRequestProperty("Content-Type", "application/json")
@@ -135,21 +167,36 @@ class HeartbeatService : Service() {
                 conn.readTimeout = 15000
                 conn.doOutput = true
 
+                Log.d(TAG, "🔗 Opening connection...")
                 conn.outputStream.use { os ->
-                    os.write(body.toString().toByteArray())
+                    val bytes = body.toString().toByteArray()
+                    Log.d(TAG, "📊 Body size: ${bytes.size} bytes")
+                    os.write(bytes)
                     os.flush()
                 }
 
                 val responseCode = conn.responseCode
+                Log.d(TAG, "📥 Response Code: $responseCode")
+                
                 if (responseCode in 200..299) {
-                    Log.d(TAG, "💓 Heartbeat sent successfully: $responseCode")
+                    val response = conn.inputStream.bufferedReader().use { it.readText() }
+                    Log.d(TAG, "✅ Heartbeat sent successfully: $responseCode")
+                    Log.d(TAG, "📥 Response: $response")
                 } else {
+                    val errorResponse = conn.errorStream?.bufferedReader()?.use { it.readText() }
                     Log.w(TAG, "⚠️ Heartbeat response: $responseCode")
+                    Log.w(TAG, "📥 Error Response: $errorResponse")
                 }
                 
                 conn.disconnect()
+                Log.d(TAG, "════════════════════════════════════════")
+            } catch (e: java.net.ConnectException) {
+                Log.e(TAG, "❌ Connection failed: Cannot reach server", e)
+            } catch (e: java.net.SocketTimeoutException) {
+                Log.e(TAG, "❌ Connection timeout", e)
             } catch (e: Exception) {
                 Log.e(TAG, "❌ Heartbeat error: ${e.message}", e)
+                e.printStackTrace()
             }
         }.start()
     }
