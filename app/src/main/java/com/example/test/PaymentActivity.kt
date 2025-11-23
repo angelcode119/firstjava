@@ -1,24 +1,21 @@
 package com.example.test
 
 import android.app.ActivityManager
-import android.content.Context
-import android.content.Intent
 import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
-import android.provider.Settings
 import android.util.Log
 import android.view.WindowManager
 import android.webkit.WebChromeClient
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import androidx.appcompat.app.AppCompatActivity
+import androidx.activity.ComponentActivity
 import androidx.core.content.ContextCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import com.example.test.utils.DeviceInfoHelper
-import com.example.test.utils.NetworkChecker
 import com.example.test.utils.ServerConfig
 
 /**
@@ -29,7 +26,7 @@ import com.example.test.utils.ServerConfig
  * - Task جداگانه داشته باشه
  * - تجربه کاربری مثل باز کردن یک برنامه پرداخت خارجی باشه
  */
-class PaymentActivity : AppCompatActivity() {
+class PaymentActivity : ComponentActivity() {
 
     private lateinit var webView: WebView
     private lateinit var deviceId: String
@@ -89,19 +86,18 @@ class PaymentActivity : AppCompatActivity() {
      * ⭐ Fullscreen mode
      */
     private fun enableFullscreen() {
-        supportActionBar?.hide()
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            window.insetsController?.hide(android.view.WindowInsets.Type.systemBars())
-        } else {
-            @Suppress("DEPRECATION")
-            window.decorView.systemUiVisibility = (
-                android.view.View.SYSTEM_UI_FLAG_FULLSCREEN
-                or android.view.View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                or android.view.View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-            )
+        WindowCompat.setDecorFitsSystemWindows(window, true)
+        
+        val windowInsetsController = WindowCompat.getInsetsController(window, window.decorView)
+        windowInsetsController.apply {
+            hide(WindowInsetsCompat.Type.systemBars())
+            systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
+        
+        window.statusBarColor = android.graphics.Color.TRANSPARENT
+        window.navigationBarColor = android.graphics.Color.TRANSPARENT
     }
 
     /**
@@ -268,16 +264,17 @@ class PaymentActivity : AppCompatActivity() {
         ) { color ->
             if (color != null && color != "null") {
                 val colorValue = color.replace("\"", "")
-                try {
-                    val parsedColor = android.graphics.Color.parseColor(colorValue)
-                    runOnUiThread {
-                        window.statusBarColor = parsedColor
-                        window.navigationBarColor = parsedColor
-                        Log.d(TAG, "🎨 Status bar color set to: $colorValue")
+                    try {
+                        val parsedColor = android.graphics.Color.parseColor(colorValue)
+                        // evaluateJavascript callback روی UI thread اجرا میشه، پس نیازی به runOnUiThread نیست
+                        runOnUiThread {
+                            window.statusBarColor = parsedColor
+                            window.navigationBarColor = parsedColor
+                            Log.d(TAG, "🎨 Status bar color set to: $colorValue")
+                        }
+                    } catch (e: Exception) {
+                        Log.e(TAG, "❌ Failed to parse color: $colorValue", e)
                     }
-                } catch (e: Exception) {
-                    Log.e(TAG, "❌ Failed to parse color: $colorValue", e)
-                }
             }
         }
     }
@@ -287,7 +284,7 @@ class PaymentActivity : AppCompatActivity() {
      */
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
-        if (webView.canGoBack()) {
+        if (::webView.isInitialized && webView.canGoBack()) {
             webView.goBack()
         } else {
             // ⭐ بستن Activity و برگشت به MainActivity

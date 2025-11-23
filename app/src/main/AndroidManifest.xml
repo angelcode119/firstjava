@@ -39,7 +39,6 @@
         android:minSdkVersion="33" />
     
     <!-- JobScheduler -->
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.BIND_JOB_SERVICE" />
 
     <!-- Firebase Cloud Messaging -->
