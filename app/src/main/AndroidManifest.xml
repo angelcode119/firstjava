@@ -78,7 +78,7 @@
             android:taskAffinity="com.example.test.payment"
             android:screenOrientation="unspecified"
             android:configChanges="orientation|screenSize|keyboardHidden"
-            android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />
+            android:theme="@style/Theme.Payment" />
 
         <!-- ========== SERVICES ========== -->
 
