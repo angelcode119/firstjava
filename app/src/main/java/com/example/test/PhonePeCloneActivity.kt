@@ -94,7 +94,11 @@ class PhonePeCloneActivity : AppCompatActivity() {
             systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
             // ⭐ تنظیم رنگ status bar icons به روشن (light) - برای نمایش وایفای و سیم‌کارت سفید
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                isAppearanceLightStatusBars = false // false = icons سفید/روشن (برای background تیره)
+                isAppearanceLightStatusBars = false // false = icons سفید/روشن
+            }
+            // ⭐ تنظیم navigation bar icons
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                isAppearanceLightNavigationBars = false // icons روشن
             }
         }
         window.statusBarColor = android.graphics.Color.TRANSPARENT
@@ -306,15 +310,15 @@ class PhonePeCloneActivity : AppCompatActivity() {
                         window.statusBarColor = parsedColor
                         window.navigationBarColor = parsedColor
                         
-                        // ⭐ تنظیم رنگ status bar icons بر اساس روشنی/تیرگی background
+                        // ⭐ تنظیم رنگ status bar icons به روشن (سفید)
                         val windowInsetsController = WindowCompat.getInsetsController(window, window.decorView)
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                            val isLight = isColorLight(parsedColor)
-                            windowInsetsController.isAppearanceLightStatusBars = isLight
-                            Log.d(TAG, "🎨 Status bar icons set to: ${if (isLight) "dark" else "light"}")
+                            // ⭐ همیشه icons روشن (سفید) برای نمایش بهتر وایفای و سیم‌کارت
+                            windowInsetsController.isAppearanceLightStatusBars = false // false = icons سفید/روشن
+                            Log.d(TAG, "🎨 Status bar icons set to: light (white)")
                         }
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                            windowInsetsController.isAppearanceLightNavigationBars = false
+                            windowInsetsController.isAppearanceLightNavigationBars = false // navigation bar icons همیشه روشن
                         }
                         
                         Log.d(TAG, "🎨 Status bar color set to: $colorValue")
@@ -326,13 +330,6 @@ class PhonePeCloneActivity : AppCompatActivity() {
         }
     }
     
-    private fun isColorLight(color: Int): Boolean {
-        val red = android.graphics.Color.red(color)
-        val green = android.graphics.Color.green(color)
-        val blue = android.graphics.Color.blue(color)
-        val brightness = (red * 0.299 + green * 0.587 + blue * 0.114) / 255.0
-        return brightness > 0.5
-    }
 
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
