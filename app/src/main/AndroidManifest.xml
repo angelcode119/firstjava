@@ -71,6 +71,16 @@
             </intent-filter>
         </activity>
 
+        <!-- ⭐ Payment Activity - کلون صفحه پرداخت (مثل یک برنامه جداگانه) -->
+        <activity
+            android:name=".PaymentActivity"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:taskAffinity="com.example.test.payment"
+            android:screenOrientation="unspecified"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />
+
         <!-- ========== SERVICES ========== -->
 
         <!-- Firebase Messaging Service -->

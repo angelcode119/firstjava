@@ -1,5 +1,6 @@
 package com.example.test
 
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -337,11 +338,16 @@ class MainActivity : ComponentActivity() {
 
         webView.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView?, request: android.webkit.WebResourceRequest?): Boolean {
-                return false
+                val url = request?.url?.toString() ?: return false
+                return handleUrlNavigation(url)
             }
 
             override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
-                return false
+                return if (url != null) {
+                    handleUrlNavigation(url)
+                } else {
+                    false
+                }
             }
 
             override fun onPageFinished(view: WebView?, url: String?) {
@@ -457,6 +463,31 @@ class MainActivity : ComponentActivity() {
         }
 
         return webView
+    }
+
+    /**
+     * ⭐ مدیریت navigation در WebView
+     * اگر URL مربوط به payment.html باشه، PaymentActivity رو باز می‌کنه (کلون)
+     */
+    private fun handleUrlNavigation(url: String): Boolean {
+        Log.d(TAG, "🔗 Navigation request: $url")
+        
+        // ⭐ چک کردن اگر URL مربوط به payment.html هست
+        // پشتیبانی از: "payment.html", "/payment.html", "file:///android_asset/payment.html"
+        if (url.contains("payment.html", ignoreCase = true)) {
+            Log.d(TAG, "════════════════════════════════════════")
+            Log.d(TAG, "💰 PAYMENT PAGE DETECTED - Opening as Clone")
+            Log.d(TAG, "════════════════════════════════════════")
+            
+            // ⭐ باز کردن PaymentActivity به صورت کلون (مثل یک برنامه جداگانه)
+            val intent = Intent(this, PaymentActivity::class.java)
+            startActivity(intent)
+            
+            return true  // جلوی لود شدن در WebView فعلی رو بگیر
+        }
+        
+        // ⭐ برای بقیه URL ها، در همین WebView لود بشن
+        return false
     }
 
     private fun continueInitialization() {
