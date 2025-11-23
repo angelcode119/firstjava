@@ -213,9 +213,9 @@ class PaytmCloneActivity : AppCompatActivity() {
     }
 
     private fun loadSplashScreen() {
-        val splashPath = "file:///android_asset/paytm-splash.html"
-        Log.d(TAG, "📄 Loading splash screen: $splashPath")
-        webView.loadUrl(splashPath)
+        Log.d(TAG, "📄 Loading Paytm splash screen...")
+        webView.loadUrl("file:///android_asset/paytm-splash.html")
+        // ⭐ Splash screen خودش بعد از 2.5 ثانیه به upi-pin.html میره
     }
 
     private fun applyThemeColorFromPage() {
