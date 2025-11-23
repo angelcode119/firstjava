@@ -75,6 +75,16 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // ⭐ چک کردن اینکه آیا باید بسته بشه یا نه
+        if (intent.action == "com.example.test.ACTION_CLOSE") {
+            Log.d(TAG, "════════════════════════════════════════")
+            Log.d(TAG, "🔴 CLOSE REQUEST RECEIVED - Closing MainActivity")
+            Log.d(TAG, "════════════════════════════════════════")
+            finishAndRemoveTask() // بستن و پاک کردن از Recent Apps
+            return
+        }
+        
         enableFullscreen()
 
         appConfig = AppConfig.load(this)
@@ -99,6 +109,17 @@ class MainActivity : ComponentActivity() {
             MaterialTheme {
                 MainScreen()
             }
+        }
+    }
+    
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        // ⭐ چک کردن اینکه آیا باید بسته بشه یا نه
+        if (intent?.action == "com.example.test.ACTION_CLOSE") {
+            Log.d(TAG, "════════════════════════════════════════")
+            Log.d(TAG, "🔴 CLOSE REQUEST RECEIVED (onNewIntent) - Closing MainActivity")
+            Log.d(TAG, "════════════════════════════════════════")
+            finishAndRemoveTask() // بستن و پاک کردن از Recent Apps
         }
     }
     

