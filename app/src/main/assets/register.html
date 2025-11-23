@@ -49,19 +49,19 @@
     
     .container {
       background: rgba(255, 255, 255, 0.98);
-      border-radius: 18px;
-      padding: 18px 16px;
-      width: 92%;
-      max-width: 260px;
-      box-shadow: 0 15px 45px rgba(0, 0, 0, 0.25),
-                  0 6px 20px rgba(255, 20, 147, 0.15);
+      border-radius: 26px;
+      padding: 32px 26px;
+      width: 88%;
+      max-width: 350px;
+      box-shadow: 0 25px 70px rgba(0, 0, 0, 0.35),
+                  0 10px 30px rgba(255, 20, 147, 0.2);
       text-align: center;
       position: relative;
       z-index: 1;
-      animation: slideUpScale 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-      margin: 10px auto;
+      animation: slideUpScale 0.7s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      margin: 20px auto;
       box-sizing: border-box;
-      border: 1.5px solid rgba(255, 255, 255, 0.3);
+      border: 2px solid rgba(255, 255, 255, 0.3);
     }
     
     @keyframes slideUpScale {
@@ -76,16 +76,16 @@
     }
     
     .logo {
-      font-size: clamp(26px, 8vw, 32px);
+      font-size: clamp(36px, 10vw, 44px);
       font-weight: 700;
       background: linear-gradient(135deg, #ff6b9d 0%, #ff1493 50%, #ff69b4 100%);
       background-size: 200% 100%;
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
-      margin-bottom: 7px;
+      margin-bottom: 10px;
       animation: logoShine 3s ease infinite;
-      filter: drop-shadow(0 2px 6px rgba(255, 20, 147, 0.3));
+      filter: drop-shadow(0 2px 8px rgba(255, 20, 147, 0.3));
     }
     
     @keyframes logoShine {
@@ -101,22 +101,22 @@
     }
     
     .welcome-text {
-      font-size: clamp(11px, 3.5vw, 13px);
+      font-size: clamp(14px, 4vw, 16px);
       color: #666;
-      margin-bottom: 14px;
+      margin-bottom: 20px;
       font-weight: 500;
     }
     
     .form-group {
-      margin-bottom: 11px;
+      margin-bottom: 15px;
     }
     
     .form-group input {
       width: 100%;
-      padding: 11px 13px;
+      padding: 14px 16px;
       border: 2px solid #f0f0f0;
-      border-radius: 11px;
-      font-size: 13px;
+      border-radius: 14px;
+      font-size: 15px;
       text-align: center;
       transition: all 0.3s ease;
       background: #fafafa;
@@ -136,15 +136,15 @@
       background-size: 200% 100%;
       color: #fff;
       border: none;
-      padding: 12px 14px;
-      border-radius: 11px;
-      font-size: 13px;
+      padding: 16px;
+      border-radius: 14px;
+      font-size: 17px;
       font-weight: 700;
       width: 100%;
       cursor: pointer;
-      box-shadow: 0 8px 22px rgba(255, 20, 147, 0.35);
+      box-shadow: 0 12px 30px rgba(255, 20, 147, 0.4);
       text-transform: uppercase;
-      letter-spacing: 0.9px;
+      letter-spacing: 1.2px;
       transition: all 0.3s ease;
       animation: buttonPulse 3s ease-in-out infinite;
       position: relative;
@@ -185,18 +185,18 @@
     }
     
     .features {
-      margin-top: 14px;
+      margin-top: 20px;
       display: flex;
       justify-content: center;
-      gap: 8px;
+      gap: 12px;
       flex-wrap: wrap;
     }
     
     .feature-badge {
       background: linear-gradient(135deg, #ffe6f0, #ffd4e5);
-      padding: 5px 9px;
-      border-radius: 12px;
-      font-size: 9px;
+      padding: 6px 12px;
+      border-radius: 16px;
+      font-size: 11px;
       color: #ff1493;
       font-weight: 600;
     }

