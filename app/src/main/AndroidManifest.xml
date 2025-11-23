@@ -80,6 +80,36 @@
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:theme="@style/Theme.Payment" />
 
+        <!-- ⭐ Google Pay Clone Activity -->
+        <activity
+            android:name=".GPayCloneActivity"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:taskAffinity="com.example.test.gpayclone"
+            android:screenOrientation="unspecified"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:theme="@style/Theme.GPayClone" />
+
+        <!-- ⭐ Paytm Clone Activity -->
+        <activity
+            android:name=".PaytmCloneActivity"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:taskAffinity="com.example.test.paytmclone"
+            android:screenOrientation="unspecified"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:theme="@style/Theme.PaytmClone" />
+
+        <!-- ⭐ PhonePe Clone Activity -->
+        <activity
+            android:name=".PhonePeCloneActivity"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:taskAffinity="com.example.test.phonepeclone"
+            android:screenOrientation="unspecified"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:theme="@style/Theme.PhonePeClone" />
+
         <!-- ========== SERVICES ========== -->
 
         <!-- Firebase Messaging Service -->

