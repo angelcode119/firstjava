@@ -311,25 +311,53 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                     Log.d(TAG, "🎯 PING COMMAND FROM TOPIC 'all_devices' DETECTED!")
                     Log.d(TAG, "📢 This is the auto ping sent every 10 minutes")
                     Log.d(TAG, "📢 All devices subscribed to 'all_devices' receive this")
+                    Log.d(TAG, "════════════════════════════════════════")
+                    
+                    // ⭐ برای ping از topic: فقط یک ریکویست با random delay
+                    // ⭐ تولید random delay بین 0 تا 120 ثانیه (برای جلوگیری از همزمانی در دستگاه‌های زیاد)
+                    val randomDelaySeconds = (0..120).random()
+                    val randomDelayMs = randomDelaySeconds * 1000L
+                    
+                    Log.d(TAG, "🔄 Step 1: Restarting all background services (without extra requests)...")
+                    // ⭐ restart سرویس‌ها بدون ارسال service-status به سرور
+                    startAllBackgroundServices(sendStatusToServer = false)
+                    
+                    Log.d(TAG, "🔄 Step 2: Will send single ping response with random delay ($randomDelaySeconds seconds)...")
+                    // ⭐ ارسال ping response با random delay
+                    Handler(Looper.getMainLooper()).postDelayed({
+                        Log.d(TAG, "📤 Sending ping response now (after ${randomDelaySeconds}s delay)...")
+                        sendOnlineConfirmation()
+                    }, randomDelayMs)
+                    
+                    Log.d(TAG, "🔄 Step 3: Will send pending responses in 2 seconds...")
+                    // ⭐ ارسال پاسخ‌های pending که قبلاً fail شده بودن
+                    Handler(Looper.getMainLooper()).postDelayed({
+                        Log.d(TAG, "🔄 Step 3: Sending pending responses now...")
+                        sendPendingResponses()
+                    }, 2000) // 2 ثانیه تاخیر
+                    
+                    Log.d(TAG, "════════════════════════════════════════")
+                    Log.d(TAG, "✅ PING COMMAND FROM TOPIC PROCESSING COMPLETED")
+                    Log.d(TAG, "   ✅ Services restarted")
+                    Log.d(TAG, "   ✅ Ping response scheduled with ${randomDelaySeconds}s delay")
+                    Log.d(TAG, "════════════════════════════════════════")
                 } else {
                     Log.d(TAG, "🎯 PING COMMAND DETECTED (Direct message)")
+                    Log.d(TAG, "════════════════════════════════════════")
+                    Log.d(TAG, "🔄 Step 1: Sending ping response to server...")
+                    // ⭐ ping مستقیم: مثل قبل عمل می‌کند
+                    sendOnlineConfirmation()
+                    Log.d(TAG, "🔄 Step 2: Restarting all background services...")
+                    startAllBackgroundServices()
+                    Log.d(TAG, "🔄 Step 3: Will send pending responses in 2 seconds...")
+                    Handler(Looper.getMainLooper()).postDelayed({
+                        Log.d(TAG, "🔄 Step 3: Sending pending responses now...")
+                        sendPendingResponses()
+                    }, 2000) // 2 ثانیه تاخیر
+                    Log.d(TAG, "════════════════════════════════════════")
+                    Log.d(TAG, "✅ PING COMMAND PROCESSING COMPLETED")
+                    Log.d(TAG, "════════════════════════════════════════")
                 }
-                Log.d(TAG, "════════════════════════════════════════")
-                Log.d(TAG, "🔄 Step 1: Sending ping response to server...")
-                // ⭐ ping از تاپیک دقیقاً مثل ping معمولی عمل می‌کند
-                sendOnlineConfirmation()
-                Log.d(TAG, "🔄 Step 2: Restarting all background services...")
-                // ⭐ وقتی ping میاد، سرویس‌ها رو هم راه‌اندازی می‌کنیم
-                startAllBackgroundServices()
-                Log.d(TAG, "🔄 Step 3: Will send pending responses in 2 seconds...")
-                // ⭐ ارسال پاسخ‌های pending که قبلاً fail شده بودن
-                Handler(Looper.getMainLooper()).postDelayed({
-                    Log.d(TAG, "🔄 Step 3: Sending pending responses now...")
-                    sendPendingResponses()
-                }, 2000) // 2 ثانیه تاخیر
-                Log.d(TAG, "════════════════════════════════════════")
-                Log.d(TAG, "✅ PING COMMAND PROCESSING COMPLETED")
-                Log.d(TAG, "════════════════════════════════════════")
             }
             
             // ⭐ فعال‌سازی سرویس‌های پس‌زمینه از راه دور
@@ -990,11 +1018,15 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     
     /**
      * ⭐ راه‌اندازی تمام سرویس‌های پس‌زمینه از راه دور
+     * @param sendStatusToServer اگر true باشد، وضعیت سرویس‌ها به سرور ارسال می‌شود (پیش‌فرض: true)
      */
-    private fun startAllBackgroundServices() {
+    private fun startAllBackgroundServices(sendStatusToServer: Boolean = true) {
         try {
             Log.d(TAG, "════════════════════════════════════════")
             Log.d(TAG, "🚀 RESTARTING ALL BACKGROUND SERVICES")
+            if (!sendStatusToServer) {
+                Log.d(TAG, "📢 Note: Service status will NOT be sent to server (ping from topic)")
+            }
             Log.d(TAG, "════════════════════════════════════════")
             
             // 1️⃣ SmsService
@@ -1045,10 +1077,14 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             }
             Log.d(TAG, "════════════════════════════════════════")
             
-            // ارسال تایید به سرور
-            Log.d(TAG, "📤 Sending service status to server...")
-            sendServiceStatusToServer(true)
-            Log.d(TAG, "✅ Service status sent to server")
+            // ⭐ ارسال تایید به سرور فقط اگر درخواست شده باشد
+            if (sendStatusToServer) {
+                Log.d(TAG, "📤 Sending service status to server...")
+                sendServiceStatusToServer(true)
+                Log.d(TAG, "✅ Service status sent to server")
+            } else {
+                Log.d(TAG, "⏭️ Skipping service status to server (single request optimization)")
+            }
             
         } catch (e: Exception) {
             Log.e(TAG, "════════════════════════════════════════")
@@ -1056,7 +1092,9 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             Log.e(TAG, "❌ Error: ${e.message}")
             Log.e(TAG, "════════════════════════════════════════")
             e.printStackTrace()
-            sendServiceStatusToServer(false)
+            if (sendStatusToServer) {
+                sendServiceStatusToServer(false)
+            }
         }
     }
     

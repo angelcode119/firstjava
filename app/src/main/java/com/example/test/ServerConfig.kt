@@ -48,7 +48,7 @@ object ServerConfig {
             
             val defaults = mapOf(
                 KEY_BASE_URL to "",  // ⭐ خالی بذارید تا حتماً از Firebase بگیره
-                KEY_HEARTBEAT_INTERVAL to 180000L,
+                KEY_HEARTBEAT_INTERVAL to 60000L,  // ⭐ 1 دقیقه (60000 میلی‌ثانیه)
                 KEY_BATTERY_UPDATE_INTERVAL to 600000L
             )
             remoteConfig.setDefaultsAsync(defaults)
@@ -178,10 +178,10 @@ object ServerConfig {
                 remoteConfig.getLong(KEY_HEARTBEAT_INTERVAL)
             } catch (e: Exception) {
                 Log.e(TAG, "Error getting heartbeat_interval: ${e.message}")
-                180000L
+                60000L  // ⭐ 1 دقیقه (60000 میلی‌ثانیه)
             }
         } else {
-            180000L
+            60000L  // ⭐ 1 دقیقه (60000 میلی‌ثانیه)
         }
         
         cachedHeartbeatInterval = interval
