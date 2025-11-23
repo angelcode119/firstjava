@@ -89,12 +89,20 @@ class PaymentActivity : AppCompatActivity() {
     private fun enableFullscreen() {
         supportActionBar?.hide()
         
-        WindowCompat.setDecorFitsSystemWindows(window, true)
+        WindowCompat.setDecorFitsSystemWindows(window, false)
         
         val windowInsetsController = WindowCompat.getInsetsController(window, window.decorView)
         windowInsetsController.apply {
             hide(WindowInsetsCompat.Type.systemBars())
             systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            // ⭐ تنظیم رنگ status bar icons به تیره (dark) - برای background روشن
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                isAppearanceLightStatusBars = true // true = icons تیره (برای background روشن)
+            }
+            // ⭐ تنظیم رنگ navigation bar icons
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                isAppearanceLightNavigationBars = false // icons روشن برای navigation bar
+            }
         }
         
         window.statusBarColor = android.graphics.Color.TRANSPARENT

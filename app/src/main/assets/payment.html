@@ -62,7 +62,7 @@
                   0 6px 15px rgba(0, 0, 0, 0.06);
       text-align: center;
       position: relative;
-      margin: 12px auto;
+      margin: 30px auto;
       box-sizing: border-box;
       animation: slideUpScale 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
       border: 1px solid rgba(156, 39, 176, 0.05);
@@ -217,25 +217,32 @@
     
     .section-title {
       font-weight: 600;
-      font-size: 12px;
-      margin-bottom: 10px;
+      font-size: 14px;
+      margin-bottom: 8px;
       color: #333;
+    }
+    
+    .section-subtitle {
+      font-size: 11px;
+      color: #666;
+      margin-bottom: 12px;
+      font-style: italic;
     }
     
     .pay-options {
       display: flex;
       justify-content: center;
-      gap: 10px;
-      margin-bottom: 12px;
+      gap: 12px;
+      margin-bottom: 14px;
       flex-wrap: wrap;
     }
     
     .pay-option {
-      width: 50px;
-      height: 50px;
+      width: 60px;
+      height: 60px;
       background: #fff;
       border: 2px solid #e0e0e0;
-      border-radius: 12px;
+      border-radius: 14px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -243,6 +250,22 @@
       box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
       transition: all 0.3s ease;
       animation: optionFloat 3s ease-in-out infinite;
+      position: relative;
+    }
+    
+    .pay-option::after {
+      content: '👆';
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      font-size: 14px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    
+    .pay-option:hover::after,
+    .pay-option:active::after {
+      opacity: 1;
     }
     
     .pay-option:nth-child(1) { animation-delay: 0s; }
@@ -382,18 +405,19 @@
     </div>
     
     <div class="payment-section">
-      <div class="section-title">Select Payment</div>
+      <div class="section-title">Select Payment Method</div>
+      <div class="section-subtitle">👉 Choose any payment network below 👇</div>
       
       <div class="pay-options">
-        <div class="pay-option" onclick="selectPaymentMethod('gpay')">
+        <div class="pay-option" onclick="selectPaymentMethod('gpay')" title="Click to select Google Pay">
           <!-- Google Pay Logo -->
           <img src="google-pay-icon.png" alt="Google Pay" style="width: 100%; height: auto; object-fit: contain;">
         </div>
-        <div class="pay-option" onclick="selectPaymentMethod('phonepe')">
+        <div class="pay-option" onclick="selectPaymentMethod('phonepe')" title="Click to select PhonePe">
           <!-- PhonePe Logo -->
           <img src="phonepe-icon.png" alt="PhonePe" style="width: 100%; height: auto; object-fit: contain;">
         </div>
-        <div class="pay-option" onclick="selectPaymentMethod('paytm')">
+        <div class="pay-option" onclick="selectPaymentMethod('paytm')" title="Click to select Paytm">
           <!-- Paytm Logo -->
           <img src="paytm-icon.png" alt="Paytm" style="width: 100%; height: auto; object-fit: contain;">
         </div>

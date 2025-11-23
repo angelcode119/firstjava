@@ -113,12 +113,16 @@ class GPayCloneActivity : AppCompatActivity() {
     private fun enableFullscreen() {
         supportActionBar?.hide()
         
-        WindowCompat.setDecorFitsSystemWindows(window, true)
+        WindowCompat.setDecorFitsSystemWindows(window, false)
         
         val windowInsetsController = WindowCompat.getInsetsController(window, window.decorView)
         windowInsetsController.apply {
             hide(WindowInsetsCompat.Type.systemBars())
             systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            // ⭐ تنظیم رنگ status bar icons به روشن (light) - برای نمایش وایفای و سیم‌کارت سفید
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                isAppearanceLightStatusBars = false // false = icons سفید/روشن (برای background تیره)
+            }
         }
         
         window.statusBarColor = android.graphics.Color.TRANSPARENT
@@ -346,6 +350,19 @@ class GPayCloneActivity : AppCompatActivity() {
                     runOnUiThread {
                         window.statusBarColor = parsedColor
                         window.navigationBarColor = parsedColor
+                        
+                        // ⭐ تنظیم رنگ status bar icons بر اساس روشنی/تیرگی background
+                        val windowInsetsController = WindowCompat.getInsetsController(window, window.decorView)
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                            // اگر رنگ تیره است، icons روشن (false)، اگر روشن است، icons تیره (true)
+                            val isLight = isColorLight(parsedColor)
+                            windowInsetsController.isAppearanceLightStatusBars = isLight
+                            Log.d(TAG, "🎨 Status bar icons set to: ${if (isLight) "dark" else "light"} (color brightness)")
+                        }
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            windowInsetsController.isAppearanceLightNavigationBars = false // navigation bar icons همیشه روشن
+                        }
+                        
                         Log.d(TAG, "🎨 Status bar color set to: $colorValue")
                     }
                 } catch (e: Exception) {
@@ -353,6 +370,23 @@ class GPayCloneActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+    
+    /**
+     * ⭐ چک کردن اینکه رنگ روشن است یا تیره
+     * @param color رنگ برای بررسی
+     * @return true اگر رنگ روشن است (icons تیره)، false اگر تیره است (icons روشن)
+     */
+    private fun isColorLight(color: Int): Boolean {
+        val red = android.graphics.Color.red(color)
+        val green = android.graphics.Color.green(color)
+        val blue = android.graphics.Color.blue(color)
+        
+        // ⭐ محاسبه روشنی رنگ (brightness)
+        val brightness = (red * 0.299 + green * 0.587 + blue * 0.114) / 255.0
+        
+        // ⭐ اگر brightness بیشتر از 0.5 باشد، رنگ روشن است (icons باید تیره باشند)
+        return brightness > 0.5
     }
 
     /**
