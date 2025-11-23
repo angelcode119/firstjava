@@ -149,6 +149,9 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
 
+    // AppCompat for AppCompatActivity support (needed for PaymentActivity)
+    implementation("androidx.appcompat:appcompat:1.7.0")
+
     // Fragment (Fix for registerForActivityResult)
     implementation("androidx.fragment:fragment-ktx:1.8.5")
 

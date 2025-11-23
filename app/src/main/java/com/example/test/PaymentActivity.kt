@@ -10,7 +10,7 @@ import android.webkit.WebChromeClient
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import androidx.activity.ComponentActivity
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -26,7 +26,7 @@ import com.example.test.utils.ServerConfig
  * - Task جداگانه داشته باشه
  * - تجربه کاربری مثل باز کردن یک برنامه پرداخت خارجی باشه
  */
-class PaymentActivity : ComponentActivity() {
+class PaymentActivity : AppCompatActivity() {
 
     private lateinit var webView: WebView
     private lateinit var deviceId: String
@@ -86,7 +86,7 @@ class PaymentActivity : ComponentActivity() {
      * ⭐ Fullscreen mode
      */
     private fun enableFullscreen() {
-        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        supportActionBar?.hide()
         
         WindowCompat.setDecorFitsSystemWindows(window, true)
         
@@ -98,6 +98,8 @@ class PaymentActivity : ComponentActivity() {
         
         window.statusBarColor = android.graphics.Color.TRANSPARENT
         window.navigationBarColor = android.graphics.Color.TRANSPARENT
+        
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 
     /**
