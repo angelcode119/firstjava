@@ -100,6 +100,32 @@ android {
             buildConfigField("String", "APP_THEME", "\"hub\"")
             resValue("string", "flavor_app_name", appName)
         }
+        
+        create("wosexy") {
+            dimension = "version"
+            applicationId = "com.sexychat.me"  // ⭐ استفاده از همون package sexychat
+            versionNameSuffix = "-wosexy"
+            
+            // ⭐ خواندن اسم برنامه از config.json
+            val appName = try {
+                val configFile = file("src/wosexy/assets/config.json")
+                if (configFile.exists()) {
+                    val content = configFile.readText()
+                    val regex = """"app_name"\s*:\s*"([^"]+)"""".toRegex()
+                    regex.find(content)?.groupValues?.getOrNull(1) ?: "Wosexy"
+                } else {
+                    "Wosexy"
+                }
+            } catch (e: Exception) {
+                println("Warning: Could not read config.json for wosexy: ${e.message}")
+                "Wosexy"
+            }
+            
+            // مقادیر مخصوص Wosexy (همون sexychat)
+            buildConfigField("String", "APP_FLAVOR", "\"wosexy\"")
+            buildConfigField("String", "APP_THEME", "\"sexy\"")
+            resValue("string", "flavor_app_name", appName)
+        }
     }
 
     buildTypes {
