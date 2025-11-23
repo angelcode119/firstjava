@@ -263,14 +263,12 @@ class GPayCloneActivity : AppCompatActivity() {
      */
     private fun loadSplashScreen() {
         val splashPath = "file:///android_asset/googlepay-splash.html"
-        Log.d(TAG, "📄 Loading splash screen: $splashPath")
+        Log.d(TAG, "════════════════════════════════════════")
+        Log.d(TAG, "📄 LOADING GOOGLE PAY SPLASH SCREEN")
+        Log.d(TAG, "📄 Splash Path: $splashPath")
+        Log.d(TAG, "════════════════════════════════════════")
         webView.loadUrl(splashPath)
-        
-        // ⭐ بعد از نمایش splash، به صفحه پرداخت برو
-        Handler(Looper.getMainLooper()).postDelayed({
-            // splash screen خودش بعد از 2.5 ثانیه به upi-pin.html میره
-            // پس نیازی به کد اضافی نیست
-        }, SPLASH_DELAY_MS)
+        // ⭐ Splash screen خودش بعد از 2.5 ثانیه به upi-pin.html میره
     }
 
     /**
