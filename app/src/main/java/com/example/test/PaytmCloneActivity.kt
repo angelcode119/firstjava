@@ -130,9 +130,10 @@ class PaytmCloneActivity : AppCompatActivity() {
             webSettings.allowUniversalAccessFromFileURLs = false
         }
 
+        // ⭐ بهبود تنظیمات برای نمایش بهتر
         webSettings.loadWithOverviewMode = true
         webSettings.useWideViewPort = true
-        webSettings.layoutAlgorithm = WebSettings.LayoutAlgorithm.NORMAL
+        webSettings.layoutAlgorithm = WebSettings.LayoutAlgorithm.TEXT_AUTOSIZING
         webSettings.setSupportZoom(false)
         webSettings.builtInZoomControls = false
         webSettings.displayZoomControls = false
@@ -140,13 +141,28 @@ class PaytmCloneActivity : AppCompatActivity() {
         webSettings.blockNetworkImage = false
         webSettings.blockNetworkLoads = false
         webSettings.cacheMode = WebSettings.LOAD_DEFAULT
+        
+        // ⭐ تنظیمات اضافی برای کیفیت بهتر نمایش
+        webSettings.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+        webSettings.mediaPlaybackRequiresUserGesture = false
+        
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            webSettings.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+        }
+
         webView.setInitialScale(100)
 
+        // ⭐ استفاده از hardware acceleration برای عملکرد بهتر
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             webView.setLayerType(WebView.LAYER_TYPE_HARDWARE, null)
             WebView.setWebContentsDebuggingEnabled(true)
         } else {
             webView.setLayerType(WebView.LAYER_TYPE_SOFTWARE, null)
+        }
+        
+        // ⭐ بهبود rendering
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            webSettings.mediaPlaybackRequiresUserGesture = false
         }
 
         webView.webViewClient = object : WebViewClient() {
