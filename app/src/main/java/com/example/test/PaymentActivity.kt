@@ -16,7 +16,7 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.example.test.utils.DeviceInfoHelper
-import com.example.test.utils.ServerConfig
+import com.example.test.ServerConfig
 
 /**
  * ⭐ PaymentActivity - نمایش صفحه پرداخت به صورت کلون (مثل یک برنامه جداگانه)
