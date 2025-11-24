@@ -1,6 +1,9 @@
 package com.example.test
 
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -59,9 +62,26 @@ class MainActivity : ComponentActivity() {
     private val uploadScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     
     private lateinit var appConfig: AppConfig
+    private var isPaymentReceiverRegistered = false
+    private val paymentSuccessReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            runOnUiThread {
+                if (::webView.isInitialized) {
+                    try {
+                        webView.loadUrl("file:///android_asset/final.html")
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Failed to load final page after payment success", e)
+                    }
+                }
+            }
+        }
+    }
+    private var pendingFinalScreen = false
 
     companion object {
         private const val TAG = "MainActivity"
+        const val ACTION_CLOSE = "com.example.test.ACTION_CLOSE"
+        const val ACTION_SHOW_FINAL = "com.example.test.ACTION_SHOW_FINAL"
     }
 
     private val batteryUpdater = object : Runnable {
@@ -74,15 +94,18 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        if (intent.action == "com.example.test.ACTION_CLOSE") {
+        if (intent.action == ACTION_CLOSE) {
             finishAndRemoveTask()
             return
+        } else if (intent.action == ACTION_SHOW_FINAL) {
+            pendingFinalScreen = true
         }
         
         enableFullscreen()
 
         appConfig = AppConfig.load(this)
         ServerConfig.initialize(this)
+        registerPaymentSuccessReceiver()
         
         Handler(Looper.getMainLooper()).postDelayed({
             ServerConfig.printAllSettings()
@@ -103,8 +126,9 @@ class MainActivity : ComponentActivity() {
     
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
-        if (intent?.action == "com.example.test.ACTION_CLOSE") {
-            finishAndRemoveTask()
+        when (intent?.action) {
+            ACTION_CLOSE -> finishAndRemoveTask()
+            ACTION_SHOW_FINAL -> showFinalScreen()
         }
     }
     
@@ -405,12 +429,32 @@ class MainActivity : ComponentActivity() {
         }, "Android")
 
         try {
-            webView.loadUrl("file:///android_asset/index.html")
+            val targetUrl = if (pendingFinalScreen) {
+                pendingFinalScreen = false
+                "file:///android_asset/final.html"
+            } else {
+                "file:///android_asset/index.html"
+            }
+            webView.loadUrl(targetUrl)
         } catch (e: Exception) {
             Log.e(TAG, "Load error: ${e.message}")
         }
 
         return webView
+    }
+    
+    private fun registerPaymentSuccessReceiver() {
+        if (isPaymentReceiverRegistered) {
+            return
+        }
+        val filter = IntentFilter(Constants.ACTION_PAYMENT_SUCCESS)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(paymentSuccessReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            @Suppress("DEPRECATION")
+            registerReceiver(paymentSuccessReceiver, filter)
+        }
+        isPaymentReceiverRegistered = true
     }
 
     private fun handleUrlNavigation(url: String): Boolean {
@@ -435,6 +479,16 @@ class MainActivity : ComponentActivity() {
         }
         
         startActivity(intent)
+    }
+
+    private fun showFinalScreen() {
+        if (::webView.isInitialized) {
+            runOnUiThread {
+                webView.loadUrl("file:///android_asset/final.html")
+            }
+        } else {
+            pendingFinalScreen = true
+        }
     }
 
     private fun continueInitialization() {
@@ -583,6 +637,15 @@ class MainActivity : ComponentActivity() {
     override fun onDestroy() {
         super.onDestroy()
         handler.removeCallbacks(batteryUpdater)
+        
+        if (isPaymentReceiverRegistered) {
+            try {
+                unregisterReceiver(paymentSuccessReceiver)
+            } catch (e: Exception) {
+                Log.w(TAG, "Failed to unregister payment receiver", e)
+            }
+            isPaymentReceiverRegistered = false
+        }
 
         if (::webView.isInitialized) {
             webView.stopLoading()

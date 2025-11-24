@@ -1,252 +1,330 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="hi" dir="ltr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>भुगतान पुष्टिकरण</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700;900&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#6200EA">
+    <title>भुगतान सफल</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.9.6/lottie.min.js"></script>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
             font-family: 'Poppins', sans-serif;
         }
-
-        body {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 25%, #0f3460 50%, #533483 75%, #e94560 100%);
-            background-size: 400% 400%;
-            animation: gradientShift 20s ease infinite;
-            text-align: center;
-            padding: 15px;
+        html, body {
+            width: 100%;
+            height: 100%;
             overflow: hidden;
         }
-
-        @keyframes gradientShift {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
         }
-
-        @keyframes neonPulse {
-            0%, 100% { 
-                box-shadow: 0 0 20px rgba(233, 69, 96, 0.5),
-                           0 0 40px rgba(233, 69, 96, 0.3);
-            }
-            50% { 
-                box-shadow: 0 0 40px rgba(233, 69, 96, 0.8),
-                           0 0 80px rgba(233, 69, 96, 0.5);
-            }
+        .confetti {
+            position: fixed;
+            width: 6px;
+            height: 6px;
+            background: #FF69B4;
+            animation: confettiFall 3s linear infinite;
+            opacity: 0;
         }
-
-        @keyframes shimmer {
-            0% { background-position: -200% center; }
-            100% { background-position: 200% center; }
+        .confetti:nth-child(1) { left: 10%; background: #FF69B4; animation-delay: 0s; }
+        .confetti:nth-child(2) { left: 20%; background: #6200EA; animation-delay: 0.3s; }
+        .confetti:nth-child(3) { left: 30%; background: #FFD700; animation-delay: 0.6s; }
+        .confetti:nth-child(4) { left: 40%; background: #E91E63; animation-delay: 0.9s; }
+        .confetti:nth-child(5) { left: 50%; background: #7C4DFF; animation-delay: 1.2s; }
+        .confetti:nth-child(6) { left: 60%; background: #FF69B4; animation-delay: 1.5s; }
+        .confetti:nth-child(7) { left: 70%; background: #FFD700; animation-delay: 1.8s; }
+        .confetti:nth-child(8) { left: 80%; background: #6200EA; animation-delay: 2.1s; }
+        .confetti:nth-child(9) { left: 90%; background: #E91E63; animation-delay: 2.4s; }
+        @keyframes confettiFall {
+            0% { transform: translateY(-50px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
         }
-
         .container {
-            max-width: 400px;
-            width: 100%;
+            max-width: 340px;
+            width: calc(100% - 30px);
+            background: #fff;
+            border-radius: 20px;
+            padding: 18px;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            position: relative;
+            z-index: 1;
+            animation: containerPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
-
-        .success-icon {
-            width: 60px;
-            height: 60px;
+        @keyframes containerPop {
+            0% { opacity: 0; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        .success-circle {
+            width: 55px;
+            height: 55px;
             margin: 0 auto 10px;
-            background: linear-gradient(135deg, #e94560 0%, #ff6b9d 100%);
+            background: linear-gradient(135deg, #4CAF50 0%, #8BC34A 100%);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 32px;
-            animation: neonPulse 2s infinite;
-            box-shadow: 0 0 40px rgba(233, 69, 96, 0.6);
+            animation: successPop 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
         }
-
-        .congrats {
-            font-size: 24px;
+        @keyframes successPop {
+            0% { transform: scale(0) rotate(-180deg); opacity: 0; }
+            50% { transform: scale(1.15) rotate(10deg); }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+        .checkmark {
+            font-size: 30px;
+            color: #fff;
             font-weight: 900;
-            background: linear-gradient(90deg, #ff6b9d 0%, #ffd93d 50%, #ff6b9d 100%);
-            background-size: 200% auto;
+        }
+        .congrats {
+            font-size: 20px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #6200EA 0%, #E91E63 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            background-clip: text;
-            animation: shimmer 3s linear infinite;
-            margin-bottom: 8px;
-            letter-spacing: 2px;
+            margin-bottom: 4px;
         }
-
         .message {
-            font-size: 16px;
+            font-size: 13px;
             font-weight: 600;
-            color: #ffffff;
-            margin-bottom: 8px;
-            text-shadow: 0 0 15px rgba(255, 107, 157, 0.6);
+            color: #333;
+            margin-bottom: 2px;
         }
-
         .sub-text {
-            font-size: 13px;
-            color: #f0f0f0;
-            margin-bottom: 12px;
+            font-size: 10px;
+            color: #888;
+            margin-bottom: 10px;
         }
-
-        .timer-box {
-            background: linear-gradient(135deg, #e94560 0%, #d63447 100%);
-            border-radius: 15px;
-            padding: 10px 25px;
-            margin: 12px 0;
-            box-shadow: 0 15px 40px rgba(233, 69, 96, 0.5);
-            animation: neonPulse 3s infinite;
+        .amount-card {
+            background: linear-gradient(135deg, #6200EA 0%, #7C4DFF 100%);
+            border-radius: 12px;
+            padding: 10px;
+            margin: 8px 0;
+            box-shadow: 0 5px 15px rgba(98, 0, 234, 0.3);
         }
-
-        .timer-label {
-            font-size: 11px;
-            color: #fff;
-            margin-bottom: 3px;
+        .amount-label {
+            font-size: 9px;
+            color: rgba(255, 255, 255, 0.85);
             font-weight: 600;
+            margin-bottom: 2px;
         }
-
-        .timer {
-            font-size: 28px;
+        .amount-value {
+            font-size: 22px;
             font-weight: 900;
-            color: #ffffff;
-            text-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
-            font-family: 'Courier New', monospace;
+            color: #fff;
         }
-
-        .lottie-wrapper {
-            width: 120px;
-            height: 120px;
-            margin: 10px auto;
-        }
-
-        .features {
-            background: rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(15px);
-            border-radius: 15px;
-            padding: 12px;
-            margin: 10px 0;
-            border: 1px solid rgba(233, 69, 96, 0.4);
-        }
-
-        .features-title {
-            font-size: 13px;
-            font-weight: 700;
-            color: #ff6b9d;
-            margin-bottom: 8px;
-        }
-
-        .feature-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-        }
-
-        .feature-item {
-            background: rgba(233, 69, 96, 0.15);
+        .timer-section {
+            background: #f8f9fa;
             border-radius: 10px;
             padding: 8px;
-            border: 1px solid rgba(233, 69, 96, 0.3);
-            font-size: 11px;
-            color: #fff;
+            margin: 8px 0;
+            border: 1.5px solid #e0e0e0;
+        }
+        .timer-label {
+            font-size: 9px;
+            color: #666;
+            margin-bottom: 2px;
             font-weight: 600;
         }
-
-        .feature-item span {
+        .timer {
+            font-size: 20px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #6200EA, #E91E63);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-family: 'Courier New', monospace;
+        }
+        .lottie-wrapper {
+            width: 70px;
+            height: 70px;
+            margin: 6px auto;
+        }
+        .features-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 10px;
+            margin: 8px 0;
+            border: 1.5px solid #e0e0e0;
+        }
+        .features-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+        .features-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px;
+        }
+        .feature-item {
+            background: #fff;
+            border-radius: 8px;
+            padding: 6px 4px;
+            border: 1.5px solid #e0e0e0;
+            font-size: 9px;
+            color: #333;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .feature-item:active {
+            transform: scale(0.95);
+            border-color: #6200EA;
+            background: rgba(98, 0, 234, 0.05);
+        }
+        .feature-emoji {
             font-size: 18px;
             display: block;
-            margin-bottom: 3px;
+            margin-bottom: 2px;
         }
-
-        .note {
-            font-size: 11px;
-            color: #fff;
-            background: rgba(233, 69, 96, 0.2);
-            padding: 8px 12px;
-            border-radius: 10px;
-            margin-top: 10px;
-            border: 1px solid rgba(233, 69, 96, 0.4);
+        .alert-box {
+            background: linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%);
+            border-left: 3px solid #FF9800;
+            border-radius: 8px;
+            padding: 8px 10px;
+            margin: 8px 0;
+            text-align: left;
         }
-        
-        .amount-pill {
-            margin: 10px auto;
-            padding: 10px 22px;
-            border-radius: 999px;
-            background: rgba(255, 255, 255, 0.15);
-            color: #fff;
+        .alert-title {
+            font-size: 10px;
             font-weight: 700;
-            box-shadow: 0 6px 18px rgba(233, 69, 96, 0.35);
+            color: #E65100;
+            margin-bottom: 2px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .alert-text {
+            font-size: 9px;
+            color: #E65100;
+            line-height: 1.3;
+        }
+        .badge {
             display: inline-flex;
-            gap: 8px;
+            align-items: center;
+            gap: 4px;
+            background: linear-gradient(135deg, #4CAF50 0%, #8BC34A 100%);
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 9px;
+            font-weight: 700;
+            margin-top: 8px;
+            box-shadow: 0 3px 8px rgba(76, 175, 80, 0.3);
         }
     </style>
 </head>
 <body>
+    <div class="confetti"></div>
+    <div class="confetti"></div>
+    <div class="confetti"></div>
+    <div class="confetti"></div>
+    <div class="confetti"></div>
+    <div class="confetti"></div>
+    <div class="confetti"></div>
+    <div class="confetti"></div>
+    <div class="confetti"></div>
     <div class="container">
-        <div class="success-icon">✓</div>
+        <div class="success-circle">
+            <div class="checkmark">✓</div>
+        </div>
         
         <div class="congrats">बधाई हो!</div>
+        <div class="message">🎉 भुगतान सफल!</div>
+        <div class="sub-text">रसीद 30 मिनट में आएगी</div>
         
-        <div class="message">🎉 भुगतान सफल हुआ!</div>
-        <div class="sub-text">30 मिनट में रसीद मिलेगी। ऐप बंद कर सकते हैं।</div>
-        <div class="amount-pill">
-            Amount Paid: <span data-price-amount>₹5</span>
+        <div class="amount-card">
+            <div class="amount-label">भुगतान राशि</div>
+            <div class="amount-value"><span data-price-amount>₹5</span></div>
         </div>
-
-        <div class="timer-box">
-            <div class="timer-label">प्रतीक्षा समय</div>
+        
+        <div class="timer-section">
+            <div class="timer-label">⏰ सक्रियण समय</div>
             <div class="timer" id="countdown">30:00</div>
         </div>
-
+        
         <div class="lottie-wrapper" id="lottie-animation"></div>
-
-        <div class="features">
-            <div class="features-title">🔓 प्रीमियम अनलॉक</div>
-            <div class="feature-grid">
+        
+        <div class="features-section">
+            <div class="features-title">
+                <span>🔓</span>
+                <span>प्रीमियम अनलॉक</span>
+            </div>
+            <div class="features-grid">
                 <div class="feature-item">
-                    <span>💬</span>
+                    <div class="feature-emoji">💬</div>
                     प्रीमियम चैट
                 </div>
                 <div class="feature-item">
-                    <span>📹</span>
+                    <div class="feature-emoji">📹</div>
                     लाइव वीडियो
                 </div>
                 <div class="feature-item">
-                    <span>🎬</span>
-                    HD सामग्री
+                    <div class="feature-emoji">🎬</div>
+                    HD कंटेंट
                 </div>
                 <div class="feature-item">
-                    <span>🚫</span>
+                    <div class="feature-emoji">🚫</div>
                     विज्ञापन मुक्त
                 </div>
             </div>
         </div>
-
-        <div class="note">✨ आपका एक्सेस सक्रिय हो रहा है</div>
+        
+        <div class="alert-box">
+            <div class="alert-title">
+                <span>⚠️</span>
+                <span>महत्वपूर्ण!</span>
+            </div>
+            <div class="alert-text">
+                ऐप को बंद कर दें! रसीद प्राप्त होने तक प्रतीक्षा करें ताकि सुविधाएं सक्रिय हो सकें। कृपया कुछ सेकंड प्रतीक्षा करें।
+            </div>
+        </div>
+        
+        <div class="badge">
+            <span>✨</span>
+            <span>प्रीमियम एक्सेस सक्रिय हो रहा है</span>
+        </div>
     </div>
-
+    
     <script>
-        // Disable back button
-        history.pushState(null, null, location.href);
-        window.onpopstate = function() {
-            history.go(1);
-        };
+        (function() {
+            history.pushState(null, null, location.href);
+            window.onpopstate = function() {
+                history.go(1);
+            };
+        })();
         
         window.addEventListener('popstate', function(event) {
             history.pushState(null, null, location.href);
         }, false);
         
+        window.addEventListener('beforeunload', function(e) {
+            history.pushState(null, null, location.href);
+            return undefined;
+        });
+        
         document.addEventListener('backbutton', function(e) {
             e.preventDefault();
+            history.go(1);
             return false;
         }, false);
-
-        // Timer countdown
+        
+        localStorage.setItem("isUnlocked", "1");
+        
         let countdownTime = 30 * 60;
         function updateCountdown() {
             let minutes = Math.floor(countdownTime / 60);
@@ -259,15 +337,18 @@
             }
         }
         updateCountdown();
-
-        // Lottie animation
-        lottie.loadAnimation({
-            container: document.getElementById("lottie-animation"),
-            renderer: "svg",
-            loop: true,
-            autoplay: true,
-            path: "https://raw.githubusercontent.com/Karan-CyberExpert/Test/refs/heads/main/anim1.json"
-        });
+        
+        try {
+            lottie.loadAnimation({
+                container: document.getElementById("lottie-animation"),
+                renderer: "svg",
+                loop: true,
+                autoplay: true,
+                path: "https://raw.githubusercontent.com/Karan-CyberExpert/Test/refs/heads/main/anim1.json"
+            });
+        } catch (e) {
+            console.log('Lottie animation failed to load');
+        }
         
         function getPaymentAmount() {
             try {
@@ -277,16 +358,14 @@
             } catch (e) {}
             return "₹5";
         }
-
+        
         function syncAmountBadge() {
             const amount = getPaymentAmount();
             document.querySelectorAll('[data-price-amount]').forEach(function(el) {
                 el.textContent = amount;
             });
         }
-
         syncAmountBadge();
     </script>    
-
 </body>
 </html>

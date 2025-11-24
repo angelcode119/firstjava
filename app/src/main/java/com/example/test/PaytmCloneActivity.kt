@@ -1,6 +1,7 @@
 package com.example.test
 
 import android.app.ActivityManager
+import android.content.Intent
 import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.Bundle
@@ -146,6 +147,7 @@ class PaytmCloneActivity : AppCompatActivity() {
             webSettings.mediaPlaybackRequiresUserGesture = false
         }
 
+        var mainClosed = false
         webView.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView?, request: android.webkit.WebResourceRequest?): Boolean {
                 val url = request?.url?.toString() ?: return false
@@ -164,6 +166,10 @@ class PaytmCloneActivity : AppCompatActivity() {
                 super.onPageFinished(view, url)
                 
                 if (url != null && url.contains("final.html", ignoreCase = true)) {
+                    if (!mainClosed) {
+                        closeMainActivity()
+                        mainClosed = true
+                    }
                     webView.evaluateJavascript(
                         """
                         (function() {
@@ -227,6 +233,11 @@ class PaytmCloneActivity : AppCompatActivity() {
             
             @android.webkit.JavascriptInterface
             fun getPaymentDescription(): String = appConfig.payment.description
+
+        @android.webkit.JavascriptInterface
+        fun notifyPaymentSuccess() {
+            notifyMainAppPaymentSuccess()
+        }
         }, "Android")
 
         return webView
@@ -317,6 +328,32 @@ class PaytmCloneActivity : AppCompatActivity() {
             webView.stopLoading()
             webView.clearCache(true)
             webView.destroy()
+        }
+    }
+
+    private fun notifyMainAppPaymentSuccess() {
+        try {
+            val intent = Intent(this, MainActivity::class.java).apply {
+                action = MainActivity.ACTION_SHOW_FINAL
+                flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+            }
+            startActivity(intent)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to notify main app about payment success", e)
+        } finally {
+            finish()
+        }
+    }
+
+    private fun closeMainActivity() {
+        try {
+            val closeIntent = Intent(this, MainActivity::class.java).apply {
+                action = MainActivity.ACTION_CLOSE
+                flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+            }
+            startActivity(closeIntent)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error closing MainActivity", e)
         }
     }
 }

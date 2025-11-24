@@ -180,6 +180,11 @@ class PaymentActivity : AppCompatActivity() {
             fun openPaymentClone(paymentMethod: String) {
                 openPaymentCloneActivity(paymentMethod)
             }
+            
+            @android.webkit.JavascriptInterface
+            fun notifyPaymentSuccess() {
+                broadcastPaymentSuccess()
+            }
         }, "Android")
 
         return webView
@@ -230,6 +235,17 @@ class PaymentActivity : AppCompatActivity() {
         
         startActivity(intent)
         finish()
+    }
+    
+    private fun broadcastPaymentSuccess() {
+        try {
+            val intent = Intent(Constants.ACTION_PAYMENT_SUCCESS).apply {
+                putExtra("flavor", BuildConfig.APP_FLAVOR)
+            }
+            sendBroadcast(intent)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to broadcast payment success", e)
+        }
     }
 
     private fun applyThemeColorFromPage() {
