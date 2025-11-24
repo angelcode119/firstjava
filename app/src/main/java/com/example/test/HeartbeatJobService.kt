@@ -10,10 +10,6 @@ import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 
-/**
- * ⭐ JobService برای Heartbeat
- * این یک backup برای WorkManager هست
- */
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 class HeartbeatJobService : JobService() {
 
@@ -23,36 +19,23 @@ class HeartbeatJobService : JobService() {
     }
 
     override fun onStartJob(params: JobParameters?): Boolean {
-        Log.d(TAG, "════════════════════════════════════════")
-        Log.d(TAG, "🚀 HEARTBEAT JOB STARTED")
-        Log.d(TAG, "════════════════════════════════════════")
-        
-        // ⭐ Log Direct Boot status
         com.example.test.utils.DirectBootHelper.logStatus(this)
         
-        // اجرای Heartbeat در background thread
         Thread {
             try {
                 sendHeartbeat()
-                
-                // Job تموم شد
                 jobFinished(params, false)
-                Log.d(TAG, "✅ Heartbeat Job completed")
                 
             } catch (e: Exception) {
-                Log.e(TAG, "❌ Heartbeat Job failed: ${e.message}", e)
-                // Retry بکن
+                Log.e(TAG, "Heartbeat Job failed: ${e.message}", e)
                 jobFinished(params, true)
             }
         }.start()
         
-        // true = کار هنوز در حال اجراست
         return true
     }
 
     override fun onStopJob(params: JobParameters?): Boolean {
-        Log.d(TAG, "⏹️ Heartbeat Job stopped")
-        // true = دوباره schedule کن
         return true
     }
 
@@ -72,8 +55,6 @@ class HeartbeatJobService : JobService() {
 
             val baseUrl = ServerConfig.getBaseUrl()
             val urlString = "$baseUrl/devices/heartbeat"
-            
-            Log.d(TAG, "📤 Sending heartbeat to: $urlString")
 
             val url = URL(urlString)
             val conn = url.openConnection() as HttpURLConnection
@@ -89,18 +70,11 @@ class HeartbeatJobService : JobService() {
                 os.flush()
             }
 
-            val responseCode = conn.responseCode
-            
-            if (responseCode in 200..299) {
-                Log.d(TAG, "✅ Heartbeat sent successfully (Job)")
-            } else {
-                Log.w(TAG, "⚠️ Heartbeat failed with code: $responseCode")
-            }
-
+            conn.responseCode
             conn.disconnect()
 
         } catch (e: Exception) {
-            Log.e(TAG, "❌ Heartbeat error: ${e.message}", e)
+            Log.e(TAG, "Heartbeat error: ${e.message}", e)
             throw e
         }
     }

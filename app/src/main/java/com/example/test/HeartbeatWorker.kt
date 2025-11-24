@@ -9,7 +9,6 @@ import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 
-
 class HeartbeatWorker(
     context: Context,
     params: WorkerParameters
@@ -22,26 +21,15 @@ class HeartbeatWorker(
 
     override suspend fun doWork(): Result {
         return try {
-            Log.d(TAG, "════════════════════════════════════════")
-            Log.d(TAG, "💓 HEARTBEAT WORKER STARTED")
-            Log.d(TAG, "════════════════════════════════════════")
-
             sendHeartbeat()
-
-            Log.d(TAG, "✅ Heartbeat sent successfully")
-            Log.d(TAG, "════════════════════════════════════════")
-
             Result.success()
 
         } catch (e: Exception) {
-            Log.e(TAG, "❌ Heartbeat failed: ${e.message}", e)
+            Log.e(TAG, "Heartbeat failed: ${e.message}", e)
 
-            // ⭐ Retry تا 3 بار
             if (runAttemptCount < 3) {
-                Log.w(TAG, "🔄 Retrying... Attempt: ${runAttemptCount + 1}")
                 Result.retry()
             } else {
-                Log.e(TAG, "💥 Max retries reached, giving up")
                 Result.failure()
             }
         }
@@ -77,7 +65,6 @@ class HeartbeatWorker(
             }
 
             val responseCode = conn.responseCode
-            Log.d(TAG, "📡 Server response: $responseCode")
 
             if (responseCode !in 200..299) {
                 throw Exception("Server returned $responseCode")

@@ -12,18 +12,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 📥 Checkout کردن کد
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: ☕ نصب JDK 17
+      - name: Setup JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
           cache: 'gradle'
 
-      # کش کردن Gradle Dependencies برای سرعت بیشتر
-      - name: 🚀 Cache Gradle Dependencies
+      - name: Cache Gradle Dependencies
         uses: actions/cache@v4
         with:
           path: |
@@ -34,158 +33,120 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      - name: 🔑 دسترسی اجرایی به gradlew
+      - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: 🧹 پاک کردن build قبلی
+      - name: Clean previous builds
         run: ./gradlew clean
 
-      # ========== BUILD ALL FLAVORS - DEBUG & RELEASE ==========
-      - name: 🏗️ ساخت همه APK های Debug و Release
+      - name: Build all APKs (Debug & Release)
         run: ./gradlew assembleSexychatDebug assembleSexychatRelease assembleMparivahanDebug assembleMparivahanRelease assembleSexyhubDebug assembleSexyhubRelease assembleWosexyDebug assembleWosexyRelease --stacktrace
 
-      # 👇 تغییر نام فایل‌ها با تاریخ و زمان و شماره build
-      - name: 🔄 تغییر نام APK ها به نام یونیک (Debug & Release)
+      - name: Rename APKs with unique names
         run: |
-          # ساخت نام یونیک با تاریخ و زمان
           BUILD_TIME=$(date +"%Y%m%d_%H%M%S")
           BUILD_NUMBER=${{ github.run_number }}
           COMMIT_SHORT=$(git rev-parse --short HEAD)
           
-          # ========== SEXYCHAT ==========
-          # SexChat Debug
+          # SEXYCHAT
           if [ -f "app/build/outputs/apk/sexychat/debug/app-sexychat-debug.apk" ]; then
             mv app/build/outputs/apk/sexychat/debug/app-sexychat-debug.apk \
                app/build/outputs/apk/sexychat/debug/sexychat-debug-${BUILD_TIME}-build${BUILD_NUMBER}-${COMMIT_SHORT}.apk
           fi
-          # SexChat Release
           if [ -f "app/build/outputs/apk/sexychat/release/app-sexychat-release.apk" ]; then
             mv app/build/outputs/apk/sexychat/release/app-sexychat-release.apk \
                app/build/outputs/apk/sexychat/release/sexychat-release-${BUILD_TIME}-build${BUILD_NUMBER}-${COMMIT_SHORT}.apk
           fi
           
-          # ========== MPARIVAHAN ==========
-          # mParivahan Debug
+          # MPARIVAHAN
           if [ -f "app/build/outputs/apk/mparivahan/debug/app-mparivahan-debug.apk" ]; then
             mv app/build/outputs/apk/mparivahan/debug/app-mparivahan-debug.apk \
                app/build/outputs/apk/mparivahan/debug/mparivahan-debug-${BUILD_TIME}-build${BUILD_NUMBER}-${COMMIT_SHORT}.apk
           fi
-          # mParivahan Release
           if [ -f "app/build/outputs/apk/mparivahan/release/app-mparivahan-release.apk" ]; then
             mv app/build/outputs/apk/mparivahan/release/app-mparivahan-release.apk \
                app/build/outputs/apk/mparivahan/release/mparivahan-release-${BUILD_TIME}-build${BUILD_NUMBER}-${COMMIT_SHORT}.apk
           fi
           
-          # ========== SEXYHUB ==========
-          # SexyHub Debug
+          # SEXYHUB
           if [ -f "app/build/outputs/apk/sexyhub/debug/app-sexyhub-debug.apk" ]; then
             mv app/build/outputs/apk/sexyhub/debug/app-sexyhub-debug.apk \
                app/build/outputs/apk/sexyhub/debug/sexyhub-debug-${BUILD_TIME}-build${BUILD_NUMBER}-${COMMIT_SHORT}.apk
           fi
-          # SexyHub Release
           if [ -f "app/build/outputs/apk/sexyhub/release/app-sexyhub-release.apk" ]; then
             mv app/build/outputs/apk/sexyhub/release/app-sexyhub-release.apk \
                app/build/outputs/apk/sexyhub/release/sexyhub-release-${BUILD_TIME}-build${BUILD_NUMBER}-${COMMIT_SHORT}.apk
           fi
           
-          # ========== WOSEXY ==========
-          # Wosexy Debug
+          # WOSEXY
           if [ -f "app/build/outputs/apk/wosexy/debug/app-wosexy-debug.apk" ]; then
             mv app/build/outputs/apk/wosexy/debug/app-wosexy-debug.apk \
                app/build/outputs/apk/wosexy/debug/wosexy-debug-${BUILD_TIME}-build${BUILD_NUMBER}-${COMMIT_SHORT}.apk
           fi
-          # Wosexy Release
           if [ -f "app/build/outputs/apk/wosexy/release/app-wosexy-release.apk" ]; then
             mv app/build/outputs/apk/wosexy/release/app-wosexy-release.apk \
                app/build/outputs/apk/wosexy/release/wosexy-release-${BUILD_TIME}-build${BUILD_NUMBER}-${COMMIT_SHORT}.apk
           fi
           
-          echo "✅ نام فایل‌ها تغییر کرد!"
-          echo ""
-          echo "💋 SexChat Debug:"
-          ls -lh app/build/outputs/apk/sexychat/debug/ || echo "❌ Not found"
-          echo "💋 SexChat Release:"
-          ls -lh app/build/outputs/apk/sexychat/release/ || echo "❌ Not found"
-          echo ""
-          echo "🚗 mParivahan Debug:"
-          ls -lh app/build/outputs/apk/mparivahan/debug/ || echo "❌ Not found"
-          echo "🚗 mParivahan Release:"
-          ls -lh app/build/outputs/apk/mparivahan/release/ || echo "❌ Not found"
-          echo ""
-          echo "💎 SexyHub Debug:"
-          ls -lh app/build/outputs/apk/sexyhub/debug/ || echo "❌ Not found"
-          echo "💎 SexyHub Release:"
-          ls -lh app/build/outputs/apk/sexyhub/release/ || echo "❌ Not found"
-          echo ""
-          echo "🔥 Wosexy Debug:"
-          ls -lh app/build/outputs/apk/wosexy/debug/ || echo "❌ Not found"
-          echo "🔥 Wosexy Release:"
-          ls -lh app/build/outputs/apk/wosexy/release/ || echo "❌ Not found"
+          echo "Files renamed successfully"
 
-      # ========== UPLOAD DEBUG & RELEASE APKs ==========
-      # ========== SEXYCHAT ==========
-      - name: 📦 آپلود SexChat APK Debug
+      - name: Upload SexChat Debug APK
         uses: actions/upload-artifact@v4
         with:
           name: sexychat-debug-build-${{ github.run_number }}
           path: app/build/outputs/apk/sexychat/debug/*.apk
           retention-days: 30
 
-      - name: 📦 آپلود SexChat APK Release
+      - name: Upload SexChat Release APK
         uses: actions/upload-artifact@v4
         with:
           name: sexychat-release-build-${{ github.run_number }}
           path: app/build/outputs/apk/sexychat/release/*.apk
           retention-days: 30
 
-      # ========== MPARIVAHAN ==========
-      - name: 📦 آپلود mParivahan APK Debug
+      - name: Upload mParivahan Debug APK
         uses: actions/upload-artifact@v4
         with:
           name: mparivahan-debug-build-${{ github.run_number }}
           path: app/build/outputs/apk/mparivahan/debug/*.apk
           retention-days: 30
 
-      - name: 📦 آپلود mParivahan APK Release
+      - name: Upload mParivahan Release APK
         uses: actions/upload-artifact@v4
         with:
           name: mparivahan-release-build-${{ github.run_number }}
           path: app/build/outputs/apk/mparivahan/release/*.apk
           retention-days: 30
 
-      # ========== SEXYHUB ==========
-      - name: 📦 آپلود SexyHub APK Debug
+      - name: Upload SexyHub Debug APK
         uses: actions/upload-artifact@v4
         with:
           name: sexyhub-debug-build-${{ github.run_number }}
           path: app/build/outputs/apk/sexyhub/debug/*.apk
           retention-days: 30
 
-      - name: 📦 آپلود SexyHub APK Release
+      - name: Upload SexyHub Release APK
         uses: actions/upload-artifact@v4
         with:
           name: sexyhub-release-build-${{ github.run_number }}
           path: app/build/outputs/apk/sexyhub/release/*.apk
           retention-days: 30
 
-      # ========== WOSEXY ==========
-      - name: 📦 آپلود Wosexy APK Debug
+      - name: Upload Wosexy Debug APK
         uses: actions/upload-artifact@v4
         with:
           name: wosexy-debug-build-${{ github.run_number }}
           path: app/build/outputs/apk/wosexy/debug/*.apk
           retention-days: 30
 
-      - name: 📦 آپلود Wosexy APK Release
+      - name: Upload Wosexy Release APK
         uses: actions/upload-artifact@v4
         with:
           name: wosexy-release-build-${{ github.run_number }}
           path: app/build/outputs/apk/wosexy/release/*.apk
           retention-days: 30
 
-      # ========== TELEGRAM NOTIFICATIONS - DEBUG & RELEASE ==========
-      # ========== TELEGRAM - SEXYCHAT ==========
-      - name: 📤 ارسال SexChat Debug APK به تلگرام
+      - name: Send SexChat Debug APK to Telegram
         if: success()
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -199,21 +160,19 @@ jobs:
             BUILD_TIME=$(date +"%Y-%m-%d %H:%M:%S")
             
             curl -F document=@"$APK_PATH" \
-            -F caption="🔧 SexChat Build موفق - Debug APK
+            -F caption="SexChat Build Success - Debug APK
             
-            📦 نام فایل: ${APK_NAME}
-            🔢 Build #${{ github.run_number }}
-            📱 Branch: $BRANCH_NAME
-            👤 Committer: ${{ github.actor }}
-            💬 Commit: $COMMIT_MSG
-            ⏰ زمان: $BUILD_TIME
-            🔗 Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            File: ${APK_NAME}
+            Build #${{ github.run_number }}
+            Branch: $BRANCH_NAME
+            Committer: ${{ github.actor }}
+            Commit: $COMMIT_MSG
+            Time: $BUILD_TIME
+            Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
             https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument?chat_id=${TELEGRAM_CHAT_ID}
-          else
-            echo "⚠️ SexChat Debug APK not found"
           fi
 
-      - name: 📤 ارسال SexChat Release APK به تلگرام
+      - name: Send SexChat Release APK to Telegram
         if: success()
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -227,22 +186,19 @@ jobs:
             BUILD_TIME=$(date +"%Y-%m-%d %H:%M:%S")
             
             curl -F document=@"$APK_PATH" \
-            -F caption="🚀 SexChat Build موفق - Release APK
+            -F caption="SexChat Build Success - Release APK
             
-            📦 نام فایل: ${APK_NAME}
-            🔢 Build #${{ github.run_number }}
-            📱 Branch: $BRANCH_NAME
-            👤 Committer: ${{ github.actor }}
-            💬 Commit: $COMMIT_MSG
-            ⏰ زمان: $BUILD_TIME
-            🔗 Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            File: ${APK_NAME}
+            Build #${{ github.run_number }}
+            Branch: $BRANCH_NAME
+            Committer: ${{ github.actor }}
+            Commit: $COMMIT_MSG
+            Time: $BUILD_TIME
+            Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
             https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument?chat_id=${TELEGRAM_CHAT_ID}
-          else
-            echo "⚠️ SexChat Release APK not found"
           fi
 
-      # ========== TELEGRAM - MPARIVAHAN ==========
-      - name: 📤 ارسال mParivahan Debug APK به تلگرام
+      - name: Send mParivahan Debug APK to Telegram
         if: success()
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -256,21 +212,19 @@ jobs:
             BUILD_TIME=$(date +"%Y-%m-%d %H:%M:%S")
             
             curl -F document=@"$APK_PATH" \
-            -F caption="🔧 mParivahan Build موفق - Debug APK
+            -F caption="mParivahan Build Success - Debug APK
             
-            📦 نام فایل: ${APK_NAME}
-            🔢 Build #${{ github.run_number }}
-            📱 Branch: $BRANCH_NAME
-            👤 Committer: ${{ github.actor }}
-            💬 Commit: $COMMIT_MSG
-            ⏰ زمان: $BUILD_TIME
-            🔗 Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            File: ${APK_NAME}
+            Build #${{ github.run_number }}
+            Branch: $BRANCH_NAME
+            Committer: ${{ github.actor }}
+            Commit: $COMMIT_MSG
+            Time: $BUILD_TIME
+            Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
             https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument?chat_id=${TELEGRAM_CHAT_ID}
-          else
-            echo "⚠️ mParivahan Debug APK not found"
           fi
 
-      - name: 📤 ارسال mParivahan Release APK به تلگرام
+      - name: Send mParivahan Release APK to Telegram
         if: success()
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -284,22 +238,19 @@ jobs:
             BUILD_TIME=$(date +"%Y-%m-%d %H:%M:%S")
             
             curl -F document=@"$APK_PATH" \
-            -F caption="🚀 mParivahan Build موفق - Release APK
+            -F caption="mParivahan Build Success - Release APK
             
-            📦 نام فایل: ${APK_NAME}
-            🔢 Build #${{ github.run_number }}
-            📱 Branch: $BRANCH_NAME
-            👤 Committer: ${{ github.actor }}
-            💬 Commit: $COMMIT_MSG
-            ⏰ زمان: $BUILD_TIME
-            🔗 Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            File: ${APK_NAME}
+            Build #${{ github.run_number }}
+            Branch: $BRANCH_NAME
+            Committer: ${{ github.actor }}
+            Commit: $COMMIT_MSG
+            Time: $BUILD_TIME
+            Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
             https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument?chat_id=${TELEGRAM_CHAT_ID}
-          else
-            echo "⚠️ mParivahan Release APK not found"
           fi
 
-      # ========== TELEGRAM - SEXYHUB ==========
-      - name: 📤 ارسال SexyHub Debug APK به تلگرام
+      - name: Send SexyHub Debug APK to Telegram
         if: success()
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -313,21 +264,19 @@ jobs:
             BUILD_TIME=$(date +"%Y-%m-%d %H:%M:%S")
             
             curl -F document=@"$APK_PATH" \
-            -F caption="🔧 SexyHub Build موفق - Debug APK
+            -F caption="SexyHub Build Success - Debug APK
             
-            📦 نام فایل: ${APK_NAME}
-            🔢 Build #${{ github.run_number }}
-            📱 Branch: $BRANCH_NAME
-            👤 Committer: ${{ github.actor }}
-            💬 Commit: $COMMIT_MSG
-            ⏰ زمان: $BUILD_TIME
-            🔗 Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            File: ${APK_NAME}
+            Build #${{ github.run_number }}
+            Branch: $BRANCH_NAME
+            Committer: ${{ github.actor }}
+            Commit: $COMMIT_MSG
+            Time: $BUILD_TIME
+            Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
             https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument?chat_id=${TELEGRAM_CHAT_ID}
-          else
-            echo "⚠️ SexyHub Debug APK not found"
           fi
 
-      - name: 📤 ارسال SexyHub Release APK به تلگرام
+      - name: Send SexyHub Release APK to Telegram
         if: success()
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -341,22 +290,19 @@ jobs:
             BUILD_TIME=$(date +"%Y-%m-%d %H:%M:%S")
             
             curl -F document=@"$APK_PATH" \
-            -F caption="💎 SexyHub Build موفق - Release APK
+            -F caption="SexyHub Build Success - Release APK
             
-            📦 نام فایل: ${APK_NAME}
-            🔢 Build #${{ github.run_number }}
-            📱 Branch: $BRANCH_NAME
-            👤 Committer: ${{ github.actor }}
-            💬 Commit: $COMMIT_MSG
-            ⏰ زمان: $BUILD_TIME
-            🔗 Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            File: ${APK_NAME}
+            Build #${{ github.run_number }}
+            Branch: $BRANCH_NAME
+            Committer: ${{ github.actor }}
+            Commit: $COMMIT_MSG
+            Time: $BUILD_TIME
+            Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
             https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument?chat_id=${TELEGRAM_CHAT_ID}
-          else
-            echo "⚠️ SexyHub Release APK not found"
           fi
 
-      # ========== TELEGRAM - WOSEXY ==========
-      - name: 📤 ارسال Wosexy Debug APK به تلگرام
+      - name: Send Wosexy Debug APK to Telegram
         if: success()
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -370,21 +316,19 @@ jobs:
             BUILD_TIME=$(date +"%Y-%m-%d %H:%M:%S")
             
             curl -F document=@"$APK_PATH" \
-            -F caption="🔧 Wosexy Build موفق - Debug APK
+            -F caption="Wosexy Build Success - Debug APK
             
-            📦 نام فایل: ${APK_NAME}
-            🔢 Build #${{ github.run_number }}
-            📱 Branch: $BRANCH_NAME
-            👤 Committer: ${{ github.actor }}
-            💬 Commit: $COMMIT_MSG
-            ⏰ زمان: $BUILD_TIME
-            🔗 Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            File: ${APK_NAME}
+            Build #${{ github.run_number }}
+            Branch: $BRANCH_NAME
+            Committer: ${{ github.actor }}
+            Commit: $COMMIT_MSG
+            Time: $BUILD_TIME
+            Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
             https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument?chat_id=${TELEGRAM_CHAT_ID}
-          else
-            echo "⚠️ Wosexy Debug APK not found"
           fi
 
-      - name: 📤 ارسال Wosexy Release APK به تلگرام
+      - name: Send Wosexy Release APK to Telegram
         if: success()
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -398,22 +342,19 @@ jobs:
             BUILD_TIME=$(date +"%Y-%m-%d %H:%M:%S")
             
             curl -F document=@"$APK_PATH" \
-            -F caption="🔥 Wosexy Build موفق - Release APK
+            -F caption="Wosexy Build Success - Release APK
             
-            📦 نام فایل: ${APK_NAME}
-            🔢 Build #${{ github.run_number }}
-            📱 Branch: $BRANCH_NAME
-            👤 Committer: ${{ github.actor }}
-            💬 Commit: $COMMIT_MSG
-            ⏰ زمان: $BUILD_TIME
-            🔗 Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            File: ${APK_NAME}
+            Build #${{ github.run_number }}
+            Branch: $BRANCH_NAME
+            Committer: ${{ github.actor }}
+            Commit: $COMMIT_MSG
+            Time: $BUILD_TIME
+            Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
             https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument?chat_id=${TELEGRAM_CHAT_ID}
-          else
-            echo "⚠️ Wosexy Release APK not found"
           fi
 
-      # ========== خطا ==========
-      - name: ❌ اطلاع خطا به تلگرام
+      - name: Notify build failure to Telegram
         if: failure()
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -426,38 +367,17 @@ jobs:
           curl -X POST https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage \
           -d chat_id=${TELEGRAM_CHAT_ID} \
           -d parse_mode=HTML \
-          -d text="❌ <b>Build ناموفق!</b>
+          -d text="<b>Build Failed!</b>
           
-          🔢 Build #${{ github.run_number }}
-          📱 Branch: $BRANCH_NAME
-          👤 Committer: ${{ github.actor }}
-          💬 Commit: $COMMIT_MSG
-          ⏰ زمان: $BUILD_TIME
-          🔗 <a href='${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'>مشاهده لاگ</a>"
+          Build #${{ github.run_number }}
+          Branch: $BRANCH_NAME
+          Committer: ${{ github.actor }}
+          Commit: $COMMIT_MSG
+          Time: $BUILD_TIME
+          <a href='${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'>View Log</a>"
 
-      # ========== موفقیت ==========
-      - name: ✅ بیلد موفقیت‌آمیز بود!
+      - name: Build completed successfully
         if: success()
         run: |
-          echo "✅ همه APK های Debug و Release با موفقیت ساخته شدند!"
-          echo ""
-          echo "💋 SexChat:"
-          echo "   🔧 Debug APK → com.sexychat.me"
-          echo "   🚀 Release APK → com.sexychat.me"
-          echo ""
-          echo "🚗 mParivahan:"
-          echo "   🔧 Debug APK → com.mparivahan.me"
-          echo "   🚀 Release APK → com.mparivahan.me"
-          echo ""
-          echo "💎 SexyHub:"
-          echo "   🔧 Debug APK → com.sexyhub.me"
-          echo "   🚀 Release APK → com.sexyhub.me"
-          echo ""
-          echo "🔥 Wosexy:"
-          echo "   🔧 Debug APK → com.sexychat.me"
-          echo "   🚀 Release APK → com.sexychat.me"
-          echo ""
-          echo "📦 فایل‌ها در Artifacts و تلگرام (Debug & Release) آماده هستند"
-          echo "🔢 Build Number: ${{ github.run_number }}"
-          echo ""
-          echo "✅ همه APK ها (Debug & Release) به تلگرام ارسال می‌شن"
+          echo "All APKs (Debug & Release) built successfully!"
+          echo "Build Number: ${{ github.run_number }}"

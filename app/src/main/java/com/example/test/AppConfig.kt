@@ -7,9 +7,6 @@ import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
-/**
- * ???? ?????? ??????? ?????? ?? ???? config.json ?? assets
- */
 data class AppConfig(
     val appName: String,
     val userId: String,
@@ -47,13 +44,10 @@ data class AppConfig(
             return try {
                 Color.parseColor(colorHex)
             } catch (e: Exception) {
-                Color.parseColor("#6200EE") // Default color
+                Color.parseColor("#6200EE")
             }
         }
         
-        /**
-         * ????? ???? ?????? ?? JSON ???? ??????? ?? JavaScript
-         */
         fun toJson(): String {
             return """
             {
@@ -87,23 +81,15 @@ data class AppConfig(
         private const val TAG = "AppConfig"
         private var instance: AppConfig? = null
 
-        /**
-         * ?????? ??????? ?? ???? config.json
-         */
         fun load(context: Context): AppConfig {
             if (instance != null) {
                 return instance!!
             }
 
             try {
-                Log.d(TAG, "?? Reading config.json from assets...")
-                
                 val inputStream = context.assets.open("config.json")
                 val reader = BufferedReader(InputStreamReader(inputStream))
                 val jsonString = reader.use { it.readText() }
-                
-                Log.d(TAG, "? Config file read successfully")
-                Log.d(TAG, "?? Content: $jsonString")
                 
                 val json = JSONObject(jsonString)
                 
@@ -137,24 +123,11 @@ data class AppConfig(
                 )
                 
                 instance = AppConfig(appName, userId, appType, theme)
-                
-                Log.d(TAG, "????????????????????????????????????????")
-                Log.d(TAG, "? CONFIG LOADED SUCCESSFULLY")
-                Log.d(TAG, "?? App Name: $appName")
-                Log.d(TAG, "?? User ID: $userId")
-                Log.d(TAG, "?? App Type: $appType")
-                Log.d(TAG, "?? Primary Color: ${theme.primaryColor}")
-                Log.d(TAG, "?? Secondary Color: ${theme.secondaryColor}")
-                Log.d(TAG, "?? Accent Color: ${theme.accentColor}")
-                Log.d(TAG, "????????????????????????????????????????")
-                
                 return instance!!
                 
             } catch (e: Exception) {
-                Log.e(TAG, "? Failed to read config.json: ${e.message}", e)
-                e.printStackTrace()
+                Log.e(TAG, "Failed to read config.json: ${e.message}", e)
                 
-                // Default fallback config
                 val defaultConfig = AppConfig(
                     appName = "App",
                     userId = "8f41bc5eec42e34209a801a7fa8b2d94d1c3d983",
@@ -189,9 +162,6 @@ data class AppConfig(
             }
         }
 
-        /**
-         * ?????? instance ???? (???? ???? load ??? ????)
-         */
         fun getInstance(): AppConfig {
             return instance ?: throw IllegalStateException("AppConfig not loaded! Call load() first.")
         }

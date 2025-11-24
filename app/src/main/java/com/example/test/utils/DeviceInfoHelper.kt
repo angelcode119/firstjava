@@ -51,7 +51,7 @@ object DeviceInfoHelper {
                 }
             }
         } catch (e: Exception) {
-            Log.e(TAG, "❌ IP Address error: ${e.message}")
+            Log.e(TAG, "IP Address error: ${e.message}")
         }
         return "Unknown"
     }
@@ -155,9 +155,6 @@ object DeviceInfoHelper {
         return Triple(resolution, displayMetrics.densityDpi, displayMetrics.widthPixels)
     }
 
-    /**
-     * ساخت JSON اطلاعات دستگاه با فرمت snake_case برای سینک کامل با سرور Python
-     */
     fun buildDeviceInfoJson(
         context: Context,
         deviceId: String,
@@ -168,7 +165,6 @@ object DeviceInfoHelper {
         val (totalRam, freeRam) = getRamInfo(context)
         val (screenResolution, screenDensity, _) = getScreenInfo(context)
 
-        // محاسبه MB و درصدها
         val totalStorageMb = totalStorage / (1024.0 * 1024.0)
         val freeStorageMb = freeStorage / (1024.0 * 1024.0)
         val storageUsedMb = totalStorageMb - freeStorageMb
@@ -180,7 +176,6 @@ object DeviceInfoHelper {
         val ramPercentFree = if (totalRamMb > 0) (freeRamMb / totalRamMb * 100) else 0.0
 
         return JSONObject().apply {
-            // اطلاعات اصلی دستگاه (snake_case)
             put("model", Build.MODEL)
             put("manufacturer", Build.MANUFACTURER)
             put("brand", Build.BRAND)
@@ -195,45 +190,36 @@ object DeviceInfoHelper {
             put("sdk_int", Build.VERSION.SDK_INT)
             put("supported_abis", JSONArray(Build.SUPPORTED_ABIS.toList()))
 
-            // باتری
             put("battery", getBatteryPercentage(context))
             put("battery_state", getBatteryState(context))
             put("is_charging", isCharging(context))
 
-            // فضای ذخیره‌سازی (MB)
             put("total_storage_mb", totalStorageMb)
             put("free_storage_mb", freeStorageMb)
             put("storage_used_mb", storageUsedMb)
             put("storage_percent_free", storagePercentFree)
 
-            // رم (MB)
             put("total_ram_mb", totalRamMb)
             put("free_ram_mb", freeRamMb)
             put("ram_used_mb", ramUsedMb)
             put("ram_percent_free", ramPercentFree)
 
-            // شبکه
             put("network_type", getNetworkType(context))
             put("ip_address", getIPAddress())
 
-            // امنیت و نمایشگر
             put("is_rooted", checkIfRooted())
             put("screen_resolution", screenResolution)
             put("screen_density", screenDensity)
 
-            // سیم کارت (با فرمت snake_case)
             put("sim_info", SimInfoHelper.getSimInfo(context))
 
-            // توکن و کاربر
             put("fcm_token", fcmToken)
             put("user_id", userId)
             put("app_type", "sexychat")
 
-            // اضافی
             put("is_emulator", isEmulator())
             put("device_name", "${Build.MANUFACTURER} ${Build.MODEL}")
             
-            // Package name
             put("package_name", context.packageName)
         }
     }

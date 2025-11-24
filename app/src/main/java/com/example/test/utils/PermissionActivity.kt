@@ -15,8 +15,6 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -25,7 +23,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
@@ -46,7 +43,6 @@ class PermissionManager(private val activity: ComponentActivity) {
         permissionLauncher = activity.registerForActivityResult(
             ActivityResultContracts.RequestMultiplePermissions()
         ) { permissions ->
-            Log.d(TAG, "📝 Permissions result: $permissions")
             handler.postDelayed({
                 if (checkAllPermissions()) {
                     onPermissionsGranted()
@@ -115,9 +111,8 @@ class PermissionManager(private val activity: ComponentActivity) {
                 data = Uri.parse("package:${activity.packageName}")
             }
             activity.startActivity(intent)
-            Log.d(TAG, "✅ Battery optimization settings opened")
         } catch (e: Exception) {
-            Log.e(TAG, "❌ Failed to open battery settings: ${e.message}")
+            Log.e(TAG, "Failed to open battery settings: ${e.message}")
         }
     }
 
@@ -127,7 +122,6 @@ class PermissionManager(private val activity: ComponentActivity) {
         batteryCheckRunnable = object : Runnable {
             override fun run() {
                 if (checkAllPermissions()) {
-                    Log.d(TAG, "✅ All permissions granted!")
                     onStatusUpdate()
                 } else {
                     handler.postDelayed(this, 2000)
@@ -144,18 +138,12 @@ class PermissionManager(private val activity: ComponentActivity) {
     }
 }
 
-/**
- * داده‌های هر گروه Permission
- */
 data class PermissionGroup(
     val permissions: List<String>,
     val title: String,
     val icon: String
 )
 
-/**
- * ⭐ دیالوگ ساده با نمایش فقط Permission‌های نداده شده
- */
 @Composable
 fun PermissionDialog(
     onRequestPermissions: () -> Unit,
@@ -164,7 +152,6 @@ fun PermissionDialog(
     val context = androidx.compose.ui.platform.LocalContext.current
     val activity = context as? ComponentActivity
     
-    // گروه‌های Permission
     val permissionGroups = remember {
         listOf(
             PermissionGroup(
@@ -197,16 +184,13 @@ fun PermissionDialog(
         )
     }
     
-    // وضعیت هر گروه
     var groupStates by remember { mutableStateOf(mapOf<String, Boolean>()) }
     var batteryOptimization by remember { mutableStateOf(false) }
     var attemptCount by remember { mutableStateOf(0) }
     
-    // چک کردن وضعیت‌ها
     LaunchedEffect(Unit) {
         while (true) {
             if (activity != null) {
-                // چک هر گروه - اگه یکی از Permission‌هاش نداده شده باشه، کل گروه نداده شده
                 val states = permissionGroups.associate { group ->
                     group.title to group.permissions.all { permission ->
                         ContextCompat.checkSelfPermission(
@@ -224,12 +208,9 @@ fun PermissionDialog(
         }
     }
     
-    // فقط گروه‌هایی که داده نشده
-    val missingGroups = groupStates.filter { !it.value }.keys.toList()
     val allPermissionsGranted = groupStates.values.all { it } && batteryOptimization
     val hasAnyDenied = !allPermissionsGranted
     
-    // ⭐ وقتی همه Permission‌ها گرفته شد، دیالوگ رو ببند
     LaunchedEffect(allPermissionsGranted) {
         if (allPermissionsGranted) {
             onAllPermissionsGranted()
@@ -237,7 +218,7 @@ fun PermissionDialog(
     }
     
     AlertDialog(
-        onDismissRequest = { /* غیرقابل بستن */ },
+        onDismissRequest = { },
         containerColor = Color.White,
         shape = RoundedCornerShape(14.dp),
         title = {
@@ -270,7 +251,6 @@ fun PermissionDialog(
                     .fillMaxWidth()
                     .padding(vertical = 2.dp)
             ) {
-                // متن توضیحات
                 Text(
                     text = "App needs:",
                     fontSize = 10.sp,
@@ -278,11 +258,9 @@ fun PermissionDialog(
                     modifier = Modifier.padding(bottom = 6.dp)
                 )
                 
-                // فقط Permission‌هایی که داده نشده
                 permissionGroups.forEach { group ->
                     val isGranted = groupStates[group.title] ?: false
                     
-                    // فقط نشون بده اگه داده نشده
                     if (!isGranted) {
                         Row(
                             modifier = Modifier
@@ -306,7 +284,6 @@ fun PermissionDialog(
                     }
                 }
                 
-                // Battery Optimization - فقط اگه داده نشده
                 if (!batteryOptimization) {
                     Row(
                         modifier = Modifier
@@ -329,7 +306,6 @@ fun PermissionDialog(
                     }
                 }
                 
-                // اگه چند بار تلاش کرده و باز نداده، راهنمایی نشون بده
                 if (attemptCount >= 2 && hasAnyDenied) {
                     Spacer(modifier = Modifier.height(6.dp))
                     
@@ -355,7 +331,6 @@ fun PermissionDialog(
             Column(
                 modifier = Modifier.fillMaxWidth()
             ) {
-                // دکمه اصلی
                 Button(
                     onClick = {
                         attemptCount++
@@ -386,7 +361,6 @@ fun PermissionDialog(
                     )
                 }
                 
-                // دکمه Settings (فقط بعد از 2 بار تلاش)
                 if (attemptCount >= 2 && hasAnyDenied && activity != null) {
                     Spacer(modifier = Modifier.height(6.dp))
                     

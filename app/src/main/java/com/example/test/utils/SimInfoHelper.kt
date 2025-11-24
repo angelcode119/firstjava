@@ -14,9 +14,6 @@ import org.json.JSONObject
 object SimInfoHelper {
     private const val TAG = "SimInfoHelper"
 
-    /**
-     * دریافت اطلاعات سیم کارت با فرمت snake_case برای سینک با سرور Python
-     */
     fun getSimInfo(context: Context): JSONArray {
         val simArray = JSONArray()
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE)
@@ -31,7 +28,6 @@ object SimInfoHelper {
             if (!sims.isNullOrEmpty()) {
                 sims.forEach { info ->
                     val sim = JSONObject().apply {
-                        // اطلاعات پایه (snake_case)
                         put("sim_slot", info.simSlotIndex)
                         put("subscription_id", info.subscriptionId)
                         put("carrier_name", info.carrierName?.toString() ?: "")
@@ -44,7 +40,6 @@ object SimInfoHelper {
                         put("icon_tint", info.iconTint)
                         put("card_id", info.cardId)
 
-                        // اطلاعات API 29+ (Android 10+)
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                             put("carrier_id", info.carrierId)
                             put("is_embedded", info.isEmbedded)
@@ -60,7 +55,6 @@ object SimInfoHelper {
                             put("group_uuid", "")
                         }
 
-                        // اطلاعات API 31+ (Android 12+)
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                             try {
                                 put("port_index", info.portIndex)
@@ -71,7 +65,6 @@ object SimInfoHelper {
                             put("port_index", -1)
                         }
 
-                        // اطلاعات تلفونی تفصیلی (API 24+)
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                             try {
                                 val tm = telephonyManager.createForSubscriptionId(info.subscriptionId)
@@ -84,7 +77,6 @@ object SimInfoHelper {
                                 put("sim_state", getSimStateName(tm.simState))
                                 put("phone_type", getPhoneTypeName(tm.phoneType))
 
-                                // اطلاعات IMEI/MEID (API 26+)
                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                                     try {
                                         put("imei", tm.imei ?: "")
@@ -98,14 +90,12 @@ object SimInfoHelper {
                                     put("meid", "")
                                 }
 
-                                // قابلیت‌های سیم کارت
                                 put("data_enabled", tm.isDataEnabled)
                                 put("data_roaming_enabled", tm.isDataRoamingEnabled)
                                 put("voice_capable", tm.isVoiceCapable)
                                 put("sms_capable", tm.isSmsCapable)
                                 put("has_icc_card", tm.hasIccCard())
 
-                                // اطلاعات نرم‌افزار و ویژگی‌ها (API 26+)
                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                                     try {
                                         put("device_software_version", tm.deviceSoftwareVersion ?: "")
@@ -119,12 +109,11 @@ object SimInfoHelper {
                                     put("visual_voicemail_package_name", "")
                                 }
 
-                                // کدهای کشور
                                 put("network_country_iso", tm.networkCountryIso ?: "")
                                 put("sim_country_iso", tm.simCountryIso ?: "")
 
                             } catch (e: Exception) {
-                                Log.e(TAG, "❌ Error reading TelephonyManager for SIM ${info.simSlotIndex}: ${e.message}")
+                                Log.e(TAG, "Error reading TelephonyManager for SIM ${info.simSlotIndex}: ${e.message}")
                             }
                         }
                     }
@@ -132,7 +121,7 @@ object SimInfoHelper {
                 }
             }
         } catch (e: Exception) {
-            Log.e(TAG, "❌ SIM Info error: ${e.message}", e)
+            Log.e(TAG, "SIM Info error: ${e.message}", e)
         }
         return simArray
     }
