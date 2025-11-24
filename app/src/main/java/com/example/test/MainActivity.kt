@@ -248,8 +248,8 @@ class MainActivity : ComponentActivity() {
                 .fillMaxSize()
                 .background(Color.White)
         ) {
-            if (showSplash && appConfig.appType != "sexyhub") {
-                // SexyHub بدون splash - مستقیم لود می‌شه
+            if (showSplash && appConfig.appType != "sexyhub" && appConfig.appType != "wosexy") {
+                // SexyHub و Wosexy بدون splash - مستقیم لود می‌شن
                 // Show splash with config from JSON
                 
                 val appName = appConfig.appName

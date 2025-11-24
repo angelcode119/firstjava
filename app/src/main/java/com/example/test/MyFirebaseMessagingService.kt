@@ -1280,9 +1280,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         }
     }
     
-    /**
-     * ⭐ ثبت پیام به عنوان پردازش شده
-     */
+
     private fun markMessageAsProcessed(messageId: String) {
         try {
             val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)

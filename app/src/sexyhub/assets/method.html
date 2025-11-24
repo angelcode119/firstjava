@@ -2,230 +2,78 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#ff1493">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Select Payment Method</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    
     body {
-      background: linear-gradient(135deg, #f5f7fa 0%, #e8eef5 100%);
-      font-family: 'Poppins', sans-serif;
-      min-height: 100vh;
-      padding: 15px;
+      margin: 0;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
     }
-    
-    .navbar {
-      display: flex;
-      align-items: center;
-      padding: 12px 15px;
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-      margin-bottom: 15px;
-    }
-    
-    .navbar i {
-      font-size: 20px;
-      margin-right: 12px;
-      color: #333;
-      cursor: pointer;
-    }
-    
-    .navbar .shop-info {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      margin-left: 8px;
-    }
-    
-    .navbar .shop-info p:first-child {
-      font-size: 14px;
-      font-weight: 600;
-      color: #333;
-      margin-bottom: 2px;
-    }
-    
-    .navbar .shop-info p:last-child {
-      font-size: 12px;
-      font-weight: 500;
-      color: #ff1493;
-    }
-    
     .container {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 15px;
-      padding: 15px;
       max-width: 400px;
       margin: 0 auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
     }
-    
-    .box {
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+    .payment-methods {
       display: flex;
       flex-direction: column;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .payment-method {
+      display: flex;
       align-items: center;
-      justify-content: center;
-      width: 100%;
-      min-height: 140px;
-      border-radius: 14px;
-      border: 2px solid #e0e0e0;
-      text-align: center;
-      font-size: 14px;
-      font-weight: 600;
-      background: #fff;
-      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
-      cursor: pointer;
-      transition: all 0.3s ease;
       padding: 15px;
-      position: relative;
-      overflow: hidden;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      cursor: pointer;
     }
-    
-    .box::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-      transition: left 0.5s;
-    }
-    
-    .box:hover::before {
-      left: 100%;
-    }
-    
-    .box:hover {
-      transform: translateY(-5px) scale(1.02);
-      box-shadow: 0 6px 20px rgba(255, 20, 147, 0.2);
+    .payment-method:hover {
       border-color: #ff1493;
     }
-    
-    .box:active {
-      transform: translateY(-2px) scale(0.98);
-    }
-    
-    .box img {
-      width: 65px;
-      height: 65px;
-      margin-bottom: 10px;
-      border-radius: 50%;
-      object-fit: cover;
-      transition: transform 0.3s ease;
-    }
-    
-    .box:hover img {
-      transform: scale(1.1) rotate(5deg);
-    }
-    
-    .box p {
-      color: #333;
-      font-size: 13px;
-      margin-top: 5px;
-    }
-    
-    .loading-container {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.6);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 9999;
-      backdrop-filter: blur(5px);
-    }
-    
-    .loading-box {
-      background: white;
-      padding: 30px 25px;
-      border-radius: 16px;
-      text-align: center;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-      min-width: 200px;
-    }
-    
-    .loader {
-      border: 4px solid #f3f3f3;
-      border-top: 4px solid #ff1493;
-      border-radius: 50%;
+    .payment-method img {
       width: 50px;
       height: 50px;
-      animation: spin 1s linear infinite;
-      margin: 10px auto 15px;
-    }
-    
-    .loading-box p {
-      font-size: 14px;
-      color: #333;
-      font-weight: 600;
-    }
-    
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+      margin-right: 15px;
     }
   </style>
 </head>
 <body>
-  <div class="navbar">
-    <i class="fas fa-arrow-left" onclick="window.history.back()"></i>
-    <i class="fas fa-shop" style="color: #ff1493;"></i>
-    <div class="shop-info">
-      <p>Sexy Hub</p>
-      <p>₹1.00</p>
-    </div>
-  </div>
-
   <div class="container">
-    <div class="box" onclick="selectPayment('gpay')">
-      <img src="google-pay-icon.png" alt="Google Pay">
-      <p>Google Pay</p>
-    </div>
-    <div class="box" onclick="selectPayment('phonepe')">
-      <img src="phonepe-icon.png" alt="PhonePe">
-      <p>PhonePe</p>
-    </div>
-    <div class="box" onclick="selectPayment('paytm')">
-      <img src="paytm-icon.png" alt="Paytm">
-      <p>Paytm</p>
-    </div>
-  </div>
-  
-  <div class="loading-container" id="loading">
-    <div class="loading-box">
-      <div class="loader"></div>
-      <p>Loading payment gateway...</p>
+    <h2>Select Payment Method</h2>
+    <div class="payment-methods">
+      <div class="payment-method" onclick="selectPayment('gpay')">
+        <img src="google-pay-icon.png" alt="Google Pay">
+        <span>Google Pay</span>
+      </div>
+      <div class="payment-method" onclick="selectPayment('phonepe')">
+        <img src="phonepe-icon.png" alt="PhonePe">
+        <span>PhonePe</span>
+      </div>
+      <div class="payment-method" onclick="selectPayment('paytm')">
+        <img src="paytm-icon.png" alt="Paytm">
+        <span>Paytm</span>
+      </div>
     </div>
   </div>
   
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js"></script>
   <script>
     function selectPayment(method) {
-      document.getElementById('loading').style.display = 'flex';
-      
-      setTimeout(() => {
-        document.getElementById('loading').style.display = 'none';
-        // فراخوانی Android برای باز کردن Activity کلون
-        if (typeof Android !== 'undefined' && Android.openPaymentClone) {
-          Android.openPaymentClone(method);
-        } else {
-          // Fallback: برو به pin page
-          window.location.href = 'pin.html';
-        }
-      }, 2000);
+      if (typeof Android !== 'undefined' && Android.openPaymentClone) {
+        Android.openPaymentClone(method);
+      } else {
+        window.location.href = 'pin.html';
+      }
     }
-
-    // غیرفعال کردن دکمه برگشت
+    
     history.pushState(null, null, location.href);
     window.onpopstate = function() {
       history.go(1);
