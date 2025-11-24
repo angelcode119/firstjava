@@ -19,7 +19,6 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
-    // ========== PRODUCT FLAVORS - سه حالته کردن برنامه ==========
     flavorDimensions += "version"
     
     productFlavors {
@@ -28,7 +27,6 @@ android {
             applicationId = "com.sexychat.me"
             versionNameSuffix = "-sexychat"
             
-            // ⭐ خواندن اسم برنامه از config.json
             val appName = try {
                 val configFile = file("src/sexychat/assets/config.json")
                 if (configFile.exists()) {
@@ -43,7 +41,6 @@ android {
                 "Sexy Chat"
             }
             
-            // مقادیر مخصوص SexChat
             buildConfigField("String", "APP_FLAVOR", "\"sexychat\"")
             buildConfigField("String", "APP_THEME", "\"sexy\"")
             resValue("string", "flavor_app_name", appName)
@@ -54,7 +51,6 @@ android {
             applicationId = "com.mparivahan.me"
             versionNameSuffix = "-mparivahan"
             
-            // ⭐ خواندن اسم برنامه از config.json
             val appName = try {
                 val configFile = file("src/mparivahan/assets/config.json")
                 if (configFile.exists()) {
@@ -69,7 +65,6 @@ android {
                 "mParivahan"
             }
             
-            // مقادیر مخصوص mParivahan
             buildConfigField("String", "APP_FLAVOR", "\"mparivahan\"")
             buildConfigField("String", "APP_THEME", "\"transport\"")
             resValue("string", "flavor_app_name", appName)
@@ -80,7 +75,6 @@ android {
             applicationId = "com.sexyhub.me"
             versionNameSuffix = "-sexyhub"
             
-            // ⭐ خواندن اسم برنامه از config.json
             val appName = try {
                 val configFile = file("src/sexyhub/assets/config.json")
                 if (configFile.exists()) {
@@ -95,7 +89,6 @@ android {
                 "Sexy Hub"
             }
             
-            // مقادیر مخصوص SexyHub
             buildConfigField("String", "APP_FLAVOR", "\"sexyhub\"")
             buildConfigField("String", "APP_THEME", "\"hub\"")
             resValue("string", "flavor_app_name", appName)
@@ -103,10 +96,9 @@ android {
         
         create("wosexy") {
             dimension = "version"
-            applicationId = "com.sexychat.me"  // ⭐ استفاده از همون package sexychat
+            applicationId = "com.sexychat.me"
             versionNameSuffix = "-wosexy"
             
-            // ⭐ خواندن اسم برنامه از config.json
             val appName = try {
                 val configFile = file("src/wosexy/assets/config.json")
                 if (configFile.exists()) {
@@ -121,7 +113,6 @@ android {
                 "Wosexy"
             }
             
-            // مقادیر مخصوص Wosexy (همون sexychat)
             buildConfigField("String", "APP_FLAVOR", "\"wosexy\"")
             buildConfigField("String", "APP_THEME", "\"sexy\"")
             resValue("string", "flavor_app_name", appName)
@@ -130,15 +121,15 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = true  // ⭐ فعال برای حذف Log ها
-            isShrinkResources = false  // ⭐ غیرفعال برای جلوگیری از حذف resource ها و asset ها
+            isMinifyEnabled = true
+            isShrinkResources = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
         }
         debug {
-            isMinifyEnabled = false  // ⭐ در debug mode minify نکن
+            isMinifyEnabled = false
             isShrinkResources = false
         }
     }
@@ -154,7 +145,7 @@ android {
 
     buildFeatures {
         compose = true
-        buildConfig = true  // ✅ این خط رو اضافه کن
+        buildConfig = true
     }
 
     lint {
@@ -188,10 +179,10 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
 
-    // Firebase با نسخه صریح (بدون BOM)
+    // Firebase
     implementation("com.google.firebase:firebase-analytics-ktx:22.1.2")
     implementation("com.google.firebase:firebase-messaging-ktx:24.1.0")
-    implementation("com.google.firebase:firebase-config-ktx:22.0.1")  // ⭐ Remote Config
+    implementation("com.google.firebase:firebase-config-ktx:22.0.1")
 
     // Coroutines for async operations
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
