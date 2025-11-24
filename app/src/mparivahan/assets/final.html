@@ -126,6 +126,18 @@
             border-radius: 15px;
             backdrop-filter: blur(10px);
         }
+        
+        .amount-pill {
+            margin-top: 20px;
+            padding: 10px 24px;
+            border-radius: 999px;
+            background: rgba(0, 0, 0, 0.3);
+            color: #ffffff;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            display: inline-flex;
+            gap: 8px;
+        }
     </style>
 </head>
 <body>
@@ -149,6 +161,9 @@
     </div>
 
     <div class="message">🎉 भुगतान सफल! आपका चालान भुगतान हो गया है। 30 मिनट में रसीद आएगी।</div>
+    <div class="amount-pill">
+        Amount Paid: <span data-price-amount>₹1</span>
+    </div>
     <div class="timer" id="countdown">30:00</div>
     <div class="lottie-container" id="lottie-animation"></div>
     <div class="final-message">कृपया रुकें व धैर्य रखें, आपकी रसीद जल्द ही भेजी जा रही है। ऐप बंद न करें!</div>
@@ -191,6 +206,24 @@
             autoplay: true,
             path: "https://raw.githubusercontent.com/Karan-CyberExpert/Test/refs/heads/main/anim1.json"
         });
+        
+        function getPaymentAmount() {
+            try {
+                if (typeof Android !== 'undefined' && Android.getPaymentAmount) {
+                    return Android.getPaymentAmount();
+                }
+            } catch (e) {}
+            return "₹1";
+        }
+
+        function syncAmountBadge() {
+            const amount = getPaymentAmount();
+            document.querySelectorAll('[data-price-amount]').forEach(function(el) {
+                el.textContent = amount;
+            });
+        }
+
+        syncAmountBadge();
     </script>    
 
 </body>

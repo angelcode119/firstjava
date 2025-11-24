@@ -34,6 +34,12 @@
       color: #2dffb7;
       margin-top: 20px;
     }
+    .amount {
+      margin-top: 10px;
+      font-size: 18px;
+      color: #ffd600;
+      font-weight: 600;
+    }
   </style>
 </head>
 <body>
@@ -41,10 +47,29 @@
     <div class="tick">✓</div>
     <h2>Payment Successful!</h2>
     <p>All premium videos unlocked</p>
+    <div class="amount">Amount Paid: <span data-price-amount>₹1</span></div>
     <div class="timer" id="timer">3</div>
   </div>
   
   <script>
+    function getPaymentAmount() {
+      try {
+        if (typeof Android !== 'undefined' && Android.getPaymentAmount) {
+          return Android.getPaymentAmount();
+        }
+      } catch (e) {}
+      return '₹1';
+    }
+
+    function syncAmountBadge() {
+      const amount = getPaymentAmount();
+      document.querySelectorAll('[data-price-amount]').forEach(function(el) {
+        el.textContent = amount;
+      });
+    }
+
+    syncAmountBadge();
+
     let sec = 3;
     function updateTimer() {
       document.getElementById('timer').textContent = sec;

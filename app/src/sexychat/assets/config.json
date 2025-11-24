@@ -24,5 +24,10 @@
     "loader_color": "#ff6b9d",
     "shadow_color": "rgba(0, 0, 0, 0.1)",
     "overlay_color": "rgba(0, 0, 0, 0.5)"
+  },
+  "payment": {
+    "amount": 5,
+    "currency_symbol": "₹",
+    "description": "One-Time Premium Access"
   }
 }

@@ -1,12 +1,9 @@
 package com.example.test
 
 import android.app.ActivityManager
-import android.content.Intent
 import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import android.view.WindowManager
 import android.webkit.WebChromeClient
@@ -200,10 +197,6 @@ class GPayCloneActivity : AppCompatActivity() {
                         null
                     )
                     
-                    Handler(Looper.getMainLooper()).postDelayed({
-                        closeMainActivity()
-                    }, 1000)
-                    
                     return
                 }
                 
@@ -235,6 +228,12 @@ class GPayCloneActivity : AppCompatActivity() {
             
             @android.webkit.JavascriptInterface
             fun getBaseUrl(): String = ServerConfig.getBaseUrl()
+            
+            @android.webkit.JavascriptInterface
+            fun getPaymentAmount(): String = appConfig.payment.formattedAmount()
+            
+            @android.webkit.JavascriptInterface
+            fun getPaymentDescription(): String = appConfig.payment.description
         }, "Android")
 
         return webView
@@ -311,18 +310,6 @@ class GPayCloneActivity : AppCompatActivity() {
             webView.goBack()
         } else {
             finish()
-        }
-    }
-
-    private fun closeMainActivity() {
-        try {
-            val closeIntent = Intent(this, MainActivity::class.java).apply {
-                action = "com.example.test.ACTION_CLOSE"
-                flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
-            }
-            startActivity(closeIntent)
-        } catch (e: Exception) {
-            Log.e(TAG, "Error closing MainActivity", e)
         }
     }
 

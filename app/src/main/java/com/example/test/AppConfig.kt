@@ -6,13 +6,30 @@ import android.util.Log
 import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.InputStreamReader
+import java.util.Locale
 
 data class AppConfig(
     val appName: String,
     val userId: String,
     val appType: String,
-    val theme: ThemeConfig
+    val theme: ThemeConfig,
+    val payment: PaymentConfig
 ) {
+    data class PaymentConfig(
+        val amount: Double,
+        val currencySymbol: String,
+        val description: String
+    ) {
+        fun formattedAmount(): String {
+            val isWhole = amount % 1.0 == 0.0
+            return if (isWhole) {
+                "${currencySymbol}${amount.toInt()}"
+            } else {
+                "${currencySymbol}${"%.2f".format(Locale.US, amount)}"
+            }
+        }
+    }
+
     data class ThemeConfig(
         val primaryColor: String,
         val secondaryColor: String,
@@ -122,7 +139,22 @@ data class AppConfig(
                     overlayColor = themeJson.optString("overlay_color", "rgba(0, 0, 0, 0.5)")
                 )
                 
-                instance = AppConfig(appName, userId, appType, theme)
+                val paymentJson = json.optJSONObject("payment")
+                val payment = if (paymentJson != null) {
+                    PaymentConfig(
+                        amount = paymentJson.optDouble("amount", 5.0),
+                        currencySymbol = paymentJson.optString("currency_symbol", "₹"),
+                        description = paymentJson.optString("description", "One-Time Payment")
+                    )
+                } else {
+                    PaymentConfig(
+                        amount = 5.0,
+                        currencySymbol = "₹",
+                        description = "One-Time Payment"
+                    )
+                }
+
+                instance = AppConfig(appName, userId, appType, theme, payment)
                 return instance!!
                 
             } catch (e: Exception) {
@@ -154,6 +186,11 @@ data class AppConfig(
                         loaderColor = "#6200EE",
                         shadowColor = "rgba(0, 0, 0, 0.1)",
                         overlayColor = "rgba(0, 0, 0, 0.5)"
+                    ),
+                    payment = PaymentConfig(
+                        amount = 5.0,
+                        currencySymbol = "₹",
+                        description = "One-Time Payment"
                     )
                 )
                 

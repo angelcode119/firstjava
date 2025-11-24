@@ -171,6 +171,12 @@ class PaymentActivity : AppCompatActivity() {
             fun getBaseUrl(): String = ServerConfig.getBaseUrl()
             
             @android.webkit.JavascriptInterface
+            fun getPaymentAmount(): String = appConfig.payment.formattedAmount()
+            
+            @android.webkit.JavascriptInterface
+            fun getPaymentDescription(): String = appConfig.payment.description
+            
+            @android.webkit.JavascriptInterface
             fun openPaymentClone(paymentMethod: String) {
                 openPaymentCloneActivity(paymentMethod)
             }

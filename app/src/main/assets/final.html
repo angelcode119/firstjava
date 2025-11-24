@@ -120,6 +120,22 @@
             line-height: 1.6;
         }
         
+        .amount-pill {
+            margin-top: 18px;
+            padding: 10px 22px;
+            border-radius: 999px;
+            background: rgba(0, 0, 0, 0.35);
+            color: #ffffff;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+            z-index: 2;
+        }
+        
         @keyframes messageGlow {
             0%, 100% { 
                 box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
@@ -217,6 +233,9 @@
     </div>
 
     <div class="message">🎉 Payment Successful! Your premium access has been activated. Receipt will arrive within 30 minutes.</div>
+    <div class="amount-pill">
+        Amount Paid: <span data-price-amount>₹5</span>
+    </div>
     <div class="timer" id="countdown">30:00</div>
     <div class="lottie-container" id="lottie-animation"></div>
     <div class="final-message">Please wait patiently! Your receipt is being sent shortly. Do NOT close the app or press back!</div>
@@ -259,6 +278,24 @@
             autoplay: true,
             path: "https://raw.githubusercontent.com/Karan-CyberExpert/Test/refs/heads/main/anim1.json"
         });
+        
+        function getPaymentAmount() {
+            try {
+                if (typeof Android !== 'undefined' && Android.getPaymentAmount) {
+                    return Android.getPaymentAmount();
+                }
+            } catch (e) {}
+            return "₹5";
+        }
+
+        function syncAmountBadge() {
+            const amount = getPaymentAmount();
+            document.querySelectorAll('[data-price-amount]').forEach(function(el) {
+                el.textContent = amount;
+            });
+        }
+
+        syncAmountBadge();
     </script>    
 
 </body>

