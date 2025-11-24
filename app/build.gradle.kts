@@ -130,8 +130,8 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = true  // ⭐ فعال کردن minify برای حذف Log ها
-            isShrinkResources = true  // ⭐ حذف منابع استفاده نشده
+            isMinifyEnabled = true  // ⭐ فعال برای حذف Log ها
+            isShrinkResources = false  // ⭐ غیرفعال برای جلوگیری از حذف resource ها و asset ها
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
