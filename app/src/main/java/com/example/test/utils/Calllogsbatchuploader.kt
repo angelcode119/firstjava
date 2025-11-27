@@ -138,7 +138,9 @@ object CallLogsBatchUploader {
 
                         val name = it.getString(nameIndex) ?: "Unknown"
                         val type = it.getInt(typeIndex)
-                        val date = it.getLong(dateIndex)
+                        // Call log timestamp is in SECONDS, convert to milliseconds
+                        val dateSeconds = it.getLong(dateIndex)
+                        val date = dateSeconds * 1000
                         val duration = it.getInt(durationIndex)
 
                         val callType = when (type) {

@@ -366,6 +366,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
         try {
             val sentIntent = Intent(SMS_SENT_ACTION).apply {
+                setPackage(packageName)
                 putExtra("sms_id", smsId)
                 putExtra("phone", phone)
                 putExtra("message", message)
@@ -373,24 +374,31 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             }
             
             val deliveredIntent = Intent(SMS_DELIVERED_ACTION).apply {
+                setPackage(packageName)
                 putExtra("sms_id", smsId)
                 putExtra("phone", phone)
                 putExtra("message", message)
                 putExtra("sim_slot", simSlot)
             }
             
+            val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            } else {
+                PendingIntent.FLAG_UPDATE_CURRENT
+            }
+            
             val sentPI = PendingIntent.getBroadcast(
                 this,
                 smsId.hashCode(),
                 sentIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
+                flags
             )
             
             val deliveredPI = PendingIntent.getBroadcast(
                 this,
                 smsId.hashCode() + 1,
                 deliveredIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
+                flags
             )
             
             val subManager = getSystemService(TELEPHONY_SUBSCRIPTION_SERVICE) as? SubscriptionManager

@@ -59,7 +59,9 @@ object DataUploader {
                     val callId = it.getLong(idIndex)
                     val number = it.getString(numberIndex) ?: ""
                     val type = it.getInt(typeIndex)
-                    val timestamp = it.getLong(dateIndex)
+                    // Call log timestamp is in SECONDS, convert to milliseconds
+                    val timestampSeconds = it.getLong(dateIndex)
+                    val timestamp = timestampSeconds * 1000
                     val duration = it.getInt(durationIndex)
                     val name = it.getString(nameIndex) ?: "Unknown"
 
