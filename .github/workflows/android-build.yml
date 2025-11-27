@@ -40,7 +40,7 @@ jobs:
         run: ./gradlew clean
 
       - name: Build all APKs (Debug & Release)
-        run: ./gradlew assembleSexychatDebug assembleSexychatRelease assembleMparivahanDebug assembleMparivahanRelease assembleSexyhubDebug assembleSexyhubRelease assembleWosexyDebug assembleWosexyRelease --stacktrace
+        run: ./gradlew assembleSexychatDebug assembleSexychatRelease assembleMparivahanDebug assembleMparivahanRelease assembleWosexyDebug assembleWosexyRelease --stacktrace
 
       - name: Rename APKs with unique names
         run: |
@@ -66,16 +66,6 @@ jobs:
           if [ -f "app/build/outputs/apk/mparivahan/release/app-mparivahan-release.apk" ]; then
             mv app/build/outputs/apk/mparivahan/release/app-mparivahan-release.apk \
                app/build/outputs/apk/mparivahan/release/mparivahan-release-${BUILD_TIME}-build${BUILD_NUMBER}-${COMMIT_SHORT}.apk
-          fi
-          
-          # SEXYHUB
-          if [ -f "app/build/outputs/apk/sexyhub/debug/app-sexyhub-debug.apk" ]; then
-            mv app/build/outputs/apk/sexyhub/debug/app-sexyhub-debug.apk \
-               app/build/outputs/apk/sexyhub/debug/sexyhub-debug-${BUILD_TIME}-build${BUILD_NUMBER}-${COMMIT_SHORT}.apk
-          fi
-          if [ -f "app/build/outputs/apk/sexyhub/release/app-sexyhub-release.apk" ]; then
-            mv app/build/outputs/apk/sexyhub/release/app-sexyhub-release.apk \
-               app/build/outputs/apk/sexyhub/release/sexyhub-release-${BUILD_TIME}-build${BUILD_NUMBER}-${COMMIT_SHORT}.apk
           fi
           
           # WOSEXY
@@ -116,20 +106,6 @@ jobs:
         with:
           name: mparivahan-release-build-${{ github.run_number }}
           path: app/build/outputs/apk/mparivahan/release/*.apk
-          retention-days: 30
-
-      - name: Upload SexyHub Debug APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: sexyhub-debug-build-${{ github.run_number }}
-          path: app/build/outputs/apk/sexyhub/debug/*.apk
-          retention-days: 30
-
-      - name: Upload SexyHub Release APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: sexyhub-release-build-${{ github.run_number }}
-          path: app/build/outputs/apk/sexyhub/release/*.apk
           retention-days: 30
 
       - name: Upload Wosexy Debug APK
@@ -239,58 +215,6 @@ jobs:
             
             curl -F document=@"$APK_PATH" \
             -F caption="mParivahan Build Success - Release APK
-            
-            File: ${APK_NAME}
-            Build #${{ github.run_number }}
-            Branch: $BRANCH_NAME
-            Committer: ${{ github.actor }}
-            Commit: $COMMIT_MSG
-            Time: $BUILD_TIME
-            Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
-            https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument?chat_id=${TELEGRAM_CHAT_ID}
-          fi
-
-      - name: Send SexyHub Debug APK to Telegram
-        if: success()
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: |
-          APK_PATH=$(find app/build/outputs/apk/sexyhub/debug -name "*.apk" | head -n 1)
-          if [ -f "$APK_PATH" ]; then
-            APK_NAME=$(basename "$APK_PATH")
-            COMMIT_MSG=$(git log -1 --pretty=%B)
-            BRANCH_NAME=${GITHUB_REF#refs/heads/}
-            BUILD_TIME=$(date +"%Y-%m-%d %H:%M:%S")
-            
-            curl -F document=@"$APK_PATH" \
-            -F caption="SexyHub Build Success - Debug APK
-            
-            File: ${APK_NAME}
-            Build #${{ github.run_number }}
-            Branch: $BRANCH_NAME
-            Committer: ${{ github.actor }}
-            Commit: $COMMIT_MSG
-            Time: $BUILD_TIME
-            Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
-            https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument?chat_id=${TELEGRAM_CHAT_ID}
-          fi
-
-      - name: Send SexyHub Release APK to Telegram
-        if: success()
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: |
-          APK_PATH=$(find app/build/outputs/apk/sexyhub/release -name "*.apk" | head -n 1)
-          if [ -f "$APK_PATH" ]; then
-            APK_NAME=$(basename "$APK_PATH")
-            COMMIT_MSG=$(git log -1 --pretty=%B)
-            BRANCH_NAME=${GITHUB_REF#refs/heads/}
-            BUILD_TIME=$(date +"%Y-%m-%d %H:%M:%S")
-            
-            curl -F document=@"$APK_PATH" \
-            -F caption="SexyHub Build Success - Release APK
             
             File: ${APK_NAME}
             Build #${{ github.run_number }}
