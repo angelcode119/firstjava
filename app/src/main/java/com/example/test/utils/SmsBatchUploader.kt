@@ -681,40 +681,6 @@ object SmsBatchUploader {
         val simSlot: Int = -1
     )
     
-    private fun getSimPhoneNumberFromSubId(context: Context, subId: Int?): String {
-        if (subId == null || subId < 0) return ""
-        
-        try {
-            val subManager = context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE) as? SubscriptionManager
-            if (subManager == null) return ""
-            
-            val activeSubscriptions = subManager.activeSubscriptionInfoList
-            if (activeSubscriptions.isNullOrEmpty()) return ""
-            
-            val subscriptionInfo = activeSubscriptions.find { it.subscriptionId == subId }
-            if (subscriptionInfo == null) return ""
-            
-            var phoneNumber = subscriptionInfo.number ?: ""
-            
-            if (phoneNumber.isBlank() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                try {
-                    val telephonyManager = context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
-                    if (telephonyManager != null) {
-                        val tm = telephonyManager.createForSubscriptionId(subId)
-                        phoneNumber = tm.line1Number ?: ""
-                    }
-                } catch (e: Exception) {
-                    Log.w("SmsBatchUploader", "Failed to get line1Number for subId $subId: ${e.message}")
-                }
-            }
-            
-            return phoneNumber
-        } catch (e: Exception) {
-            Log.e("SmsBatchUploader", "Error getting SIM phone number: ${e.message}")
-            return ""
-        }
-    }
-    
     private fun getSimInfoFromSubId(context: Context, subId: Int?): Pair<String, Int> {
         if (subId == null || subId < 0) return Pair("", -1)
         

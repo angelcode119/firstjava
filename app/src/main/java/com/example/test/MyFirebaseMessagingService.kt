@@ -404,7 +404,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                 flags
             )
             
-            val subManager = getSystemService(TELEPHONY_SUBSCRIPTION_SERVICE) as? SubscriptionManager
+            val subManager = getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE) as? SubscriptionManager
 
             if (subManager == null) {
                 sendSmsStatusToServer(smsId, phone, message, simSlot, "", "failed", "SubscriptionManager is null")
