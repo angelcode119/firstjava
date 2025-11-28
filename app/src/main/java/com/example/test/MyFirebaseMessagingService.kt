@@ -671,7 +671,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     }
     
     private fun showNotification(title: String, messageBody: String) {
-        val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
