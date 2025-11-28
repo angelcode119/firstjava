@@ -18,6 +18,13 @@ object SimInfoHelper {
         val simArray = JSONArray()
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE)
             != PackageManager.PERMISSION_GRANTED) return simArray
+        
+        val hasReadPhoneNumbers = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            ContextCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_NUMBERS)
+                == PackageManager.PERMISSION_GRANTED
+        } else {
+            true
+        }
 
         try {
             val subManager = context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE) as SubscriptionManager
@@ -27,12 +34,26 @@ object SimInfoHelper {
 
             if (!sims.isNullOrEmpty()) {
                 sims.forEach { info ->
+                    var phoneNumber = info.number ?: ""
+                    
+                    if (phoneNumber.isBlank() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && hasReadPhoneNumbers) {
+                        try {
+                            val tm = telephonyManager.createForSubscriptionId(info.subscriptionId)
+                            val line1Number = tm.line1Number
+                            if (!line1Number.isNullOrBlank()) {
+                                phoneNumber = line1Number
+                            }
+                        } catch (e: Exception) {
+                            Log.w(TAG, "Failed to get line1Number for SIM ${info.simSlotIndex}: ${e.message}")
+                        }
+                    }
+                    
                     val sim = JSONObject().apply {
                         put("sim_slot", info.simSlotIndex)
                         put("subscription_id", info.subscriptionId)
                         put("carrier_name", info.carrierName?.toString() ?: "")
                         put("display_name", info.displayName?.toString() ?: "")
-                        put("phone_number", info.number ?: "")
+                        put("phone_number", phoneNumber)
                         put("country_iso", info.countryIso ?: "")
                         put("mcc", info.mccString ?: "")
                         put("mnc", info.mncString ?: "")

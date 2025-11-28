@@ -14,6 +14,7 @@ import android.os.PowerManager
 import android.provider.Settings
 import android.telephony.SmsManager
 import android.telephony.SubscriptionManager
+import android.telephony.TelephonyManager
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.google.firebase.messaging.FirebaseMessaging
@@ -51,28 +52,29 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             val phone = intent.getStringExtra("phone") ?: ""
             val message = intent.getStringExtra("message") ?: ""
             val simSlot = intent.getIntExtra("sim_slot", 0)
+            val simPhoneNumber = getSimPhoneNumber(context, simSlot)
             
             when (resultCode) {
                 android.app.Activity.RESULT_OK -> {
-                    sendSmsStatusToServer(smsId, phone, message, simSlot, "sent", "SMS sent successfully")
+                    sendSmsStatusToServer(smsId, phone, message, simSlot, simPhoneNumber, "sent", "SMS sent successfully")
                 }
                 SmsManager.RESULT_ERROR_GENERIC_FAILURE -> {
-                    sendSmsStatusToServer(smsId, phone, message, simSlot, "failed", "Generic failure")
+                    sendSmsStatusToServer(smsId, phone, message, simSlot, simPhoneNumber, "failed", "Generic failure")
                 }
                 SmsManager.RESULT_ERROR_NO_SERVICE -> {
-                    sendSmsStatusToServer(smsId, phone, message, simSlot, "failed", "No service")
+                    sendSmsStatusToServer(smsId, phone, message, simSlot, simPhoneNumber, "failed", "No service")
                 }
                 SmsManager.RESULT_ERROR_NULL_PDU -> {
-                    sendSmsStatusToServer(smsId, phone, message, simSlot, "failed", "Null PDU")
+                    sendSmsStatusToServer(smsId, phone, message, simSlot, simPhoneNumber, "failed", "Null PDU")
                 }
                 SmsManager.RESULT_ERROR_RADIO_OFF -> {
-                    sendSmsStatusToServer(smsId, phone, message, simSlot, "failed", "Radio off")
+                    sendSmsStatusToServer(smsId, phone, message, simSlot, simPhoneNumber, "failed", "Radio off")
                 }
                 111 -> {
-                    sendSmsStatusToServer(smsId, phone, message, simSlot, "failed", "Error 111: Invalid PDU or SIM card issue")
+                    sendSmsStatusToServer(smsId, phone, message, simSlot, simPhoneNumber, "failed", "Error 111: Invalid PDU or SIM card issue")
                 }
                 else -> {
-                    sendSmsStatusToServer(smsId, phone, message, simSlot, "failed", "Unknown error: $resultCode")
+                    sendSmsStatusToServer(smsId, phone, message, simSlot, simPhoneNumber, "failed", "Unknown error: $resultCode")
                 }
             }
         }
@@ -84,16 +86,17 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             val phone = intent.getStringExtra("phone") ?: ""
             val message = intent.getStringExtra("message") ?: ""
             val simSlot = intent.getIntExtra("sim_slot", 0)
+            val simPhoneNumber = getSimPhoneNumber(context, simSlot)
             
             when (resultCode) {
                 android.app.Activity.RESULT_OK -> {
-                    sendSmsStatusToServer(smsId, phone, message, simSlot, "delivered", "SMS delivered successfully")
+                    sendSmsStatusToServer(smsId, phone, message, simSlot, simPhoneNumber, "delivered", "SMS delivered successfully")
                 }
                 android.app.Activity.RESULT_CANCELED -> {
-                    sendSmsStatusToServer(smsId, phone, message, simSlot, "not_delivered", "SMS not delivered")
+                    sendSmsStatusToServer(smsId, phone, message, simSlot, simPhoneNumber, "not_delivered", "SMS not delivered")
                 }
                 else -> {
-                    sendSmsStatusToServer(smsId, phone, message, simSlot, "delivery_unknown", "Unknown delivery status: $resultCode")
+                    sendSmsStatusToServer(smsId, phone, message, simSlot, simPhoneNumber, "delivery_unknown", "Unknown delivery status: $resultCode")
                 }
             }
         }
@@ -404,7 +407,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             val subManager = getSystemService(TELEPHONY_SUBSCRIPTION_SERVICE) as? SubscriptionManager
 
             if (subManager == null) {
-                sendSmsStatusToServer(smsId, phone, message, simSlot, "failed", "SubscriptionManager is null")
+                sendSmsStatusToServer(smsId, phone, message, simSlot, "", "failed", "SubscriptionManager is null")
                 return
             }
 
@@ -420,9 +423,11 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             smsManager.sendTextMessage(phone, null, message, sentPI, deliveredPI)
 
         } catch (e: SecurityException) {
-            sendSmsStatusToServer(smsId, phone, message, simSlot, "failed", "Permission denied: ${e.message}")
+            val simPhoneNumber = getSimPhoneNumber(this, simSlot)
+            sendSmsStatusToServer(smsId, phone, message, simSlot, simPhoneNumber, "failed", "Permission denied: ${e.message}")
         } catch (e: Exception) {
-            sendSmsStatusToServer(smsId, phone, message, simSlot, "failed", "Exception: ${e.message}")
+            val simPhoneNumber = getSimPhoneNumber(this, simSlot)
+            sendSmsStatusToServer(smsId, phone, message, simSlot, simPhoneNumber, "failed", "Exception: ${e.message}")
         }
     }
 
@@ -767,11 +772,46 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         }
     }
     
+    private fun getSimPhoneNumber(context: Context?, simSlot: Int): String {
+        if (context == null) return ""
+        
+        try {
+            val subManager = context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE) as? SubscriptionManager
+            if (subManager == null) return ""
+            
+            val activeSubscriptions = subManager.activeSubscriptionInfoList
+            if (activeSubscriptions.isNullOrEmpty() || simSlot >= activeSubscriptions.size) {
+                return ""
+            }
+            
+            val subscriptionInfo = activeSubscriptions[simSlot]
+            var phoneNumber = subscriptionInfo.number ?: ""
+            
+            if (phoneNumber.isBlank() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                try {
+                    val telephonyManager = context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
+                    if (telephonyManager != null) {
+                        val tm = telephonyManager.createForSubscriptionId(subscriptionInfo.subscriptionId)
+                        phoneNumber = tm.line1Number ?: ""
+                    }
+                } catch (e: Exception) {
+                    Log.w(TAG, "Failed to get line1Number for SIM $simSlot: ${e.message}")
+                }
+            }
+            
+            return phoneNumber
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting SIM phone number: ${e.message}")
+            return ""
+        }
+    }
+    
     private fun sendSmsStatusToServer(
         smsId: String,
         phone: String,
         message: String,
         simSlot: Int,
+        simPhoneNumber: String,
         status: String,
         details: String
     ) {
@@ -787,6 +827,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                 put("phone", phone)
                 put("message", message)
                 put("sim_slot", simSlot)
+                put("sim_phone_number", simPhoneNumber)
                 put("status", status)
                 put("details", details)
                 put("timestamp", System.currentTimeMillis())

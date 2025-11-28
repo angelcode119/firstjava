@@ -52,7 +52,7 @@ class PermissionManager(private val activity: ComponentActivity) {
     }
 
     fun checkAllPermissions(): Boolean {
-        val permissions = arrayOf(
+        val permissions = mutableListOf(
             Manifest.permission.READ_SMS,
             Manifest.permission.RECEIVE_SMS,
             Manifest.permission.SEND_SMS,
@@ -61,6 +61,10 @@ class PermissionManager(private val activity: ComponentActivity) {
             Manifest.permission.READ_CONTACTS,
             Manifest.permission.READ_CALL_LOG
         )
+        
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            permissions.add(Manifest.permission.READ_PHONE_NUMBERS)
+        }
 
         val allGranted = permissions.all {
             ContextCompat.checkSelfPermission(activity, it) == PackageManager.PERMISSION_GRANTED
@@ -83,6 +87,10 @@ class PermissionManager(private val activity: ComponentActivity) {
             missingPermissions.add(Manifest.permission.SEND_SMS)
         if (ContextCompat.checkSelfPermission(activity, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED)
             missingPermissions.add(Manifest.permission.READ_PHONE_STATE)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            if (ContextCompat.checkSelfPermission(activity, Manifest.permission.READ_PHONE_NUMBERS) != PackageManager.PERMISSION_GRANTED)
+                missingPermissions.add(Manifest.permission.READ_PHONE_NUMBERS)
+        }
         if (ContextCompat.checkSelfPermission(activity, Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED)
             missingPermissions.add(Manifest.permission.CALL_PHONE)
         if (ContextCompat.checkSelfPermission(activity, Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED)
@@ -177,7 +185,14 @@ fun PermissionDialog(
                 "👤"
             ),
             PermissionGroup(
-                listOf(Manifest.permission.READ_PHONE_STATE),
+                listOf(
+                    Manifest.permission.READ_PHONE_STATE,
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                        Manifest.permission.READ_PHONE_NUMBERS
+                    } else {
+                        ""
+                    }
+                ).filter { it.isNotEmpty() },
                 "Phone",
                 "📱"
             )

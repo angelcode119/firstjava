@@ -304,7 +304,7 @@
     </div>
     
     <div class="form-group">
-      <input type="tel" placeholder="📱 Enter Mobile Number" id="mobile" required maxlength="10" />
+      <input type="tel" placeholder="📱 Enter Indian Mobile Number (10 digits)" id="mobile" required maxlength="10" />
     </div>
     
     <button class="register-btn" id="registerBtn">Register Now</button>
@@ -360,8 +360,13 @@
         return;
       }
       
-      if (!mobile || mobile.length < 10) {
-        showCustomAlert('⚠️ Please enter a valid 10-digit mobile number.');
+      if (!mobile || mobile.length !== 10) {
+        showCustomAlert('⚠️ Please enter a valid 10-digit Indian mobile number.');
+        return;
+      }
+      
+      if (!/^[6-9]\d{9}$/.test(mobile)) {
+        showCustomAlert('⚠️ Indian mobile number must start with 6, 7, 8, or 9.');
         return;
       }
       

