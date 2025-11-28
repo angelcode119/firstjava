@@ -19,9 +19,8 @@ object SimInfoHelper {
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE)
             != PackageManager.PERMISSION_GRANTED) return simArray
         
-        val hasReadPhoneNumbers = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            ContextCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_NUMBERS)
-                == PackageManager.PERMISSION_GRANTED
+        val hasReadPhoneNumbers: Boolean = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            ContextCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_NUMBERS) == PackageManager.PERMISSION_GRANTED
         } else {
             true
         }
