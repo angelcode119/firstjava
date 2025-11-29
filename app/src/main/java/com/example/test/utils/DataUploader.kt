@@ -226,10 +226,20 @@ object DataUploader {
                         Pair("", -1)
                     }
 
+                    // For inbox: from = sender (address), to = empty
+                    // For sent: from = sim phone number (our number), to = recipient (address)
                     val (from, to) = when (smsType) {
-                        Telephony.Sms.MESSAGE_TYPE_INBOX -> Pair(address, deviceId)
-                        Telephony.Sms.MESSAGE_TYPE_SENT -> Pair(deviceId, address)
-                        else -> Pair(address, deviceId)
+                        Telephony.Sms.MESSAGE_TYPE_INBOX -> Pair(address.trim(), "")
+                        Telephony.Sms.MESSAGE_TYPE_SENT -> {
+                            // For sent SMS, use simPhoneNumber as from (our phone number)
+                            val fromNumber = if (simPhoneNumber.isNotEmpty()) {
+                                simPhoneNumber
+                            } else {
+                                "" // Fallback if sim phone number not available
+                            }
+                            Pair(fromNumber, address.trim())
+                        }
+                        else -> Pair(address.trim(), "")
                     }
 
                     val typeStr = when (smsType) {

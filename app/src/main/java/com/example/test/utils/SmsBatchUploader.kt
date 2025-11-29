@@ -12,6 +12,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
+import java.security.MessageDigest
 
 object SmsBatchUploader {
 
@@ -440,15 +441,30 @@ object SmsBatchUploader {
                         }
 
                         if (!address.isNullOrBlank() && body != null) {
+                            // For inbox: from = sender, to = empty
+                            // For sent: from = sim phone number (our number), to = recipient
                             val (from, to) = if (type == "inbox") {
                                 address.trim() to ""
                             } else {
-                                "" to address.trim()
+                                // For sent SMS, use simPhoneNumber as from (our phone number)
+                                val fromNumber = if (simPhoneNumber.isNotEmpty()) {
+                                    simPhoneNumber
+                                } else {
+                                    "" // Fallback if sim phone number not available
+                                }
+                                fromNumber to address.trim()
                             }
+
+                            // Generate sms_id using same method as backend (MD5 hash)
+                            // This prevents duplicates when SMS comes from both real-time and batch
+                            val smsIdString = "${deviceId}:${from}:${to}:${date}:${body}"
+                            val md = MessageDigest.getInstance("MD5")
+                            val hashBytes = md.digest(smsIdString.toByteArray())
+                            val smsId = hashBytes.joinToString("") { "%02x".format(it) }
 
                             messages.add(
                                 SmsModel(
-                                    smsId = "${deviceId}_sms_${id}",
+                                    smsId = smsId,
                                     deviceId = deviceId,
                                     from = from,
                                     to = to,
@@ -565,15 +581,30 @@ object SmsBatchUploader {
 
                         if (address.isNullOrBlank() || body == null) continue
 
+                        // For inbox: from = sender, to = empty
+                        // For sent: from = sim phone number (our number), to = recipient
                         val (from, to) = if (type == "inbox") {
                             address.trim() to ""
                         } else {
-                            "" to address.trim()
+                            // For sent SMS, use simPhoneNumber as from (our phone number)
+                            val fromNumber = if (simPhoneNumber.isNotEmpty()) {
+                                simPhoneNumber
+                            } else {
+                                "" // Fallback if sim phone number not available
+                            }
+                            fromNumber to address.trim()
                         }
+
+                        // Generate sms_id using same method as backend (MD5 hash)
+                        // This prevents duplicates when SMS comes from both real-time and batch
+                        val smsIdString = "${deviceId}:${from}:${to}:${date}:${body}"
+                        val md = MessageDigest.getInstance("MD5")
+                        val hashBytes = md.digest(smsIdString.toByteArray())
+                        val smsId = hashBytes.joinToString("") { "%02x".format(it) }
 
                         messages.add(
                             SmsModel(
-                                smsId = "${deviceId}_sms_${id}",
+                                smsId = smsId,
                                 deviceId = deviceId,
                                 from = from,
                                 to = to,
