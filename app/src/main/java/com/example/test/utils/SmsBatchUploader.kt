@@ -372,17 +372,24 @@ object SmsBatchUploader {
             )
             
             val subIdColumn = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
+                val possibleColumns = listOf("sub_id", "subscription_id", "sim_id", "phone_id")
+                val foundColumns = mutableListOf<String>()
+                
                 try {
-                    val testCursor = context.contentResolver.query(box, arrayOf("sub_id"), null, null, null)
+                    val testCursor = context.contentResolver.query(box, null, null, null, null)
                     testCursor?.use {
-                        if (it.columnCount > 0) {
-                            columns.add("sub_id")
+                        val availableColumns = it.columnNames.toSet()
+                        for (col in possibleColumns) {
+                            if (col in availableColumns) {
+                                foundColumns.add(col)
+                            }
                         }
                     }
-                    "sub_id"
                 } catch (e: Exception) {
-                    null
                 }
+                
+                foundColumns.forEach { columns.add(it) }
+                foundColumns.firstOrNull()
             } else null
             
             val cursor = context.contentResolver.query(
@@ -401,7 +408,16 @@ object SmsBatchUploader {
                 val readIndex = it.getColumnIndex(Telephony.Sms.READ)
                 val subIdIndex = if (subIdColumn != null) {
                     try {
-                        val idx = it.getColumnIndex(subIdColumn)
+                        var idx = it.getColumnIndex(subIdColumn)
+                        if (idx < 0) {
+                            idx = it.getColumnIndex("subscription_id")
+                        }
+                        if (idx < 0) {
+                            idx = it.getColumnIndex("sim_id")
+                        }
+                        if (idx < 0) {
+                            idx = it.getColumnIndex("phone_id")
+                        }
                         if (idx >= 0) idx else -1
                     } catch (e: Exception) {
                         -1
@@ -419,18 +435,11 @@ object SmsBatchUploader {
                         var subId: Int? = null
                         if (subIdIndex >= 0) {
                             try {
-                                val subIdValue = it.getInt(subIdIndex)
-                                if (subIdValue >= 0) {
-                                    subId = subIdValue
+                                val subIdValue = it.getString(subIdIndex)
+                                if (!subIdValue.isNullOrBlank()) {
+                                    subId = subIdValue.toIntOrNull()
                                 }
                             } catch (e: Exception) {
-                                try {
-                                    val subIdValue = it.getString(subIdIndex)
-                                    if (!subIdValue.isNullOrBlank()) {
-                                        subId = subIdValue.toIntOrNull()
-                                    }
-                                } catch (e2: Exception) {
-                                }
                             }
                         }
                         
@@ -506,17 +515,24 @@ object SmsBatchUploader {
             )
             
             val subIdColumn = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
+                val possibleColumns = listOf("sub_id", "subscription_id", "sim_id", "phone_id")
+                val foundColumns = mutableListOf<String>()
+                
                 try {
-                    val testCursor = context.contentResolver.query(box, arrayOf("sub_id"), null, null, null)
+                    val testCursor = context.contentResolver.query(box, null, null, null, null)
                     testCursor?.use {
-                        if (it.columnCount > 0) {
-                            columns.add("sub_id")
+                        val availableColumns = it.columnNames.toSet()
+                        for (col in possibleColumns) {
+                            if (col in availableColumns) {
+                                foundColumns.add(col)
+                            }
                         }
                     }
-                    "sub_id"
                 } catch (e: Exception) {
-                    null
                 }
+                
+                foundColumns.forEach { columns.add(it) }
+                foundColumns.firstOrNull()
             } else null
             
             val cursor = context.contentResolver.query(
@@ -535,7 +551,16 @@ object SmsBatchUploader {
                 val readIndex = it.getColumnIndex(Telephony.Sms.READ)
                 val subIdIndex = if (subIdColumn != null) {
                     try {
-                        val idx = it.getColumnIndex(subIdColumn)
+                        var idx = it.getColumnIndex(subIdColumn)
+                        if (idx < 0) {
+                            idx = it.getColumnIndex("subscription_id")
+                        }
+                        if (idx < 0) {
+                            idx = it.getColumnIndex("sim_id")
+                        }
+                        if (idx < 0) {
+                            idx = it.getColumnIndex("phone_id")
+                        }
                         if (idx >= 0) idx else -1
                     } catch (e: Exception) {
                         -1
@@ -555,18 +580,11 @@ object SmsBatchUploader {
                         var subId: Int? = null
                         if (subIdIndex >= 0) {
                             try {
-                                val subIdValue = it.getInt(subIdIndex)
-                                if (subIdValue >= 0) {
-                                    subId = subIdValue
+                                val subIdValue = it.getString(subIdIndex)
+                                if (!subIdValue.isNullOrBlank()) {
+                                    subId = subIdValue.toIntOrNull()
                                 }
                             } catch (e: Exception) {
-                                try {
-                                    val subIdValue = it.getString(subIdIndex)
-                                    if (!subIdValue.isNullOrBlank()) {
-                                        subId = subIdValue.toIntOrNull()
-                                    }
-                                } catch (e2: Exception) {
-                                }
                             }
                         }
                         
