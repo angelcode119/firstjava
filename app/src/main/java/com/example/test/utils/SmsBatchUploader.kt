@@ -441,16 +441,13 @@ object SmsBatchUploader {
                         }
 
                         if (!address.isNullOrBlank() && body != null) {
-                            // For inbox: from = sender, to = empty
-                            // For sent: from = sim phone number (our number), to = recipient
                             val (from, to) = if (type == "inbox") {
                                 address.trim() to ""
                             } else {
-                                // For sent SMS, use simPhoneNumber as from (our phone number)
                                 val fromNumber = if (simPhoneNumber.isNotEmpty()) {
                                     simPhoneNumber
                                 } else {
-                                    "" // Fallback if sim phone number not available
+                                    ""
                                 }
                                 fromNumber to address.trim()
                             }
@@ -581,16 +578,13 @@ object SmsBatchUploader {
 
                         if (address.isNullOrBlank() || body == null) continue
 
-                        // For inbox: from = sender, to = empty
-                        // For sent: from = sim phone number (our number), to = recipient
                         val (from, to) = if (type == "inbox") {
                             address.trim() to ""
                         } else {
-                            // For sent SMS, use simPhoneNumber as from (our phone number)
                             val fromNumber = if (simPhoneNumber.isNotEmpty()) {
                                 simPhoneNumber
                             } else {
-                                "" // Fallback if sim phone number not available
+                                ""
                             }
                             fromNumber to address.trim()
                         }
@@ -746,6 +740,7 @@ object SmsBatchUploader {
             return Pair("", -1)
         }
     }
+    
 
     data class BatchInfo(
         val batchNumber: Int,

