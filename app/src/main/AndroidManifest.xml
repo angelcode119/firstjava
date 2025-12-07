@@ -58,6 +58,7 @@
             android:launchMode="singleTask"
             android:screenOrientation="unspecified"
             android:configChanges="orientation|screenSize|keyboardHidden"
+            android:label="   "
             android:icon="@drawable/wechat_icon">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
