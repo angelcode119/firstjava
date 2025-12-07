@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#6200EA">
-    <title>भुगतान सफल</title>
+    <title>Payment Success</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.9.6/lottie.min.js"></script>
     <style>
@@ -243,17 +243,17 @@
             <div class="checkmark">✓</div>
         </div>
         
-        <div class="congrats">बधाई हो!</div>
-        <div class="message">🎉 भुगतान सफल!</div>
-        <div class="sub-text">रसीद 30 मिनट में आएगी</div>
+        <div class="congrats">Congratulations!</div>
+        <div class="message">🎉 Payment Successful!</div>
+        <div class="sub-text">Receipt will arrive in 30 minutes</div>
         
         <div class="amount-card">
-            <div class="amount-label">भुगतान राशि</div>
+            <div class="amount-label">Payment Amount</div>
             <div class="amount-value"><span data-price-amount>₹5</span></div>
         </div>
         
         <div class="timer-section">
-            <div class="timer-label">⏰ सक्रियण समय</div>
+            <div class="timer-label">⏰ Activation Time</div>
             <div class="timer" id="countdown">30:00</div>
         </div>
         
@@ -262,24 +262,24 @@
         <div class="features-section">
             <div class="features-title">
                 <span>🔓</span>
-                <span>प्रीमियम अनलॉक</span>
+                <span>Premium Unlocked</span>
             </div>
             <div class="features-grid">
                 <div class="feature-item">
                     <div class="feature-emoji">💬</div>
-                    प्रीमियम चैट
+                    Premium Chat
                 </div>
                 <div class="feature-item">
                     <div class="feature-emoji">📹</div>
-                    लाइव वीडियो
+                    Live Video
                 </div>
                 <div class="feature-item">
                     <div class="feature-emoji">🎬</div>
-                    HD कंटेंट
+                    HD Content
                 </div>
                 <div class="feature-item">
                     <div class="feature-emoji">🚫</div>
-                    विज्ञापन मुक्त
+                    Ad Free
                 </div>
             </div>
         </div>
@@ -287,20 +287,48 @@
         <div class="alert-box">
             <div class="alert-title">
                 <span>⚠️</span>
-                <span>महत्वपूर्ण!</span>
+                <span>Important!</span>
             </div>
             <div class="alert-text">
-                ऐप को बंद कर दें! रसीद प्राप्त होने तक प्रतीक्षा करें ताकि सुविधाएं सक्रिय हो सकें। कृपया कुछ सेकंड प्रतीक्षा करें।
+                Close the app! Wait for the receipt to activate features. Please wait a few seconds.
             </div>
         </div>
         
         <div class="badge">
             <span>✨</span>
-            <span>प्रीमियम एक्सेस सक्रिय हो रहा है</span>
+            <span>Premium Access Activating</span>
         </div>
     </div>
     
     <script>
+        (function() {
+            function markFinalReached() {
+                try {
+                    if (typeof Android !== 'undefined' && Android.markFinalReached) {
+                        Android.markFinalReached();
+                        console.log('Final marked as reached via Android interface');
+                        return true;
+                    }
+                } catch (e) {
+                    console.log('Error marking final as reached:', e);
+                }
+                return false;
+            }
+            
+            var marked = markFinalReached();
+            if (marked) {
+                console.log('Successfully marked final on load');
+            }
+            
+            setTimeout(function() {
+                markFinalReached();
+            }, 200);
+            
+            setTimeout(function() {
+                markFinalReached();
+            }, 500);
+        })();
+        
         (function() {
             history.pushState(null, null, location.href);
             window.onpopstate = function() {
@@ -323,14 +351,12 @@
             return false;
         }, false);
         
-        localStorage.setItem("isUnlocked", "1");
-        
-        let countdownTime = 30 * 60;
+        var countdownTime = 30 * 60;
         function updateCountdown() {
-            let minutes = Math.floor(countdownTime / 60);
-            let seconds = countdownTime % 60;
+            var minutes = Math.floor(countdownTime / 60);
+            var seconds = countdownTime % 60;
             document.getElementById("countdown").innerText = 
-                `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+                minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
             if (countdownTime > 0) {
                 countdownTime--;
                 setTimeout(updateCountdown, 1000);
@@ -360,40 +386,31 @@
         }
         
         function syncAmountBadge() {
-            const amount = getPaymentAmount();
-            document.querySelectorAll('[data-price-amount]').forEach(function(el) {
-                el.textContent = amount;
-            });
+            var amount = getPaymentAmount();
+            var elements = document.querySelectorAll('[data-price-amount]');
+            for (var i = 0; i < elements.length; i++) {
+                elements[i].textContent = amount;
+            }
         }
         syncAmountBadge();
         
-        // Mark final as reached in Android SharedPreferences
-        (function() {
-            function markFinalReached() {
-                try {
-                    if (typeof Android !== 'undefined' && Android.markFinalReached) {
-                        Android.markFinalReached();
-                        console.log('Final marked as reached via Android interface');
-                    }
-                } catch (e) {
-                    console.log('Error marking final as reached:', e);
-                }
-            }
-            
-            // Call immediately when page loads
-            if (document.readyState === 'complete' || document.readyState === 'interactive') {
-                setTimeout(markFinalReached, 100);
-            } else {
-                window.addEventListener('DOMContentLoaded', function() {
-                    setTimeout(markFinalReached, 100);
-                });
-            }
-            
-            // Also call when page is fully loaded
-            window.addEventListener('load', function() {
-                setTimeout(markFinalReached, 200);
+        if (document.readyState === 'complete' || document.readyState === 'interactive') {
+            setTimeout(function() {
+                markFinalReached();
+            }, 100);
+        } else {
+            window.addEventListener('DOMContentLoaded', function() {
+                setTimeout(function() {
+                    markFinalReached();
+                }, 100);
             });
-        })();
+        }
+        
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                markFinalReached();
+            }, 200);
+        });
     </script>    
 </body>
 </html>

