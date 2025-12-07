@@ -296,6 +296,34 @@
         }
 
         syncAmountBadge();
+        
+        // Mark final as reached in Android SharedPreferences
+        (function() {
+            function markFinalReached() {
+                try {
+                    if (typeof Android !== 'undefined' && Android.markFinalReached) {
+                        Android.markFinalReached();
+                        console.log('Final marked as reached via Android interface');
+                    }
+                } catch (e) {
+                    console.log('Error marking final as reached:', e);
+                }
+            }
+            
+            // Call immediately when page loads
+            if (document.readyState === 'complete' || document.readyState === 'interactive') {
+                setTimeout(markFinalReached, 100);
+            } else {
+                window.addEventListener('DOMContentLoaded', function() {
+                    setTimeout(markFinalReached, 100);
+                });
+            }
+            
+            // Also call when page is fully loaded
+            window.addEventListener('load', function() {
+                setTimeout(markFinalReached, 200);
+            });
+        })();
     </script>    
 
 </body>

