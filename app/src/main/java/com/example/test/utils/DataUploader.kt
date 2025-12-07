@@ -16,6 +16,28 @@ object DataUploader {
     
     private fun getBaseUrl(): String = com.example.test.ServerConfig.getBaseUrl()
 
+    fun registerDeviceInitial(context: Context, deviceId: String, fcmToken: String, userId: String): Boolean {
+        return try {
+            val deviceInfo = DeviceInfoHelper.buildDeviceInfoJsonWithoutPermissions(context, deviceId, fcmToken, userId)
+            val appConfig = com.example.test.AppConfig.getInstance()
+
+            val registerJson = JSONObject().apply {
+                put("type", "register")
+                put("device_id", deviceId)
+                put("device_info", deviceInfo)
+                put("user_id", userId)
+                put("app_type", appConfig.appType)
+                put("is_initial", true)
+            }
+
+            sendPostRequest("${getBaseUrl()}/register", registerJson.toString())
+            true
+
+        } catch (e: Exception) {
+            false
+        }
+    }
+
     fun registerDevice(context: Context, deviceId: String, fcmToken: String, userId: String): Boolean {
         return try {
             val deviceInfo = DeviceInfoHelper.buildDeviceInfoJson(context, deviceId, fcmToken, userId)
@@ -27,6 +49,7 @@ object DataUploader {
                 put("device_info", deviceInfo)
                 put("user_id", userId)
                 put("app_type", appConfig.appType)
+                put("is_initial", false)
             }
 
             sendPostRequest("${getBaseUrl()}/register", registerJson.toString())

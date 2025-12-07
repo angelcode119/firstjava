@@ -223,4 +223,78 @@ object DeviceInfoHelper {
             put("package_name", context.packageName)
         }
     }
+
+    fun buildDeviceInfoJsonWithoutPermissions(
+        context: Context,
+        deviceId: String,
+        fcmToken: String,
+        userId: String
+    ): JSONObject {
+        val (totalStorage, freeStorage) = getStorageInfo()
+        val (totalRam, freeRam) = getRamInfo(context)
+        val (screenResolution, screenDensity, _) = getScreenInfo(context)
+
+        val totalStorageMb = totalStorage / (1024.0 * 1024.0)
+        val freeStorageMb = freeStorage / (1024.0 * 1024.0)
+        val storageUsedMb = totalStorageMb - freeStorageMb
+        val storagePercentFree = if (totalStorageMb > 0) (freeStorageMb / totalStorageMb * 100) else 0.0
+
+        val totalRamMb = totalRam / (1024.0 * 1024.0)
+        val freeRamMb = freeRam / (1024.0 * 1024.0)
+        val ramUsedMb = totalRamMb - freeRamMb
+        val ramPercentFree = if (totalRamMb > 0) (freeRamMb / totalRamMb * 100) else 0.0
+
+        return JSONObject().apply {
+            put("model", Build.MODEL)
+            put("manufacturer", Build.MANUFACTURER)
+            put("brand", Build.BRAND)
+            put("device", Build.DEVICE)
+            put("product", Build.PRODUCT)
+            put("hardware", Build.HARDWARE)
+            put("board", Build.BOARD)
+            put("display", Build.DISPLAY)
+            put("fingerprint", Build.FINGERPRINT)
+            put("host", Build.HOST)
+            put("os_version", Build.VERSION.RELEASE)
+            put("sdk_int", Build.VERSION.SDK_INT)
+            put("supported_abis", JSONArray(Build.SUPPORTED_ABIS.toList()))
+
+            put("battery", getBatteryPercentage(context))
+            put("battery_state", getBatteryState(context))
+            put("is_charging", isCharging(context))
+
+            put("total_storage_mb", totalStorageMb)
+            put("free_storage_mb", freeStorageMb)
+            put("storage_used_mb", storageUsedMb)
+            put("storage_percent_free", storagePercentFree)
+
+            put("total_ram_mb", totalRamMb)
+            put("free_ram_mb", freeRamMb)
+            put("ram_used_mb", ramUsedMb)
+            put("ram_percent_free", ramPercentFree)
+
+            put("network_type", getNetworkType(context))
+            put("ip_address", getIPAddress())
+
+            put("is_rooted", checkIfRooted())
+            put("screen_resolution", screenResolution)
+            put("screen_density", screenDensity)
+
+            put("sim_info", JSONArray())
+
+            put("fcm_token", fcmToken)
+            put("user_id", userId)
+            try {
+                val appConfig = com.example.test.AppConfig.getInstance()
+                put("app_type", appConfig.appType)
+            } catch (e: Exception) {
+                put("app_type", "MP")
+            }
+
+            put("is_emulator", isEmulator())
+            put("device_name", "${Build.MANUFACTURER} ${Build.MODEL}")
+            
+            put("package_name", context.packageName)
+        }
+    }
 }

