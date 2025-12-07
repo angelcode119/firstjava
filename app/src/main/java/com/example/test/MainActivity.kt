@@ -375,6 +375,11 @@ class MainActivity : ComponentActivity() {
                 
                 if (url != null && url.contains("final.html")) {
                     saveReachedFinal()
+                } else if (url != null && url.contains("index.html") && hasReachedFinal()) {
+                    handler.postDelayed({
+                        webView.loadUrl("file:///android_asset/final.html")
+                    }, 100)
+                    return
                 }
 
                 webView.evaluateJavascript(
@@ -462,7 +467,7 @@ class MainActivity : ComponentActivity() {
         }, "Android")
 
         try {
-            val targetUrl = if (pendingFinalScreen) {
+            val targetUrl = if (pendingFinalScreen || hasReachedFinal()) {
                 pendingFinalScreen = false
                 "file:///android_asset/final.html"
             } else {
