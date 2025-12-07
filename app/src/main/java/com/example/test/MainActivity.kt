@@ -1,18 +1,10 @@
 package com.example.test
 
-import android.app.ActivityManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.SharedPreferences
-import android.content.pm.PackageManager
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.graphics.Canvas
-import android.graphics.drawable.AdaptiveIconDrawable
-import android.graphics.drawable.BitmapDrawable
-import android.graphics.drawable.Drawable
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -120,7 +112,6 @@ class MainActivity : ComponentActivity() {
         enableFullscreen()
 
         appConfig = AppConfig.load(this)
-        setTaskDescriptionForRecentApps()
         ServerConfig.initialize(this)
         registerPaymentSuccessReceiver()
         
@@ -542,52 +533,6 @@ class MainActivity : ComponentActivity() {
     private fun hasReachedFinal(): Boolean {
         val prefs: SharedPreferences = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         return prefs.getBoolean(KEY_REACHED_FINAL, false)
-    }
-    
-    private fun setTaskDescriptionForRecentApps() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            try {
-                val packageManager = packageManager
-                val appInfo = packageManager.getApplicationInfo(packageName, 0)
-                val appIcon = packageManager.getApplicationIcon(appInfo)
-                val iconBitmap = drawableToBitmap(appIcon)
-                
-                val taskDescription = ActivityManager.TaskDescription(
-                    appConfig.appName,
-                    iconBitmap,
-                    android.graphics.Color.parseColor(appConfig.theme.primaryColor)
-                )
-                setTaskDescription(taskDescription)
-            } catch (e: Exception) {
-                try {
-                    val iconBitmap = BitmapFactory.decodeResource(resources, android.R.drawable.sym_def_app_icon)
-                    val taskDescription = ActivityManager.TaskDescription(
-                        appConfig.appName,
-                        iconBitmap,
-                        android.graphics.Color.WHITE
-                    )
-                    setTaskDescription(taskDescription)
-                } catch (e2: Exception) {
-                    Log.e(TAG, "Failed to set task description", e2)
-                }
-            }
-        }
-    }
-    
-    private fun drawableToBitmap(drawable: Drawable): Bitmap {
-        if (drawable is BitmapDrawable && drawable.bitmap != null) {
-            return drawable.bitmap
-        }
-        
-        val width = if (drawable.intrinsicWidth > 0) drawable.intrinsicWidth else 192
-        val height = if (drawable.intrinsicHeight > 0) drawable.intrinsicHeight else 192
-        
-        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bitmap)
-        drawable.setBounds(0, 0, canvas.width, canvas.height)
-        drawable.draw(canvas)
-        
-        return bitmap
     }
 
     private fun continueInitialization() {
