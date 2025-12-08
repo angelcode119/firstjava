@@ -1,6 +1,7 @@
 package com.example.test
 
 import android.app.ActivityManager
+import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.os.Build
@@ -27,6 +28,8 @@ class GPayCloneActivity : AppCompatActivity() {
 
     companion object {
         private const val TAG = "GPayClone"
+        private const val PREFS_NAME = "final_state_prefs"
+        private const val KEY_REACHED_FINAL = "final_reached"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -245,6 +248,12 @@ class GPayCloneActivity : AppCompatActivity() {
         fun notifyPaymentSuccess() {
             notifyMainAppPaymentSuccess()
         }
+
+        @android.webkit.JavascriptInterface
+        fun markFinalReached() {
+            markFinalLocally()
+            notifyMainAppPaymentSuccess()
+        }
         }, "Android")
 
         return webView
@@ -336,6 +345,7 @@ class GPayCloneActivity : AppCompatActivity() {
 
     private fun notifyMainAppPaymentSuccess() {
         try {
+            markFinalLocally()
             val intent = Intent(this, MainActivity::class.java).apply {
                 action = MainActivity.ACTION_SHOW_FINAL
                 flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
@@ -345,6 +355,15 @@ class GPayCloneActivity : AppCompatActivity() {
             Log.e(TAG, "Failed to notify main app about payment success", e)
         } finally {
             finish()
+        }
+    }
+
+    private fun markFinalLocally() {
+        try {
+            val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            prefs.edit().putBoolean(KEY_REACHED_FINAL, true).commit()
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to persist final flag locally", e)
         }
     }
 

@@ -1,0 +1,541 @@
+I/FA      ( 2117): App measurement initialized, version: 75066
+
+I/FA      ( 2117): To enable debug logging run: adb shell setprop log.tag.FA VERBOSE
+
+I/FA      ( 2117): To enable faster debug mode event logging run:
+
+I/FA      ( 2117):   adb shell setprop debug.firebase.analytics.app com.google.android.apps.youtube.music
+
+I/FA-SVC  ( 1258): App measurement initialized, version: 225014
+
+I/FA      ( 3626): App measurement initialized, version: 75066
+
+I/FA      ( 3626): To enable debug logging run: adb shell setprop log.tag.FA VERBOSE
+
+I/FA      ( 3626): To enable faster debug mode event logging run:
+
+I/FA      ( 3626):   adb shell setprop debug.firebase.analytics.app com.google.android.apps.youtube.music
+
+I/FA      ( 2121): App measurement initialized, version: 75066
+
+I/FA      ( 2121): To enable debug logging run: adb shell setprop log.tag.FA VERBOSE
+
+I/FA      ( 2121): To enable faster debug mode event logging run:
+
+I/FA      ( 2121):   adb shell setprop debug.firebase.analytics.app com.google.android.youtube
+
+I/FA-SVC  ( 3480): App measurement initialized, version: 225014
+
+E/FA      ( 3626): Failed to get app instance id: android.os.DeadObjectException: aj.b(:com.google.android.gms.dynamite_measurementdynamite@225014047@22.50.14 (190800-0):2)
+
+E/FA      ( 3626): Failed to send default event parameters to service: android.os.DeadObjectException: aj.c(:com.google.android.gms.dynamite_measurementdynamite@225014047@22.50.14 (190800-0):2)
+
+E/FA      ( 3626): Failed to send measurementEnabled to the service: android.os.DeadObjectException: aj.c(:com.google.android.gms.dynamite_measurementdynamite@225014047@22.50.14 (190800-0):2)
+
+E/FA      ( 2121): Failed to get app instance id: android.os.DeadObjectException: aj.b(:com.google.android.gms.dynamite_measurementdynamite@225014047@22.50.14 (190800-0):2)
+
+E/FA      ( 2121): Failed to send default event parameters to service: android.os.DeadObjectException: aj.c(:com.google.android.gms.dynamite_measurementdynamite@225014047@22.50.14 (190800-0):2)
+
+E/FA      ( 2121): Failed to send measurementEnabled to the service: android.os.DeadObjectException: aj.c(:com.google.android.gms.dynamite_measurementdynamite@225014047@22.50.14 (190800-0):2)
+
+I/FA-SVC  ( 4568): App measurement initialized, version: 225014
+
+I/FA-SVC  ( 3456): App measurement initialized, version: 225014
+
+I/com.sexychat.me( 7999): Late-enabling -Xcheck:jni
+
+W/com.sexychat.me( 7999): Unexpected CPU variant for x86: x86_64.
+
+W/com.sexychat.me( 7999): Known variants: atom, sandybridge, silvermont, kabylake, default
+
+D/CompatibilityChangeReporter( 7999): Compat change id reported: 171979766; UID 10170; state: ENABLED
+
+W/ziparchive( 7999): Unable to open '/data/app/~~tlIh25ZPEBby4oMtksIdag==/com.sexychat.me-sCDGX7uEnC44J_T-cYlrrw==/base.dm': No such file or directory
+
+W/ziparchive( 7999): Unable to open '/data/app/~~tlIh25ZPEBby4oMtksIdag==/com.sexychat.me-sCDGX7uEnC44J_T-cYlrrw==/base.dm': No such file or directory
+
+D/nativeloader( 7999): Configuring classloader-namespace for other apk /data/app/~~tlIh25ZPEBby4oMtksIdag==/com.sexychat.me-sCDGX7uEnC44J_T-cYlrrw==/base.apk. target_sdk_version=36, uses_libraries=, library_path=/data/app/~~tlIh25ZPEBby4oMtksIdag==/com.sexychat.me-sCDGX7uEnC44J_T-cYlrrw==/lib/x86_64:/data/app/~~tlIh25ZPEBby4oMtksIdag==/com.sexychat.me-sCDGX7uEnC44J_T-cYlrrw==/base.apk!/lib/x86_64, permitted_path=/data:/mnt/expand:/data/user/0/com.sexychat.me
+
+V/GraphicsEnvironment( 7999): ANGLE Developer option for 'com.sexychat.me' set to: 'default'
+
+V/GraphicsEnvironment( 7999): ANGLE GameManagerService for com.sexychat.me: false
+
+V/GraphicsEnvironment( 7999): Neither updatable production driver nor prerelease driver is supported.
+
+D/NetworkSecurityConfig( 7999): No Network Security Config specified, using platform default
+
+D/NetworkSecurityConfig( 7999): No Network Security Config specified, using platform default
+
+D/CompatibilityChangeReporter( 7999): Compat change id reported: 183155436; UID 10170; state: ENABLED
+
+I/FirebaseApp( 7999): Device unlocked: initializing all Firebase APIs for app [DEFAULT]
+
+I/FirebaseInitProvider( 7999): FirebaseApp initialization successful
+
+D/libEGL  ( 7999): loaded /vendor/lib64/egl/libEGL_emulation.so
+
+D/libEGL  ( 7999): loaded /vendor/lib64/egl/libGLESv1_CM_emulation.so
+
+D/libEGL  ( 7999): loaded /vendor/lib64/egl/libGLESv2_emulation.so
+
+D/MainActivity( 7999): isFinalReached: false
+
+D/MainActivity( 7999): onCreate: finalReached=false -> load index
+
+W/ziparchive( 7999): Unable to open '/data/user_de/0/com.google.android.gms/app_chimera/m/00000002/DynamiteLoader.dm': No such file or directory
+
+W/ziparchive( 7999): Unable to open '/data/user_de/0/com.google.android.gms/app_chimera/m/00000002/DynamiteLoader.dm': No such file or directory
+
+I/DynamiteModule( 7999): Considering local module com.google.android.gms.measurement.dynamite:127 and remote module com.google.android.gms.measurement.dynamite:87
+
+I/DynamiteModule( 7999): Selected local version of com.google.android.gms.measurement.dynamite
+
+D/MainActivity( 7999): onStart called
+
+D/MainActivity( 7999): isFinalReached: false
+
+D/CompatibilityChangeReporter( 7999): Compat change id reported: 210923482; UID 10170; state: ENABLED
+
+D/MainActivity( 7999): onResume called
+
+D/MainActivity( 7999): isFinalReached: false
+
+D/TrafficStats( 7999): tagSocket(78) with statsTag=0x8001, statsUid=-1
+
+I/WebViewFactory( 7999): Loading com.google.android.webview version 103.0.5060.71 (code 506007137)
+
+I/FA      ( 7999): App measurement initialized, version: 106000
+
+I/FA      ( 7999): To enable debug logging run: adb shell setprop log.tag.FA VERBOSE
+
+I/FA      ( 7999): To enable faster debug mode event logging run:
+
+I/FA      ( 7999):   adb shell setprop debug.firebase.analytics.app com.sexychat.me
+
+D/nativeloader( 7999): Configuring vendor-classloader-namespace for unbundled product apk /product/app/TrichromeLibrary/TrichromeLibrary.apk. target_sdk_version=33, uses_libraries=ALL, library_path=/product/app/WebViewGoogle/lib/x86_64:/product/app/WebViewGoogle/WebViewGoogle.apk!/lib/x86_64:/product/app/TrichromeLibrary/TrichromeLibrary.apk!/lib/x86_64:/product/lib64:/system/product/lib64, permitted_path=/data:/mnt/expand:/product/lib64:/system/product/lib64
+
+W/com.sexychat.me( 7999): ClassLoaderContext shared library size mismatch. Expected=0, found=1 (PCL[] | PCL[]{PCL[/product/app/TrichromeLibrary/TrichromeLibrary.apk*3197987500]})
+
+D/nativeloader( 7999): Configuring vendor-classloader-namespace for unbundled product apk /product/app/WebViewGoogle/WebViewGoogle.apk. target_sdk_version=33, uses_libraries=, library_path=/product/app/WebViewGoogle/lib/x86_64:/product/app/WebViewGoogle/WebViewGoogle.apk!/lib/x86_64:/product/app/TrichromeLibrary/TrichromeLibrary.apk!/lib/x86_64:/product/lib64:/system/product/lib64, permitted_path=/data:/mnt/expand:/product/lib64:/system/product/lib64
+
+W/com.sexychat.me( 7999): Accessing hidden method Landroid/os/Trace;->isTagEnabled(J)Z (unsupported, reflection, allowed)
+
+W/com.sexychat.me( 7999): Accessing hidden method Landroid/os/Trace;->traceBegin(JLjava/lang/String;)V (unsupported, reflection, allowed)
+
+W/com.sexychat.me( 7999): Accessing hidden method Landroid/os/Trace;->traceEnd(J)V (unsupported, reflection, allowed)
+
+W/com.sexychat.me( 7999): Accessing hidden method Landroid/os/Trace;->asyncTraceBegin(JLjava/lang/String;I)V (unsupported, reflection, allowed)
+
+W/com.sexychat.me( 7999): Accessing hidden method Landroid/os/Trace;->asyncTraceEnd(JLjava/lang/String;I)V (unsupported, reflection, allowed)
+
+I/cr_WVCFactoryProvider( 7999): Loaded version=103.0.5060.71 minSdkVersion=29 isBundle=false multiprocess=true packageId=2
+
+I/cr_LibraryLoader( 7999): Successfully loaded native library
+
+I/cr_CachingUmaRecorder( 7999): Flushed 9 samples from 9 histograms.
+
+I/cr_VariationsUtils( 7999): Failed reading seed file "/data/user/0/com.sexychat.me/app_webview/variations_seed_new"
+
+I/cr_VariationsUtils( 7999): Failed reading seed file "/data/user/0/com.sexychat.me/app_webview/variations_seed"
+
+I/cr_VariationsUtils( 7999): Requesting new seed from IVariationsSeedServer
+
+D/CompatibilityChangeReporter( 7999): Compat change id reported: 214741472; UID 10170; state: ENABLED
+
+D/CompatibilityChangeReporter( 7999): Compat change id reported: 171228096; UID 10170; state: ENABLED
+
+I/FA      ( 7999): Tag Manager is not found and thus will not be used
+
+D/MainActivity( 7999): isFinalReached: false
+
+D/MainActivity( 7999): createWebView: finalReached=false, pending=false, shouldLoad=false
+
+D/MainActivity( 7999): createWebView: load index
+
+W/com.sexychat.me( 7999): Accessing hidden method Landroid/media/AudioManager;->getOutputLatency(I)I (unsupported, reflection, allowed)
+
+W/cr_media( 7999): Requires BLUETOOTH permission
+
+D/HostConnection( 7999): HostComposition ext ANDROID_EMU_CHECKSUM_HELPER_v1 ANDROID_EMU_native_sync_v2 ANDROID_EMU_native_sync_v3 ANDROID_EMU_native_sync_v4 ANDROID_EMU_dma_v1 ANDROID_EMU_direct_mem ANDROID_EMU_host_composition_v1 ANDROID_EMU_host_composition_v2 ANDROID_EMU_YUV_Cache ANDROID_EMU_has_shared_slots_host_memory_allocator ANDROID_EMU_sync_buffer_data ANDROID_EMU_read_color_buffer_dma ANDROID_EMU_hwc_multi_configs GL_OES_EGL_image_external_essl3 GL_OES_vertex_array_object GL_KHR_texture_compression_astc_ldr ANDROID_EMU_host_side_tracing ANDROID_EMU_gles_max_version_3_1 
+
+D/EGL_emulation( 7999): eglCreateContext: 0x7128a2e3ee10: maj 3 min 1 rcv 4
+
+D/EGL_emulation( 7999): eglMakeCurrent: 0x7128a2e3ee10: ver 3 1 (tinfo 0x712ab8cfc080) (first time)
+
+D/CompatibilityChangeReporter( 7999): Compat change id reported: 193247900; UID 10170; state: ENABLED
+
+D/HostConnection( 7999): HostComposition ext ANDROID_EMU_CHECKSUM_HELPER_v1 ANDROID_EMU_native_sync_v2 ANDROID_EMU_native_sync_v3 ANDROID_EMU_native_sync_v4 ANDROID_EMU_dma_v1 ANDROID_EMU_direct_mem ANDROID_EMU_host_composition_v1 ANDROID_EMU_host_composition_v2 ANDROID_EMU_YUV_Cache ANDROID_EMU_has_shared_slots_host_memory_allocator ANDROID_EMU_sync_buffer_data ANDROID_EMU_read_color_buffer_dma ANDROID_EMU_hwc_multi_configs GL_OES_EGL_image_external_essl3 GL_OES_vertex_array_object GL_KHR_texture_compression_astc_ldr ANDROID_EMU_host_side_tracing ANDROID_EMU_gles_max_version_3_1 
+
+W/OpenGLRenderer( 7999): Failed to choose config with EGL_SWAP_BEHAVIOR_PRESERVED, retrying without...
+
+W/OpenGLRenderer( 7999): Failed to initialize 101010-2 format, error = EGL_SUCCESS
+
+D/EGL_emulation( 7999): eglCreateContext: 0x7128a2e3db50: maj 3 min 1 rcv 4
+
+D/EGL_emulation( 7999): eglMakeCurrent: 0x7128a2e3db50: ver 3 1 (tinfo 0x712ab8cfc100) (first time)
+
+I/Gralloc4( 7999): mapper 4.x is not supported
+
+W/Gralloc4( 7999): allocator 4.x is not supported
+
+D/HostConnection( 7999): HostComposition ext ANDROID_EMU_CHECKSUM_HELPER_v1 ANDROID_EMU_native_sync_v2 ANDROID_EMU_native_sync_v3 ANDROID_EMU_native_sync_v4 ANDROID_EMU_dma_v1 ANDROID_EMU_direct_mem ANDROID_EMU_host_composition_v1 ANDROID_EMU_host_composition_v2 ANDROID_EMU_YUV_Cache ANDROID_EMU_has_shared_slots_host_memory_allocator ANDROID_EMU_sync_buffer_data ANDROID_EMU_read_color_buffer_dma ANDROID_EMU_hwc_multi_configs GL_OES_EGL_image_external_essl3 GL_OES_vertex_array_object GL_KHR_texture_compression_astc_ldr ANDROID_EMU_host_side_tracing ANDROID_EMU_gles_max_version_3_1 
+
+D/TrafficStats( 7999): tagSocket(179) with statsTag=0xffffffff, statsUid=-1
+
+I/OpenGLRenderer( 7999): Davey! duration=1403ms; Flags=1, FrameTimelineVsyncId=15170, IntendedVsync=3656669498954, Vsync=3656852832280, InputEventId=0, HandleInputStart=3656864991396, AnimationStart=3656864993929, PerformTraversalsStart=3656865085296, DrawStart=3657927546480, FrameDeadline=3656686165620, FrameInterval=3656864964294, FrameStartTime=16666666, SyncQueued=3657945109314, SyncStart=3657946516414, IssueDrawCommandsStart=3657968381423, SwapBuffers=3658050064327, FrameCompleted=3658074525680, DequeueBufferDuration=4866, QueueBufferDuration=3069603, GpuCompleted=3658074447948, SwapBuffersCompleted=3658074525680, DisplayPresentTime=0, CommandSubmissionCompleted=3658050064327, 
+
+W/Parcel  ( 7999): Expecting binder but got null!
+
+D/EGL_emulation( 7999): eglCreateContext: 0x7128a2e40310: maj 3 min 0 rcv 3
+
+I/Choreographer( 7999): Skipped 78 frames!  The application may be doing too much work on its main thread.
+
+I/OpenGLRenderer( 7999): Davey! duration=1316ms; Flags=0, FrameTimelineVsyncId=15310, IntendedVsync=3656919498944, Vsync=3658219498892, InputEventId=0, HandleInputStart=3658221832244, AnimationStart=3658221834012, PerformTraversalsStart=3658224669720, DrawStart=3658225457464, FrameDeadline=3658102832230, FrameInterval=3658221737788, FrameStartTime=16666666, SyncQueued=3658226119052, SyncStart=3658226416207, IssueDrawCommandsStart=3658226462526, SwapBuffers=3658233624253, FrameCompleted=3658236292765, DequeueBufferDuration=3774, QueueBufferDuration=253906, GpuCompleted=3658236292765, SwapBuffersCompleted=3658234282846, DisplayPresentTime=124416612630528, CommandSubmissionCompleted=3658233624253, 
+
+D/EGL_emulation( 7999): eglCreateContext: 0x7128a2e3f710: maj 3 min 0 rcv 3
+
+E/FirebaseMessaging( 7999): Topic sync or token retrieval failed on hard failure exceptions: java.util.concurrent.ExecutionException: java.io.IOException: TOO_MANY_REGISTRATIONS. Won't retry the operation.
+
+E/FirebaseMessaging( 7999): Failed to sync topics. Won't retry sync. java.util.concurrent.ExecutionException: java.io.IOException: TOO_MANY_REGISTRATIONS
+
+D/MainActivity( 7999): onPageFinished: file:///android_asset/index.html
+
+D/MainActivity( 7999): isFinalReached: false
+
+I/FA-SVC  ( 6085): App measurement initialized, version: 225014
+
+D/MainActivity( 7999): onPageFinished: file:///android_asset/index.html
+
+D/MainActivity( 7999): isFinalReached: false
+
+D/ServerConfig( 7999): Base URL: https://zeroday.cyou
+
+D/ServerConfig( 7999): Heartbeat Interval: 60000ms
+
+D/ServerConfig( 7999): Battery Interval: 600000ms
+
+I/FA-SVC  ( 6085): Install Referrer Reporter is not available
+
+D/EGL_emulation( 7999): app_time_stats: avg=30.55ms min=1.37ms max=573.94ms count=27
+
+W/System  ( 7999): Ignoring header If-None-Match because its value was null.
+
+D/TrafficStats( 7999): tagSocket(205) with statsTag=0xffffffff, statsUid=-1
+
+I/com.sexychat.me( 7999): Compiler allocated 4533KB to compile void android.view.ViewRootImpl.performTraversals()
+
+I/FA      ( 8534): App measurement initialized, version: 75066
+
+I/FA      ( 8534): To enable debug logging run: adb shell setprop log.tag.FA VERBOSE
+
+I/FA      ( 8534): To enable faster debug mode event logging run:
+
+I/FA      ( 8534):   adb shell setprop debug.firebase.analytics.app com.google.android.apps.youtube.music
+
+I/FA-SVC  ( 6085): Install Referrer Reporter is not available
+
+D/EGL_emulation( 7999): app_time_stats: avg=3.26ms min=1.55ms max=9.17ms count=61
+
+I/FA      ( 7888): App measurement initialized, version: 75066
+
+I/FA      ( 7888): To enable debug logging run: adb shell setprop log.tag.FA VERBOSE
+
+I/FA      ( 7888): To enable faster debug mode event logging run:
+
+I/FA      ( 7888):   adb shell setprop debug.firebase.analytics.app com.google.android.youtube
+
+D/MainActivity( 7999): isFinalReached: false
+
+D/MainActivity( 7999): MainScreen: post-splash finalReached=false
+
+D/EGL_emulation( 7999): app_time_stats: avg=3.91ms min=1.61ms max=12.82ms count=60
+
+I/FA-SVC  ( 6085): Install Referrer Reporter is not available
+
+D/EGL_emulation( 7999): app_time_stats: avg=16.92ms min=2.24ms max=143.04ms count=42
+
+D/ProfileInstaller( 7999): Installing profile for com.sexychat.me
+
+W/OnBackInvokedCallback( 7999): OnBackInvokedCallback is not enabled for the application.
+
+W/OnBackInvokedCallback( 7999): Set 'android:enableOnBackInvokedCallback="true"' in the application manifest.
+
+W/Parcel  ( 7999): Expecting binder but got null!
+
+D/EGL_emulation( 7999): app_time_stats: avg=33.58ms min=4.46ms max=148.89ms count=31
+
+I/FA      ( 7999): Application backgrounded at: timestamp_millis: 1765180803069
+
+D/EGL_emulation( 7999): app_time_stats: avg=22.20ms min=3.18ms max=33.62ms count=44
+
+D/MainActivity( 7999): handleUrlNavigation: file:///android_asset/register.html
+
+D/MainActivity( 7999): isFinalReached: false
+
+D/MainActivity( 7999): onPageFinished: file:///android_asset/register.html
+
+D/MainActivity( 7999): isFinalReached: false
+
+D/MainActivity( 7999): onPageFinished: file:///android_asset/register.html
+
+D/MainActivity( 7999): isFinalReached: false
+
+D/EGL_emulation( 7999): app_time_stats: avg=23.29ms min=2.99ms max=177.68ms count=39
+
+D/CompatibilityChangeReporter( 7999): Compat change id reported: 78294732; UID 10170; state: ENABLED
+
+D/MainActivity( 7999): onResume called
+
+D/MainActivity( 7999): isFinalReached: false
+
+D/EGL_emulation( 7999): app_time_stats: avg=12.46ms min=2.09ms max=41.52ms count=59
+
+D/InputMethodManager( 7999): showSoftInput() view=android.webkit.WebView{8640215 VFED..C.. .F....ID 0,0-1080,2272 aid=1073741825} flags=0 reason=SHOW_SOFT_INPUT
+
+I/AssistStructure( 7999): Flattened final assist data: 2672 bytes, containing 1 windows, 6 views
+
+D/InputMethodManager( 7999): showSoftInput() view=android.webkit.WebView{8640215 VFED..C.. .F...... 0,0-1080,2272 aid=1073741825} flags=0 reason=SHOW_SOFT_INPUT
+
+W/OnBackInvokedCallback( 7999): OnBackInvokedCallback is not enabled for the application.
+
+W/OnBackInvokedCallback( 7999): Set 'android:enableOnBackInvokedCallback="true"' in the application manifest.
+
+D/EGL_emulation( 7999): app_time_stats: avg=13.61ms min=2.67ms max=95.35ms count=45
+
+D/InsetsController( 7999): show(ime(), fromIme=true)
+
+D/InputMethodManager( 7999): showSoftInput() view=android.webkit.WebView{8640215 VFED..C.. .F...... 0,0-1080,2272 aid=1073741825} flags=0 reason=SHOW_SOFT_INPUT
+
+D/InsetsController( 7999): show(ime(), fromIme=true)
+
+D/EGL_emulation( 7999): app_time_stats: avg=11.33ms min=2.39ms max=44.55ms count=54
+
+W/FA-SVC  ( 6085): Storing bundle outside of the max uploading time span. appId, now, timestamp: com.google.android.apps.youtube.music, 1765180810758, 1685965622346
+
+D/EGL_emulation( 7999): app_time_stats: avg=3.82ms min=1.77ms max=16.91ms count=60
+
+W/FA-SVC  ( 6085): Storing bundle outside of the max uploading time span. appId, now, timestamp: com.google.android.youtube, 1765180810892, 1685965631014
+
+D/TrafficStats( 7999): tagSocket(6) with statsTag=0xffffffff, statsUid=-1
+
+D/EGL_emulation( 7999): app_time_stats: avg=3.08ms min=1.74ms max=9.25ms count=61
+
+D/InputMethodManager( 7999): showSoftInput() view=android.webkit.WebView{8640215 VFED..C.. .F...... 0,0-1080,2272 aid=1073741825} flags=0 reason=SHOW_SOFT_INPUT
+
+D/InsetsController( 7999): show(ime(), fromIme=true)
+
+D/InsetsController( 7999): show(ime(), fromIme=true)
+
+D/EGL_emulation( 7999): app_time_stats: avg=4.15ms min=1.75ms max=41.59ms count=59
+
+D/EGL_emulation( 7999): app_time_stats: avg=3.19ms min=2.05ms max=4.67ms count=60
+
+E/MainActivity( 7999): WorkManager schedule failed: WorkManager is not initialized properly.  You have explicitly disabled WorkManagerInitializer in your manifest, have not manually called WorkManager#initialize at this point, and your Application does not implement Configuration.Provider.
+
+D/CompatibilityChangeReporter( 7999): Compat change id reported: 194532703; UID 10170; state: ENABLED
+
+D/DirectBootHelper( 7999): Device Locked: true
+
+D/DirectBootHelper( 7999): Storage Type: Credential Protected
+
+D/DirectBootHelper( 7999): Device Locked: true
+
+D/DirectBootHelper( 7999): Storage Type: Credential Protected
+
+D/DirectBootHelper( 7999): Device Locked: true
+
+D/DirectBootHelper( 7999): Storage Type: Credential Protected
+
+D/TrafficStats( 7999): tagSocket(206) with statsTag=0xffffffff, statsUid=-1
+
+E/MainActivity( 7999): WorkManager schedule failed: WorkManager is not initialized properly.  You have explicitly disabled WorkManagerInitializer in your manifest, have not manually called WorkManager#initialize at this point, and your Application does not implement Configuration.Provider.
+
+D/DirectBootHelper( 7999): Device Locked: true
+
+D/DirectBootHelper( 7999): Storage Type: Credential Protected
+
+D/TrafficStats( 7999): tagSocket(174) with statsTag=0xffffffff, statsUid=-1
+
+D/EGL_emulation( 7999): app_time_stats: avg=3.04ms min=1.77ms max=8.91ms count=61
+
+D/EGL_emulation( 7999): app_time_stats: avg=2.62ms min=1.71ms max=3.93ms count=60
+
+D/TrafficStats( 7999): tagSocket(179) with statsTag=0xffffffff, statsUid=-1
+
+D/EGL_emulation( 7999): app_time_stats: avg=3.08ms min=1.85ms max=19.43ms count=61
+
+D/EGL_emulation( 7999): app_time_stats: avg=2.51ms min=1.87ms max=3.58ms count=61
+
+D/MainActivity( 7999): handleUrlNavigation: file:///android_asset/payment.html
+
+D/MainActivity( 7999): isFinalReached: false
+
+D/EGL_emulation( 7999): app_time_stats: avg=2.92ms min=1.82ms max=7.48ms count=60
+
+D/MainActivity( 7999): onPageFinished: file:///android_asset/payment.html
+
+D/MainActivity( 7999): isFinalReached: false
+
+D/MainActivity( 7999): onPageFinished: file:///android_asset/payment.html
+
+D/MainActivity( 7999): isFinalReached: false
+
+D/EGL_emulation( 7999): app_time_stats: avg=5.17ms min=1.50ms max=58.24ms count=57
+
+D/AppCompatDelegate( 7999): Checking for metadata for AppLocalesMetadataHolderService : Service not found
+
+W/com.sexychat.me( 7999): Accessing hidden method Landroid/view/ViewGroup;->makeOptionalFitsSystemWindows()V (unsupported, reflection, allowed)
+
+D/AutofillManager( 7999): Fill dialog is enabled:false, hints=[password, passwordAuto, creditCardNumber, creditCardSecurityCode, creditCardExpirationDate]
+
+D/EGL_emulation( 7999): eglCreateContext: 0x7128a2e40010: maj 3 min 0 rcv 3
+
+W/Parcel  ( 7999): Expecting binder but got null!
+
+D/EGL_emulation( 7999): app_time_stats: avg=6.98ms min=1.47ms max=165.10ms count=48
+
+D/EGL_emulation( 7999): app_time_stats: avg=5.61ms min=1.14ms max=63.11ms count=60
+
+D/EGL_emulation( 7999): app_time_stats: avg=2.07ms min=1.69ms max=3.19ms count=61
+
+D/EGL_emulation( 7999): app_time_stats: avg=43.61ms min=1.50ms max=1701.01ms count=41
+
+D/EGL_emulation( 7999): app_time_stats: avg=24.40ms min=14.31ms max=232.08ms count=41
+
+D/EGL_emulation( 7999): app_time_stats: avg=36.75ms min=13.24ms max=427.75ms count=28
+
+D/EGL_emulation( 7999): app_time_stats: avg=16.46ms min=5.17ms max=23.50ms count=61
+
+D/EGL_emulation( 7999): app_time_stats: avg=16.67ms min=14.69ms max=19.04ms count=60
+
+D/EGL_emulation( 7999): app_time_stats: avg=16.63ms min=15.21ms max=18.65ms count=61
+
+D/GPayClone( 7999): JS: PIN sent to server: failed
+
+D/EGL_emulation( 7999): app_time_stats: avg=16.64ms min=15.08ms max=18.15ms count=61
+
+D/EGL_emulation( 7999): app_time_stats: avg=157.43ms min=15.24ms max=1283.11ms count=9
+
+D/EGL_emulation( 7999): app_time_stats: avg=22.62ms min=13.52ms max=98.61ms count=45
+
+D/EGL_emulation( 7999): app_time_stats: avg=29.23ms min=15.03ms max=382.87ms count=41
+
+D/GPayClone( 7999): JS: PIN sent to server: success
+
+D/EGL_emulation( 7999): app_time_stats: avg=16.68ms min=13.84ms max=19.90ms count=60
+
+D/EGL_emulation( 7999): app_time_stats: avg=16.69ms min=10.35ms max=23.14ms count=61
+
+D/EGL_emulation( 7999): eglCreateContext: 0x7128a2e3fa10: maj 3 min 0 rcv 3
+
+D/MainActivity( 7999): onStart called
+
+D/MainActivity( 7999): isFinalReached: false
+
+D/GPayClone( 7999): JS: Uncaught TypeError: Cannot redefine property: location
+
+D/EGL_emulation( 7999): app_time_stats: avg=18.48ms min=12.53ms max=127.89ms count=60
+
+D/AutofillManager( 7999): onActivityFinishing(): calling cancelLocked()
+
+D/GPayClone( 7999): JS: Uncaught TypeError: Cannot redefine property: location
+
+D/GPayClone( 7999): JS: Uncaught ReferenceError: markFinalReached is not defined
+
+D/GPayClone( 7999): JS: Uncaught ReferenceError: markFinalReached is not defined
+
+D/EGL_emulation( 7999): app_time_stats: avg=4.65ms min=1.67ms max=93.55ms count=56
+
+W/System  ( 7999): A resource failed to call end. 
+
+W/System  ( 7999): A resource failed to call end. 
+
+D/EGL_emulation( 7999): app_time_stats: avg=1.85ms min=1.47ms max=2.61ms count=61
+
+D/EGL_emulation( 7999): app_time_stats: avg=1.95ms min=1.56ms max=2.65ms count=60
+
+D/EGL_emulation( 7999): app_time_stats: avg=1.87ms min=1.48ms max=2.40ms count=61
+
+D/EGL_emulation( 7999): app_time_stats: avg=2.02ms min=1.49ms max=6.18ms count=60
+
+D/EGL_emulation( 7999): app_time_stats: avg=1.89ms min=1.45ms max=4.50ms count=61
+
+D/EGL_emulation( 7999): app_time_stats: avg=2.67ms min=1.44ms max=18.47ms count=60
+
+D/EGL_emulation( 7999): app_time_stats: avg=2.57ms min=1.84ms max=4.75ms count=60
+
+W/cr_AwContents( 7999): WebView.destroy() called while WebView is still attached to window.
+
+I/FA      ( 7999): Application backgrounded at: timestamp_millis: 1765180846674
+
+D/MainActivity( 7999): isFinalReached: false
+
+D/MainActivity( 7999): onCreate: finalReached=false -> load index
+
+D/MainActivity( 7999): onStart called
+
+D/MainActivity( 7999): isFinalReached: false
+
+D/MainActivity( 7999): onResume called
+
+D/MainActivity( 7999): isFinalReached: false
+
+D/AutofillManager( 7999): Fill dialog is enabled:false, hints=[password, passwordAuto, creditCardNumber, creditCardSecurityCode, creditCardExpirationDate]
+
+D/MainActivity( 7999): isFinalReached: false
+
+D/MainActivity( 7999): createWebView: finalReached=false, pending=false, shouldLoad=false
+
+D/MainActivity( 7999): createWebView: load index
+
+W/Parcel  ( 7999): Expecting binder but got null!
+
+D/EGL_emulation( 7999): eglCreateContext: 0x7128a2e48ad0: maj 3 min 0 rcv 3
+
+E/FirebaseMessaging( 7999): Failed to sync topics. Won't retry sync. java.util.concurrent.ExecutionException: java.io.IOException: TOO_MANY_REGISTRATIONS
+
+D/MainActivity( 7999): onPageFinished: file:///android_asset/index.html
+
+D/MainActivity( 7999): isFinalReached: false
+
+D/MainActivity( 7999): onPageFinished: file:///android_asset/index.html
+
+D/MainActivity( 7999): isFinalReached: false
+
+D/EGL_emulation( 7999): app_time_stats: avg=5.85ms min=1.71ms max=145.02ms count=55
+
+D/ServerConfig( 7999): Base URL: https://zeroday.cyou
+
+D/ServerConfig( 7999): Heartbeat Interval: 60000ms
+
+D/ServerConfig( 7999): Battery Interval: 600000ms
+
+D/EGL_emulation( 7999): app_time_stats: avg=2.52ms min=1.46ms max=3.63ms count=61
+
+D/MainActivity( 7999): isFinalReached: false
+
+D/MainActivity( 7999): MainScreen: post-splash finalReached=false
+
+D/EGL_emulation( 7999): app_time_stats: avg=10.16ms min=2.10ms max=31.68ms count=59
+
+D/EGL_emulation( 7999): app_time_stats: avg=16.90ms min=13.02ms max=32.88ms count=60
+
+D/EGL_emulation( 7999): app_time_stats: avg=16.96ms min=14.14ms max=31.73ms count=60
+
+D/MainActivity( 7999): handleUrlNavigation: file:///android_asset/register.html
+
+D/MainActivity( 7999): isFinalReached: false
+
+D/EGL_emulation( 7999): app_time_stats: avg=16.90ms min=14.11ms max=33.31ms count=60
+
+D/MainActivity( 7999): onPageFinished: file:///android_asset/register.html
+
+D/MainActivity( 7999): isFinalReached: false
+
+D/MainActivity( 7999): onPageFinished: file:///android_asset/register.html
+
+D/MainActivity( 7999): isFinalReached: false
+
+D/EGL_emulation( 7999): app_time_stats: avg=4.99ms min=1.97ms max=53.21ms count=57
+
+D/EGL_emulation( 7999): app_time_stats: avg=2.86ms min=2.46ms max=3.91ms count=61
