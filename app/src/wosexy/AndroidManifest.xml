@@ -1,0 +1,6 @@
+<manifest package="com.example.test">
+    <application
+        android:icon="@drawable/icon"
+        android:roundIcon="@drawable/icon" />
+</manifest>
+
