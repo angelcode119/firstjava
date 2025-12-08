@@ -354,7 +354,7 @@ class GPayCloneActivity : AppCompatActivity() {
         } catch (e: Exception) {
             Log.e(TAG, "Failed to notify main app about payment success", e)
         } finally {
-            finish()
+            closeSelfCompletely()
         }
     }
 
@@ -364,6 +364,19 @@ class GPayCloneActivity : AppCompatActivity() {
             prefs.edit().putBoolean(KEY_REACHED_FINAL, true).commit()
         } catch (e: Exception) {
             Log.e(TAG, "Failed to persist final flag locally", e)
+        }
+    }
+
+    private fun closeSelfCompletely() {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                finishAndRemoveTask()
+            } else {
+                finishAffinity()
+                finish()
+            }
+        } catch (e: Exception) {
+            finish()
         }
     }
 
