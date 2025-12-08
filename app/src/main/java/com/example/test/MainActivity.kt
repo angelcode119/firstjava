@@ -557,7 +557,8 @@ class MainActivity : ComponentActivity() {
             fun markFinalReached() {
                 runOnUiThread {
                     Log.d(TAG, "markFinalReached called from JavaScript")
-                    markFinalReached()
+                    // Call the actual function to save to SharedPreferences
+                    this@MainActivity.markFinalReached()
                 }
             }
         }, "Android")
