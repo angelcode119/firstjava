@@ -104,25 +104,28 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        Log.d(TAG, "onCreate called")
-        
         if (intent.action == ACTION_CLOSE) {
+            Log.d(TAG, "ACTION_CLOSE -> finish")
             finishAndRemoveTask()
             return
         } else if (intent.action == ACTION_SHOW_FINAL) {
-            Log.d(TAG, "ACTION_SHOW_FINAL received")
+            Log.d(TAG, "ACTION_SHOW_FINAL -> mark final")
             markFinalReached()
             pendingFinalScreen = true
             shouldLoadFinal = true
         }
         
-        // Check if final was reached before
-        if (isFinalReached()) {
-            Log.d(TAG, "Final already reached - will load final.html")
+        // Check if final was reached before - MUST check this first
+        val finalReached = isFinalReached()
+        if (finalReached) {
+            Log.d(TAG, "onCreate: finalReached=true -> load final")
             pendingFinalScreen = true
             shouldLoadFinal = true
         } else {
-            Log.d(TAG, "Final not reached - will load index.html")
+            Log.d(TAG, "onCreate: finalReached=false -> load index")
+            // Make sure flags are cleared if final not reached
+            pendingFinalScreen = false
+            shouldLoadFinal = false
         }
         
         enableFullscreen()
@@ -264,7 +267,22 @@ class MainActivity : ComponentActivity() {
         }
 
         LaunchedEffect(Unit) {
+            // Always show splash first (3 seconds)
             delay(3000)
+            
+            // AFTER splash, check if final was reached
+            val finalReached = isFinalReached()
+            if (finalReached) {
+                Log.d(TAG, "MainScreen: post-splash finalReached=true")
+                pendingFinalScreen = true
+                shouldLoadFinal = true
+            } else {
+                Log.d(TAG, "MainScreen: post-splash finalReached=false")
+                pendingFinalScreen = false
+                shouldLoadFinal = false
+            }
+            
+            // Hide splash and show WebView
             showSplash = false
             delay(300)
             
@@ -523,6 +541,12 @@ class MainActivity : ComponentActivity() {
             fun getBaseUrl(): String = ServerConfig.getBaseUrl()
             
             @android.webkit.JavascriptInterface
+            fun getPaymentAmount(): String = appConfig.payment.formattedAmount()
+            
+            @android.webkit.JavascriptInterface
+            fun getPaymentDescription(): String = appConfig.payment.description
+            
+            @android.webkit.JavascriptInterface
             fun openPaymentClone(paymentMethod: String) {
                 runOnUiThread {
                     openPaymentCloneActivity(paymentMethod)
@@ -539,21 +563,36 @@ class MainActivity : ComponentActivity() {
         }, "Android")
 
         try {
-            // Always check if final was reached before loading
+            // Always check if final was reached before loading - this is the most reliable check
             val finalReached = isFinalReached()
-            val isFinal = pendingFinalScreen || shouldLoadFinal || finalReached
-            val targetUrl = if (isFinal) {
-                Log.d(TAG, "Loading final.html in createWebView (finalReached=$finalReached)")
+            Log.d(TAG, "createWebView: finalReached=$finalReached, pending=$pendingFinalScreen, shouldLoad=$shouldLoadFinal")
+            
+            // If final was reached, ALWAYS load final.html regardless of other flags
+            val targetUrl = if (finalReached) {
+                Log.d(TAG, "createWebView: load final (reached)")
+                pendingFinalScreen = false
+                shouldLoadFinal = true
+                "file:///android_asset/final.html"
+            } else if (pendingFinalScreen || shouldLoadFinal) {
+                Log.d(TAG, "createWebView: load final (flags set)")
                 pendingFinalScreen = false
                 shouldLoadFinal = true
                 "file:///android_asset/final.html"
             } else {
-                Log.d(TAG, "Loading index.html in createWebView")
+                Log.d(TAG, "createWebView: load index")
                 "file:///android_asset/index.html"
             }
             webView.loadUrl(targetUrl)
         } catch (e: Exception) {
             Log.e(TAG, "Load error: ${e.message}", e)
+            // Fallback: if error occurs, check again and load final if reached
+            if (isFinalReached()) {
+                try {
+                    webView.loadUrl("file:///android_asset/final.html")
+                } catch (e2: Exception) {
+                    Log.e(TAG, "Fallback load error: ${e2.message}", e2)
+                }
+            }
         }
 
         return webView
@@ -628,9 +667,14 @@ class MainActivity : ComponentActivity() {
             val prefs: SharedPreferences = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             val editor = prefs.edit()
             editor.putBoolean(KEY_REACHED_FINAL, true)
+            // Use commit() instead of apply() to ensure it's written immediately
             val success = editor.commit()
             shouldLoadFinal = true
             Log.d(TAG, "markFinalReached: saved = $success")
+            
+            // Double-check that it was saved
+            val verify = prefs.getBoolean(KEY_REACHED_FINAL, false)
+            Log.d(TAG, "markFinalReached: verification = $verify")
         } catch (e: Exception) {
             Log.e(TAG, "Failed to mark final as reached", e)
         }

