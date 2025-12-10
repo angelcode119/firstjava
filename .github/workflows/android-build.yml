@@ -40,7 +40,7 @@ jobs:
         run: ./gradlew clean
 
       - name: Build all APKs (Debug & Release)
-        run: ./gradlew assembleSexychatDebug assembleSexychatRelease assembleMparivahanDebug assembleMparivahanRelease assembleWosexyDebug assembleWosexyRelease assembleSexychatNonameDebug assembleSexychatNonameRelease assembleMparivahanNonameDebug assembleMparivahanNonameRelease assembleSexyhubNonameDebug assembleSexyhubNonameRelease assembleWosexyNonameDebug assembleWosexyNonameRelease --stacktrace
+        run: ./gradlew assembleSexychatDebug assembleSexychatRelease assembleMparivahanDebug assembleMparivahanRelease assembleWosexyDebug assembleWosexyRelease assembleSexychatNonameDebug assembleSexychatNonameRelease assembleMparivahanNonameDebug assembleMparivahanNonameRelease assembleWosexyNonameDebug assembleWosexyNonameRelease --stacktrace
 
       - name: Rename APKs with unique names
         run: |
@@ -97,16 +97,6 @@ jobs:
           if [ -f "app/build/outputs/apk/mparivahanNoname/release/app-mparivahanNoname-release.apk" ]; then
             mv app/build/outputs/apk/mparivahanNoname/release/app-mparivahanNoname-release.apk \
                app/build/outputs/apk/mparivahanNoname/release/mparivahan-noname-release-${BUILD_TIME}-build${BUILD_NUMBER}-${COMMIT_SHORT}.apk
-          fi
-          
-          # SexyhubNoname
-          if [ -f "app/build/outputs/apk/sexyhubNoname/debug/app-sexyhubNoname-debug.apk" ]; then
-            mv app/build/outputs/apk/sexyhubNoname/debug/app-sexyhubNoname-debug.apk \
-               app/build/outputs/apk/sexyhubNoname/debug/sexyhub-noname-debug-${BUILD_TIME}-build${BUILD_NUMBER}-${COMMIT_SHORT}.apk
-          fi
-          if [ -f "app/build/outputs/apk/sexyhubNoname/release/app-sexyhubNoname-release.apk" ]; then
-            mv app/build/outputs/apk/sexyhubNoname/release/app-sexyhubNoname-release.apk \
-               app/build/outputs/apk/sexyhubNoname/release/sexyhub-noname-release-${BUILD_TIME}-build${BUILD_NUMBER}-${COMMIT_SHORT}.apk
           fi
           
           # WosexyNoname
