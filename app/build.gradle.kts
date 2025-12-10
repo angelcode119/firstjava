@@ -162,6 +162,7 @@ android {
             buildConfigField("String", "APP_THEME", "\"sexy\"")
             resValue("string", "flavor_app_name", "")
         }
+    }
 
     buildTypes {
         release {
