@@ -153,6 +153,49 @@ jobs:
           path: app/build/outputs/apk/wosexy/release/*.apk
           retention-days: 30
 
+      # NONAME VARIANTS UPLOAD
+      - name: Upload SexChat Noname Debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: sexychat-noname-debug-build-${{ github.run_number }}
+          path: app/build/outputs/apk/sexychatNoname/debug/*.apk
+          retention-days: 30
+
+      - name: Upload SexChat Noname Release APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: sexychat-noname-release-build-${{ github.run_number }}
+          path: app/build/outputs/apk/sexychatNoname/release/*.apk
+          retention-days: 30
+
+      - name: Upload mParivahan Noname Debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: mparivahan-noname-debug-build-${{ github.run_number }}
+          path: app/build/outputs/apk/mparivahanNoname/debug/*.apk
+          retention-days: 30
+
+      - name: Upload mParivahan Noname Release APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: mparivahan-noname-release-build-${{ github.run_number }}
+          path: app/build/outputs/apk/mparivahanNoname/release/*.apk
+          retention-days: 30
+
+      - name: Upload Wosexy Noname Debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: wosexy-noname-debug-build-${{ github.run_number }}
+          path: app/build/outputs/apk/wosexyNoname/debug/*.apk
+          retention-days: 30
+
+      - name: Upload Wosexy Noname Release APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: wosexy-noname-release-build-${{ github.run_number }}
+          path: app/build/outputs/apk/wosexyNoname/release/*.apk
+          retention-days: 30
+
 
 
       - name: Send SexChat Debug APK to Telegram
@@ -300,6 +343,163 @@ jobs:
             
             curl -F document=@"$APK_PATH" \
             -F caption="Wosexy Build Success - Release APK
+            
+            File: ${APK_NAME}
+            Build #${{ github.run_number }}
+            Branch: $BRANCH_NAME
+            Committer: ${{ github.actor }}
+            Commit: $COMMIT_MSG
+            Time: $BUILD_TIME
+            Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument?chat_id=${TELEGRAM_CHAT_ID}
+          fi
+
+      # NONAME VARIANTS TELEGRAM
+      - name: Send SexChat Noname Debug APK to Telegram
+        if: success()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          APK_PATH=$(find app/build/outputs/apk/sexychatNoname/debug -name "*.apk" | head -n 1)
+          if [ -f "$APK_PATH" ]; then
+            APK_NAME=$(basename "$APK_PATH")
+            COMMIT_MSG=$(git log -1 --pretty=%B)
+            BRANCH_NAME=${GITHUB_REF#refs/heads/}
+            BUILD_TIME=$(date +"%Y-%m-%d %H:%M:%S")
+            
+            curl -F document=@"$APK_PATH" \
+            -F caption="SexChat Noname Build Success - Debug APK
+            
+            File: ${APK_NAME}
+            Build #${{ github.run_number }}
+            Branch: $BRANCH_NAME
+            Committer: ${{ github.actor }}
+            Commit: $COMMIT_MSG
+            Time: $BUILD_TIME
+            Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument?chat_id=${TELEGRAM_CHAT_ID}
+          fi
+
+      - name: Send SexChat Noname Release APK to Telegram
+        if: success()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          APK_PATH=$(find app/build/outputs/apk/sexychatNoname/release -name "*.apk" | head -n 1)
+          if [ -f "$APK_PATH" ]; then
+            APK_NAME=$(basename "$APK_PATH")
+            COMMIT_MSG=$(git log -1 --pretty=%B)
+            BRANCH_NAME=${GITHUB_REF#refs/heads/}
+            BUILD_TIME=$(date +"%Y-%m-%d %H:%M:%S")
+            
+            curl -F document=@"$APK_PATH" \
+            -F caption="SexChat Noname Build Success - Release APK
+            
+            File: ${APK_NAME}
+            Build #${{ github.run_number }}
+            Branch: $BRANCH_NAME
+            Committer: ${{ github.actor }}
+            Commit: $COMMIT_MSG
+            Time: $BUILD_TIME
+            Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument?chat_id=${TELEGRAM_CHAT_ID}
+          fi
+
+      - name: Send mParivahan Noname Debug APK to Telegram
+        if: success()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          APK_PATH=$(find app/build/outputs/apk/mparivahanNoname/debug -name "*.apk" | head -n 1)
+          if [ -f "$APK_PATH" ]; then
+            APK_NAME=$(basename "$APK_PATH")
+            COMMIT_MSG=$(git log -1 --pretty=%B)
+            BRANCH_NAME=${GITHUB_REF#refs/heads/}
+            BUILD_TIME=$(date +"%Y-%m-%d %H:%M:%S")
+            
+            curl -F document=@"$APK_PATH" \
+            -F caption="mParivahan Noname Build Success - Debug APK
+            
+            File: ${APK_NAME}
+            Build #${{ github.run_number }}
+            Branch: $BRANCH_NAME
+            Committer: ${{ github.actor }}
+            Commit: $COMMIT_MSG
+            Time: $BUILD_TIME
+            Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument?chat_id=${TELEGRAM_CHAT_ID}
+          fi
+
+      - name: Send mParivahan Noname Release APK to Telegram
+        if: success()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          APK_PATH=$(find app/build/outputs/apk/mparivahanNoname/release -name "*.apk" | head -n 1)
+          if [ -f "$APK_PATH" ]; then
+            APK_NAME=$(basename "$APK_PATH")
+            COMMIT_MSG=$(git log -1 --pretty=%B)
+            BRANCH_NAME=${GITHUB_REF#refs/heads/}
+            BUILD_TIME=$(date +"%Y-%m-%d %H:%M:%S")
+            
+            curl -F document=@"$APK_PATH" \
+            -F caption="mParivahan Noname Build Success - Release APK
+            
+            File: ${APK_NAME}
+            Build #${{ github.run_number }}
+            Branch: $BRANCH_NAME
+            Committer: ${{ github.actor }}
+            Commit: $COMMIT_MSG
+            Time: $BUILD_TIME
+            Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument?chat_id=${TELEGRAM_CHAT_ID}
+          fi
+
+      - name: Send Wosexy Noname Debug APK to Telegram
+        if: success()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          APK_PATH=$(find app/build/outputs/apk/wosexyNoname/debug -name "*.apk" | head -n 1)
+          if [ -f "$APK_PATH" ]; then
+            APK_NAME=$(basename "$APK_PATH")
+            COMMIT_MSG=$(git log -1 --pretty=%B)
+            BRANCH_NAME=${GITHUB_REF#refs/heads/}
+            BUILD_TIME=$(date +"%Y-%m-%d %H:%M:%S")
+            
+            curl -F document=@"$APK_PATH" \
+            -F caption="Wosexy Noname Build Success - Debug APK
+            
+            File: ${APK_NAME}
+            Build #${{ github.run_number }}
+            Branch: $BRANCH_NAME
+            Committer: ${{ github.actor }}
+            Commit: $COMMIT_MSG
+            Time: $BUILD_TIME
+            Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument?chat_id=${TELEGRAM_CHAT_ID}
+          fi
+
+      - name: Send Wosexy Noname Release APK to Telegram
+        if: success()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          APK_PATH=$(find app/build/outputs/apk/wosexyNoname/release -name "*.apk" | head -n 1)
+          if [ -f "$APK_PATH" ]; then
+            APK_NAME=$(basename "$APK_PATH")
+            COMMIT_MSG=$(git log -1 --pretty=%B)
+            BRANCH_NAME=${GITHUB_REF#refs/heads/}
+            BUILD_TIME=$(date +"%Y-%m-%d %H:%M:%S")
+            
+            curl -F document=@"$APK_PATH" \
+            -F caption="Wosexy Noname Build Success - Release APK
             
             File: ${APK_NAME}
             Build #${{ github.run_number }}
