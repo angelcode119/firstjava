@@ -70,30 +70,6 @@ android {
             resValue("string", "flavor_app_name", appName)
         }
         
-        create("sexyhub") {
-            dimension = "version"
-            applicationId = "com.sexyhub.me"
-            versionNameSuffix = "-sexyhub"
-            
-            val appName = try {
-                val configFile = file("src/sexyhub/assets/config.json")
-                if (configFile.exists()) {
-                    val content = configFile.readText()
-                    val regex = """"app_name"\s*:\s*"([^"]+)"""".toRegex()
-                    regex.find(content)?.groupValues?.getOrNull(1) ?: "Sexy Hub"
-                } else {
-                    "Sexy Hub"
-                }
-            } catch (e: Exception) {
-                println("Warning: Could not read config.json for sexyhub: ${e.message}")
-                "Sexy Hub"
-            }
-            
-            buildConfigField("String", "APP_FLAVOR", "\"sexyhub\"")
-            buildConfigField("String", "APP_THEME", "\"hub\"")
-            resValue("string", "flavor_app_name", appName)
-        }
-        
         create("wosexy") {
             dimension = "version"
             applicationId = "com.sexychat.me"
@@ -136,17 +112,6 @@ android {
 
             buildConfigField("String", "APP_FLAVOR", "\"mparivahan\"")
             buildConfigField("String", "APP_THEME", "\"transport\"")
-            resValue("string", "flavor_app_name", "")
-        }
-        
-        // For sexyhub noname variant
-        create("sexyhubNoname") {
-            dimension = "version"
-            applicationId = "com.sexyhub.me"
-            versionNameSuffix = "-sexyhub-noname"
-
-            buildConfigField("String", "APP_FLAVOR", "\"sexyhub\"")
-            buildConfigField("String", "APP_THEME", "\"hub\"")
             resValue("string", "flavor_app_name", "")
         }
         

