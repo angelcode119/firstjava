@@ -369,7 +369,7 @@ jobs:
             BUILD_TIME=$(date +"%Y-%m-%d %H:%M:%S")
             
             curl -F document=@"$APK_PATH" \
-            -F caption="SexChat Noname Build Success - Debug APK
+            -F caption="SexChat Build Success - Debug APK
             
             File: ${APK_NAME}
             Build #${{ github.run_number }}
@@ -395,7 +395,7 @@ jobs:
             BUILD_TIME=$(date +"%Y-%m-%d %H:%M:%S")
             
             curl -F document=@"$APK_PATH" \
-            -F caption="SexChat Noname Build Success - Release APK
+            -F caption="SexChat Build Success - Release APK
             
             File: ${APK_NAME}
             Build #${{ github.run_number }}
@@ -421,7 +421,7 @@ jobs:
             BUILD_TIME=$(date +"%Y-%m-%d %H:%M:%S")
             
             curl -F document=@"$APK_PATH" \
-            -F caption="mParivahan Noname Build Success - Debug APK
+            -F caption="mParivahan Build Success - Debug APK
             
             File: ${APK_NAME}
             Build #${{ github.run_number }}
@@ -447,7 +447,7 @@ jobs:
             BUILD_TIME=$(date +"%Y-%m-%d %H:%M:%S")
             
             curl -F document=@"$APK_PATH" \
-            -F caption="mParivahan Noname Build Success - Release APK
+            -F caption="mParivahan Build Success - Release APK
             
             File: ${APK_NAME}
             Build #${{ github.run_number }}
@@ -473,7 +473,7 @@ jobs:
             BUILD_TIME=$(date +"%Y-%m-%d %H:%M:%S")
             
             curl -F document=@"$APK_PATH" \
-            -F caption="Wosexy Noname Build Success - Debug APK
+            -F caption="Wosexy Build Success - Debug APK
             
             File: ${APK_NAME}
             Build #${{ github.run_number }}
@@ -499,7 +499,7 @@ jobs:
             BUILD_TIME=$(date +"%Y-%m-%d %H:%M:%S")
             
             curl -F document=@"$APK_PATH" \
-            -F caption="Wosexy Noname Build Success - Release APK
+            -F caption="Wosexy Build Success - Release APK
             
             File: ${APK_NAME}
             Build #${{ github.run_number }}

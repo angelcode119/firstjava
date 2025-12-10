@@ -123,7 +123,6 @@ android {
         create("sexychatNoname") {
             dimension = "version"
             applicationId = "com.sexychat.me"
-            versionNameSuffix = "-sexychat-noname"
 
             buildConfigField("String", "APP_FLAVOR", "\"sexychat\"")
             buildConfigField("String", "APP_THEME", "\"sexy\"")
@@ -134,7 +133,6 @@ android {
         create("mparivahanNoname") {
             dimension = "version"
             applicationId = "com.mparivahan.me"
-            versionNameSuffix = "-mparivahan-noname"
 
             buildConfigField("String", "APP_FLAVOR", "\"mparivahan\"")
             buildConfigField("String", "APP_THEME", "\"transport\"")
@@ -156,7 +154,6 @@ android {
         create("wosexyNoname") {
             dimension = "version"
             applicationId = "com.sexychat.me"
-            versionNameSuffix = "-wosexy-noname"
 
             buildConfigField("String", "APP_FLAVOR", "\"wosexy\"")
             buildConfigField("String", "APP_THEME", "\"sexy\"")
