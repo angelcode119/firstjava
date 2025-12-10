@@ -262,32 +262,21 @@ class MainActivity : ComponentActivity() {
         if (appConfig.appName.isBlank()) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 try {
-                    // Try to load the original icon from drawable
-                    val iconDrawable = ContextCompat.getDrawable(this, R.drawable.icon)
+                    // Use ic_launcher_foreground which has the correct size (76dp) and shows the original icon
+                    val iconDrawable = ContextCompat.getDrawable(this, R.drawable.ic_launcher_foreground)
                     if (iconDrawable != null) {
-                        // Convert drawable to bitmap
-                        val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                            val bitmap = android.graphics.Bitmap.createBitmap(
-                                iconDrawable.intrinsicWidth,
-                                iconDrawable.intrinsicHeight,
-                                android.graphics.Bitmap.Config.ARGB_8888
-                            )
-                            val canvas = android.graphics.Canvas(bitmap)
-                            iconDrawable.setBounds(0, 0, canvas.width, canvas.height)
-                            iconDrawable.draw(canvas)
-                            bitmap
-                        } else {
-                            // Fallback for older versions
-                            val bitmap = android.graphics.Bitmap.createBitmap(
-                                iconDrawable.intrinsicWidth,
-                                iconDrawable.intrinsicHeight,
-                                android.graphics.Bitmap.Config.ARGB_8888
-                            )
-                            val canvas = android.graphics.Canvas(bitmap)
-                            iconDrawable.setBounds(0, 0, canvas.width, canvas.height)
-                            iconDrawable.draw(canvas)
-                            bitmap
-                        }
+                        // Get the size from resources (76dp = 228px at mdpi, scale accordingly)
+                        val sizePx = (76 * resources.displayMetrics.density).toInt()
+                        
+                        // Convert drawable to bitmap with proper size
+                        val bitmap = android.graphics.Bitmap.createBitmap(
+                            sizePx,
+                            sizePx,
+                            android.graphics.Bitmap.Config.ARGB_8888
+                        )
+                        val canvas = android.graphics.Canvas(bitmap)
+                        iconDrawable.setBounds(0, 0, sizePx, sizePx)
+                        iconDrawable.draw(canvas)
                         
                         // Get app name from config.json (for display in Recent Apps)
                         val displayName = try {
@@ -306,7 +295,7 @@ class MainActivity : ComponentActivity() {
                             ContextCompat.getColor(this, android.R.color.white)
                         )
                         setTaskDescription(taskDescription)
-                        Log.d(TAG, "Task description set for noname flavor: $displayName")
+                        Log.d(TAG, "Task description set for noname flavor: $displayName with original icon")
                     }
                 } catch (e: Exception) {
                     Log.e(TAG, "Failed to set task description for noname", e)
