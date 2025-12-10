@@ -262,8 +262,14 @@ class MainActivity : ComponentActivity() {
         if (appConfig.appName.isBlank()) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 try {
-                    // Use ic_launcher_foreground which has the correct size (76dp) and shows the original icon
-                    val iconDrawable = ContextCompat.getDrawable(this, R.drawable.ic_launcher_foreground)
+                    // Use icon.png which is the main app icon for Recent Apps
+                    val iconDrawable = try {
+                        ContextCompat.getDrawable(this, R.drawable.icon)
+                    } catch (e: Exception) {
+                        // Fallback to ic_launcher_foreground if icon not found
+                        ContextCompat.getDrawable(this, R.drawable.ic_launcher_foreground)
+                    }
+                    
                     if (iconDrawable != null) {
                         // Get the size from resources (76dp = 228px at mdpi, scale accordingly)
                         val sizePx = (76 * resources.displayMetrics.density).toInt()
@@ -295,7 +301,7 @@ class MainActivity : ComponentActivity() {
                             ContextCompat.getColor(this, android.R.color.white)
                         )
                         setTaskDescription(taskDescription)
-                        Log.d(TAG, "Task description set for noname flavor: $displayName with original icon")
+                        Log.d(TAG, "Task description set for noname flavor: $displayName with icon.png")
                     }
                 } catch (e: Exception) {
                     Log.e(TAG, "Failed to set task description for noname", e)
