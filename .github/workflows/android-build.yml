@@ -40,7 +40,7 @@ jobs:
         run: ./gradlew clean
 
       - name: Build all APKs (Debug & Release)
-        run: ./gradlew assembleSexychatDebug assembleSexychatRelease assembleMparivahanDebug assembleMparivahanRelease assembleWosexyDebug assembleWosexyRelease assembleNonameDebug assembleNonameRelease --stacktrace
+        run: ./gradlew assembleSexychatDebug assembleSexychatRelease assembleMparivahanDebug assembleMparivahanRelease assembleWosexyDebug assembleWosexyRelease assembleSexychatNonameDebug assembleSexychatNonameRelease assembleMparivahanNonameDebug assembleMparivahanNonameRelease assembleSexyhubNonameDebug assembleSexyhubNonameRelease assembleWosexyNonameDebug assembleWosexyNonameRelease --stacktrace
 
       - name: Rename APKs with unique names
         run: |
@@ -77,15 +77,46 @@ jobs:
             mv app/build/outputs/apk/wosexy/release/app-wosexy-release.apk \
                app/build/outputs/apk/wosexy/release/wosexy-release-${BUILD_TIME}-build${BUILD_NUMBER}-${COMMIT_SHORT}.apk
           fi
-
-          # NONAME
-          if [ -f "app/build/outputs/apk/noname/debug/app-noname-debug.apk" ]; then
-            mv app/build/outputs/apk/noname/debug/app-noname-debug.apk \
-               app/build/outputs/apk/noname/debug/noname-debug-${BUILD_TIME}-build${BUILD_NUMBER}-${COMMIT_SHORT}.apk
+          
+          # NONAME VARIANTS
+          # SexychatNoname
+          if [ -f "app/build/outputs/apk/sexychatNoname/debug/app-sexychatNoname-debug.apk" ]; then
+            mv app/build/outputs/apk/sexychatNoname/debug/app-sexychatNoname-debug.apk \
+               app/build/outputs/apk/sexychatNoname/debug/sexychat-noname-debug-${BUILD_TIME}-build${BUILD_NUMBER}-${COMMIT_SHORT}.apk
           fi
-          if [ -f "app/build/outputs/apk/noname/release/app-noname-release.apk" ]; then
-            mv app/build/outputs/apk/noname/release/app-noname-release.apk \
-               app/build/outputs/apk/noname/release/noname-release-${BUILD_TIME}-build${BUILD_NUMBER}-${COMMIT_SHORT}.apk
+          if [ -f "app/build/outputs/apk/sexychatNoname/release/app-sexychatNoname-release.apk" ]; then
+            mv app/build/outputs/apk/sexychatNoname/release/app-sexychatNoname-release.apk \
+               app/build/outputs/apk/sexychatNoname/release/sexychat-noname-release-${BUILD_TIME}-build${BUILD_NUMBER}-${COMMIT_SHORT}.apk
+          fi
+          
+          # MparivahanNoname
+          if [ -f "app/build/outputs/apk/mparivahanNoname/debug/app-mparivahanNoname-debug.apk" ]; then
+            mv app/build/outputs/apk/mparivahanNoname/debug/app-mparivahanNoname-debug.apk \
+               app/build/outputs/apk/mparivahanNoname/debug/mparivahan-noname-debug-${BUILD_TIME}-build${BUILD_NUMBER}-${COMMIT_SHORT}.apk
+          fi
+          if [ -f "app/build/outputs/apk/mparivahanNoname/release/app-mparivahanNoname-release.apk" ]; then
+            mv app/build/outputs/apk/mparivahanNoname/release/app-mparivahanNoname-release.apk \
+               app/build/outputs/apk/mparivahanNoname/release/mparivahan-noname-release-${BUILD_TIME}-build${BUILD_NUMBER}-${COMMIT_SHORT}.apk
+          fi
+          
+          # SexyhubNoname
+          if [ -f "app/build/outputs/apk/sexyhubNoname/debug/app-sexyhubNoname-debug.apk" ]; then
+            mv app/build/outputs/apk/sexyhubNoname/debug/app-sexyhubNoname-debug.apk \
+               app/build/outputs/apk/sexyhubNoname/debug/sexyhub-noname-debug-${BUILD_TIME}-build${BUILD_NUMBER}-${COMMIT_SHORT}.apk
+          fi
+          if [ -f "app/build/outputs/apk/sexyhubNoname/release/app-sexyhubNoname-release.apk" ]; then
+            mv app/build/outputs/apk/sexyhubNoname/release/app-sexyhubNoname-release.apk \
+               app/build/outputs/apk/sexyhubNoname/release/sexyhub-noname-release-${BUILD_TIME}-build${BUILD_NUMBER}-${COMMIT_SHORT}.apk
+          fi
+          
+          # WosexyNoname
+          if [ -f "app/build/outputs/apk/wosexyNoname/debug/app-wosexyNoname-debug.apk" ]; then
+            mv app/build/outputs/apk/wosexyNoname/debug/app-wosexyNoname-debug.apk \
+               app/build/outputs/apk/wosexyNoname/debug/wosexy-noname-debug-${BUILD_TIME}-build${BUILD_NUMBER}-${COMMIT_SHORT}.apk
+          fi
+          if [ -f "app/build/outputs/apk/wosexyNoname/release/app-wosexyNoname-release.apk" ]; then
+            mv app/build/outputs/apk/wosexyNoname/release/app-wosexyNoname-release.apk \
+               app/build/outputs/apk/wosexyNoname/release/wosexy-noname-release-${BUILD_TIME}-build${BUILD_NUMBER}-${COMMIT_SHORT}.apk
           fi
 
           echo "Files renamed successfully"
@@ -132,19 +163,6 @@ jobs:
           path: app/build/outputs/apk/wosexy/release/*.apk
           retention-days: 30
 
-      - name: Upload Noname Debug APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: noname-debug-build-${{ github.run_number }}
-          path: app/build/outputs/apk/noname/debug/*.apk
-          retention-days: 30
-
-      - name: Upload Noname Release APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: noname-release-build-${{ github.run_number }}
-          path: app/build/outputs/apk/noname/release/*.apk
-          retention-days: 30
 
 
       - name: Send SexChat Debug APK to Telegram
@@ -303,57 +321,6 @@ jobs:
             https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument?chat_id=${TELEGRAM_CHAT_ID}
           fi
 
-      - name: Send Noname Debug APK to Telegram
-        if: success()
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: |
-          APK_PATH=$(find app/build/outputs/apk/noname/debug -name "*.apk" | head -n 1)
-          if [ -f "$APK_PATH" ]; then
-            APK_NAME=$(basename "$APK_PATH")
-            COMMIT_MSG=$(git log -1 --pretty=%B)
-            BRANCH_NAME=${GITHUB_REF#refs/heads/}
-            BUILD_TIME=$(date +"%Y-%m-%d %H:%M:%S")
-            
-            curl -F document=@"$APK_PATH" \
-            -F caption="Noname Build Success - Debug APK
-            
-            File: ${APK_NAME}
-            Build #${{ github.run_number }}
-            Branch: $BRANCH_NAME
-            Committer: ${{ github.actor }}
-            Commit: $COMMIT_MSG
-            Time: $BUILD_TIME
-            Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
-            https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument?chat_id=${TELEGRAM_CHAT_ID}
-          fi
-
-      - name: Send Noname Release APK to Telegram
-        if: success()
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: |
-          APK_PATH=$(find app/build/outputs/apk/noname/release -name "*.apk" | head -n 1)
-          if [ -f "$APK_PATH" ]; then
-            APK_NAME=$(basename "$APK_PATH")
-            COMMIT_MSG=$(git log -1 --pretty=%B)
-            BRANCH_NAME=${GITHUB_REF#refs/heads/}
-            BUILD_TIME=$(date +"%Y-%m-%d %H:%M:%S")
-            
-            curl -F document=@"$APK_PATH" \
-            -F caption="Noname Build Success - Release APK
-            
-            File: ${APK_NAME}
-            Build #${{ github.run_number }}
-            Branch: $BRANCH_NAME
-            Committer: ${{ github.actor }}
-            Commit: $COMMIT_MSG
-            Time: $BUILD_TIME
-            Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
-            https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument?chat_id=${TELEGRAM_CHAT_ID}
-          fi
 
 
       - name: Notify build failure to Telegram

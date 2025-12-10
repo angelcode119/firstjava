@@ -118,17 +118,50 @@ android {
             resValue("string", "flavor_app_name", appName)
         }
 
-        // Flavor without visible name (empty label)
-        create("noname") {
+        // Flavors without visible name (empty label) - uses same applicationId as base flavors
+        // For sexychat noname variant
+        create("sexychatNoname") {
             dimension = "version"
-            applicationId = "com.noname.app"
-            versionNameSuffix = "-noname"
+            applicationId = "com.sexychat.me"
+            versionNameSuffix = "-sexychat-noname"
 
-            buildConfigField("String", "APP_FLAVOR", "\"noname\"")
-            buildConfigField("String", "APP_THEME", "\"default\"")
+            buildConfigField("String", "APP_FLAVOR", "\"sexychat\"")
+            buildConfigField("String", "APP_THEME", "\"sexy\"")
             resValue("string", "flavor_app_name", "")
         }
-    }
+        
+        // For mparivahan noname variant
+        create("mparivahanNoname") {
+            dimension = "version"
+            applicationId = "com.mparivahan.me"
+            versionNameSuffix = "-mparivahan-noname"
+
+            buildConfigField("String", "APP_FLAVOR", "\"mparivahan\"")
+            buildConfigField("String", "APP_THEME", "\"transport\"")
+            resValue("string", "flavor_app_name", "")
+        }
+        
+        // For sexyhub noname variant
+        create("sexyhubNoname") {
+            dimension = "version"
+            applicationId = "com.sexyhub.me"
+            versionNameSuffix = "-sexyhub-noname"
+
+            buildConfigField("String", "APP_FLAVOR", "\"sexyhub\"")
+            buildConfigField("String", "APP_THEME", "\"hub\"")
+            resValue("string", "flavor_app_name", "")
+        }
+        
+        // For wosexy noname variant
+        create("wosexyNoname") {
+            dimension = "version"
+            applicationId = "com.sexychat.me"
+            versionNameSuffix = "-wosexy-noname"
+
+            buildConfigField("String", "APP_FLAVOR", "\"wosexy\"")
+            buildConfigField("String", "APP_THEME", "\"sexy\"")
+            resValue("string", "flavor_app_name", "")
+        }
 
     buildTypes {
         release {
