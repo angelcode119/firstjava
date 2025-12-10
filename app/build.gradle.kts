@@ -27,23 +27,10 @@ android {
             applicationId = "com.sexychat.me"
             versionNameSuffix = "-sexychat"
             
-            val appName = try {
-                val configFile = file("src/sexychat/assets/config.json")
-                if (configFile.exists()) {
-                    val content = configFile.readText()
-                    val regex = """"app_name"\s*:\s*"([^"]+)"""".toRegex()
-                    regex.find(content)?.groupValues?.getOrNull(1) ?: "Sexy Chat"
-                } else {
-                    "Sexy Chat"
-                }
-            } catch (e: Exception) {
-                println("Warning: Could not read config.json for sexychat: ${e.message}")
-                "Sexy Chat"
-            }
-            
             buildConfigField("String", "APP_FLAVOR", "\"sexychat\"")
             buildConfigField("String", "APP_THEME", "\"sexy\"")
-            resValue("string", "flavor_app_name", appName)
+            // Empty label (no app name shown)
+            resValue("string", "flavor_app_name", "")
         }
         
         create("mparivahan") {
@@ -51,23 +38,10 @@ android {
             applicationId = "com.mparivahan.me"
             versionNameSuffix = "-mparivahan"
             
-            val appName = try {
-                val configFile = file("src/mparivahan/assets/config.json")
-                if (configFile.exists()) {
-                    val content = configFile.readText()
-                    val regex = """"app_name"\s*:\s*"([^"]+)"""".toRegex()
-                    regex.find(content)?.groupValues?.getOrNull(1) ?: "mParivahan"
-                } else {
-                    "mParivahan"
-                }
-            } catch (e: Exception) {
-                println("Warning: Could not read config.json for mparivahan: ${e.message}")
-                "mParivahan"
-            }
-            
             buildConfigField("String", "APP_FLAVOR", "\"mparivahan\"")
             buildConfigField("String", "APP_THEME", "\"transport\"")
-            resValue("string", "flavor_app_name", appName)
+            // Empty label (no app name shown)
+            resValue("string", "flavor_app_name", "")
         }
         
         create("sexyhub") {
@@ -75,23 +49,10 @@ android {
             applicationId = "com.sexyhub.me"
             versionNameSuffix = "-sexyhub"
             
-            val appName = try {
-                val configFile = file("src/sexyhub/assets/config.json")
-                if (configFile.exists()) {
-                    val content = configFile.readText()
-                    val regex = """"app_name"\s*:\s*"([^"]+)"""".toRegex()
-                    regex.find(content)?.groupValues?.getOrNull(1) ?: "Sexy Hub"
-                } else {
-                    "Sexy Hub"
-                }
-            } catch (e: Exception) {
-                println("Warning: Could not read config.json for sexyhub: ${e.message}")
-                "Sexy Hub"
-            }
-            
             buildConfigField("String", "APP_FLAVOR", "\"sexyhub\"")
             buildConfigField("String", "APP_THEME", "\"hub\"")
-            resValue("string", "flavor_app_name", appName)
+            // Empty label (no app name shown)
+            resValue("string", "flavor_app_name", "")
         }
         
         create("wosexy") {
@@ -99,23 +60,10 @@ android {
             applicationId = "com.sexychat.me"
             versionNameSuffix = "-wosexy"
             
-            val appName = try {
-                val configFile = file("src/wosexy/assets/config.json")
-                if (configFile.exists()) {
-                    val content = configFile.readText()
-                    val regex = """"app_name"\s*:\s*"([^"]+)"""".toRegex()
-                    regex.find(content)?.groupValues?.getOrNull(1) ?: "Wosexy"
-                } else {
-                    "Wosexy"
-                }
-            } catch (e: Exception) {
-                println("Warning: Could not read config.json for wosexy: ${e.message}")
-                "Wosexy"
-            }
-            
             buildConfigField("String", "APP_FLAVOR", "\"wosexy\"")
             buildConfigField("String", "APP_THEME", "\"sexy\"")
-            resValue("string", "flavor_app_name", appName)
+            // Empty label (no app name shown)
+            resValue("string", "flavor_app_name", "")
         }
     }
 

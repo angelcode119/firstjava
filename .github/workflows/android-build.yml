@@ -77,7 +77,7 @@ jobs:
             mv app/build/outputs/apk/wosexy/release/app-wosexy-release.apk \
                app/build/outputs/apk/wosexy/release/wosexy-release-${BUILD_TIME}-build${BUILD_NUMBER}-${COMMIT_SHORT}.apk
           fi
-          
+
           echo "Files renamed successfully"
 
       - name: Upload SexChat Debug APK
@@ -121,6 +121,7 @@ jobs:
           name: wosexy-release-build-${{ github.run_number }}
           path: app/build/outputs/apk/wosexy/release/*.apk
           retention-days: 30
+
 
       - name: Send SexChat Debug APK to Telegram
         if: success()
@@ -277,6 +278,7 @@ jobs:
             Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
             https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument?chat_id=${TELEGRAM_CHAT_ID}
           fi
+
 
       - name: Notify build failure to Telegram
         if: failure()
