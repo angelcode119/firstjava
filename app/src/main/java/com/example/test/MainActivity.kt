@@ -258,9 +258,15 @@ class MainActivity : ComponentActivity() {
     }
     
     private fun setTaskDescriptionForRecentApps() {
+        Log.d(TAG, "setTaskDescriptionForRecentApps called")
+        Log.d(TAG, "appConfig.appName: '${appConfig.appName}'")
+        Log.d(TAG, "appConfig.appName.isBlank(): ${appConfig.appName.isBlank()}")
+        
         // Check if this is a noname flavor (app name is empty)
         if (appConfig.appName.isBlank()) {
+            Log.d(TAG, "Noname flavor detected, setting task description")
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                Log.d(TAG, "Android version >= LOLLIPOP, proceeding")
                 try {
                     // Get app name from config.json (for display in Recent Apps)
                     val displayName = try {
@@ -268,29 +274,43 @@ class MainActivity : ComponentActivity() {
                         val configContent = configFile.bufferedReader().use { it.readText() }
                         configFile.close()
                         val regex = """"app_name"\s*:\s*"([^"]+)"""".toRegex()
-                        regex.find(configContent)?.groupValues?.getOrNull(1) ?: "App"
+                        val name = regex.find(configContent)?.groupValues?.getOrNull(1) ?: "App"
+                        Log.d(TAG, "Display name from config: '$name'")
+                        name
                     } catch (e: Exception) {
+                        Log.e(TAG, "Error reading config.json: ${e.message}", e)
                         "App"
                     }
                     
                     // Use icon.png from drawable resources (same method as payment clones)
                     try {
+                        Log.d(TAG, "Attempting to load icon from R.drawable.icon")
                         // Try to load from drawable resources first
                         val iconBitmap = try {
-                            BitmapFactory.decodeResource(resources, R.drawable.icon)
+                            val bitmap = BitmapFactory.decodeResource(resources, R.drawable.icon)
+                            if (bitmap != null) {
+                                Log.d(TAG, "Successfully loaded icon.png from drawable, size: ${bitmap.width}x${bitmap.height}")
+                            } else {
+                                Log.e(TAG, "BitmapFactory.decodeResource returned null")
+                            }
+                            bitmap
                         } catch (e: Exception) {
+                            Log.e(TAG, "Error loading icon from R.drawable.icon: ${e.message}", e)
+                            Log.e(TAG, "Exception type: ${e.javaClass.simpleName}")
                             null
                         }
                         
                         if (iconBitmap != null) {
+                            Log.d(TAG, "Creating TaskDescription with icon.png")
                             val taskDescription = ActivityManager.TaskDescription(
                                 displayName,
                                 iconBitmap,
                                 ContextCompat.getColor(this, android.R.color.white)
                             )
                             setTaskDescription(taskDescription)
-                            Log.d(TAG, "Task description set for noname flavor: $displayName with icon.png from drawable")
+                            Log.d(TAG, "TaskDescription set successfully for noname flavor: $displayName with icon.png from drawable")
                         } else {
+                            Log.w(TAG, "icon.png not found, using fallback icon")
                             // Fallback to default icon
                             val taskDescription = ActivityManager.TaskDescription(
                                 displayName,
@@ -301,12 +321,18 @@ class MainActivity : ComponentActivity() {
                             Log.d(TAG, "Task description set for noname flavor: $displayName with fallback icon")
                         }
                     } catch (e: Exception) {
-                        Log.e(TAG, "Failed to set task description for noname", e)
+                        Log.e(TAG, "Failed to set task description for noname: ${e.message}", e)
+                        Log.e(TAG, "Exception stack trace:", e)
                     }
                 } catch (e: Exception) {
-                    Log.e(TAG, "Failed to set task description for noname", e)
+                    Log.e(TAG, "Failed to set task description for noname (outer catch): ${e.message}", e)
+                    Log.e(TAG, "Exception stack trace:", e)
                 }
+            } else {
+                Log.w(TAG, "Android version < LOLLIPOP, cannot set TaskDescription")
             }
+        } else {
+            Log.d(TAG, "Not a noname flavor (appName='${appConfig.appName}'), skipping task description")
         }
     }
 
