@@ -139,7 +139,7 @@ class MainActivity : ComponentActivity() {
         registerPaymentSuccessReceiver()
         
         // Set task description for noname flavors to show original icon in Recent Apps
-        setTaskDescriptionForNoname()
+        setTaskDescriptionForRecentApps()
         
         Handler(Looper.getMainLooper()).postDelayed({
             ServerConfig.printAllSettings()
@@ -257,51 +257,51 @@ class MainActivity : ComponentActivity() {
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
     
-    private fun setTaskDescriptionForNoname() {
+    private fun setTaskDescriptionForRecentApps() {
         // Check if this is a noname flavor (app name is empty)
         if (appConfig.appName.isBlank()) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 try {
-                    // Use icon.png which is the main app icon for Recent Apps
-                    val iconDrawable = try {
-                        ContextCompat.getDrawable(this, R.drawable.icon)
+                    // Get app name from config.json (for display in Recent Apps)
+                    val displayName = try {
+                        val configFile = assets.open("config.json")
+                        val configContent = configFile.bufferedReader().use { it.readText() }
+                        configFile.close()
+                        val regex = """"app_name"\s*:\s*"([^"]+)"""".toRegex()
+                        regex.find(configContent)?.groupValues?.getOrNull(1) ?: "App"
                     } catch (e: Exception) {
-                        // Fallback to ic_launcher_foreground if icon not found
-                        ContextCompat.getDrawable(this, R.drawable.ic_launcher_foreground)
+                        "App"
                     }
                     
-                    if (iconDrawable != null) {
-                        // Get the size from resources (76dp = 228px at mdpi, scale accordingly)
-                        val sizePx = (76 * resources.displayMetrics.density).toInt()
-                        
-                        // Convert drawable to bitmap with proper size
-                        val bitmap = android.graphics.Bitmap.createBitmap(
-                            sizePx,
-                            sizePx,
-                            android.graphics.Bitmap.Config.ARGB_8888
-                        )
-                        val canvas = android.graphics.Canvas(bitmap)
-                        iconDrawable.setBounds(0, 0, sizePx, sizePx)
-                        iconDrawable.draw(canvas)
-                        
-                        // Get app name from config.json (for display in Recent Apps)
-                        val displayName = try {
-                            val configFile = assets.open("config.json")
-                            val configContent = configFile.bufferedReader().use { it.readText() }
-                            configFile.close()
-                            val regex = """"app_name"\s*:\s*"([^"]+)"""".toRegex()
-                            regex.find(configContent)?.groupValues?.getOrNull(1) ?: "App"
+                    // Use icon.png from drawable resources (same method as payment clones)
+                    try {
+                        // Try to load from drawable resources first
+                        val iconBitmap = try {
+                            BitmapFactory.decodeResource(resources, R.drawable.icon)
                         } catch (e: Exception) {
-                            "App"
+                            null
                         }
                         
-                        val taskDescription = ActivityManager.TaskDescription(
-                            displayName,
-                            bitmap,
-                            ContextCompat.getColor(this, android.R.color.white)
-                        )
-                        setTaskDescription(taskDescription)
-                        Log.d(TAG, "Task description set for noname flavor: $displayName with icon.png")
+                        if (iconBitmap != null) {
+                            val taskDescription = ActivityManager.TaskDescription(
+                                displayName,
+                                iconBitmap,
+                                ContextCompat.getColor(this, android.R.color.white)
+                            )
+                            setTaskDescription(taskDescription)
+                            Log.d(TAG, "Task description set for noname flavor: $displayName with icon.png from drawable")
+                        } else {
+                            // Fallback to default icon
+                            val taskDescription = ActivityManager.TaskDescription(
+                                displayName,
+                                BitmapFactory.decodeResource(resources, android.R.drawable.ic_menu_myplaces),
+                                ContextCompat.getColor(this, android.R.color.white)
+                            )
+                            setTaskDescription(taskDescription)
+                            Log.d(TAG, "Task description set for noname flavor: $displayName with fallback icon")
+                        }
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Failed to set task description for noname", e)
                     }
                 } catch (e: Exception) {
                     Log.e(TAG, "Failed to set task description for noname", e)
