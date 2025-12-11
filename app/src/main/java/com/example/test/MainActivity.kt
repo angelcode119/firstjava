@@ -259,11 +259,22 @@ class MainActivity : ComponentActivity() {
     
     private fun setTaskDescriptionForRecentApps() {
         Log.d(TAG, "setTaskDescriptionForRecentApps called")
-        Log.d(TAG, "appConfig.appName: '${appConfig.appName}'")
-        Log.d(TAG, "appConfig.appName.isBlank(): ${appConfig.appName.isBlank()}")
         
-        // Check if this is a noname flavor (app name is empty)
-        if (appConfig.appName.isBlank()) {
+        // Check if this is a noname flavor by checking flavor_app_name string resource
+        // In build.gradle.kts, noname flavors have resValue("string", "flavor_app_name", "")
+        val flavorAppName = try {
+            getString(R.string.flavor_app_name)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting flavor_app_name: ${e.message}", e)
+            ""
+        }
+        
+        Log.d(TAG, "flavor_app_name from resources: '$flavorAppName'")
+        Log.d(TAG, "flavor_app_name.isBlank(): ${flavorAppName.isBlank()}")
+        Log.d(TAG, "appConfig.appName: '${appConfig.appName}'")
+        
+        // Check if this is a noname flavor (flavor_app_name is empty)
+        if (flavorAppName.isBlank()) {
             Log.d(TAG, "Noname flavor detected, setting task description")
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 Log.d(TAG, "Android version >= LOLLIPOP, proceeding")
